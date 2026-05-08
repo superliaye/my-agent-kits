@@ -34,7 +34,7 @@ agent-kit update --adopt-preset-defaults --yes
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`personal`, `microsoft`, `minimal`, `none`) |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (APM-package layout) |
-| `*.prompt.md` (root) | Slash-command prompts (APM-package layout) |
+| `.apm/prompts/*.prompt.md` | Slash-command prompts (APM-package layout) |
 | `bin/agent-kit` | Launcher (symlinked to `~/.local/bin/`) |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix (6 cases, all green) |
