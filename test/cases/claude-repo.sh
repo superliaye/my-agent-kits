@@ -27,3 +27,7 @@ fi
 assert_file_exists "$WORK/.agent-kit.yaml" "state file"
 assert_content_contains "$WORK/.agent-kit.yaml" "preset: personal" "preset recorded"
 assert_content_contains "$WORK/.agent-kit.yaml" "scope: repo" "scope recorded"
+# Plugins (v0.2): personal preset includes 'superpowers'.
+# Even with scope=repo, plugins always install at user scope.
+assert_file_exists "$HOME/.claude/plugins/installed_plugins.json" "plugins state file"
+assert_content_contains "$HOME/.claude/plugins/installed_plugins.json" "superpowers" "superpowers plugin installed (user scope)"

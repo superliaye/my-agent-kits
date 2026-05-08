@@ -13,3 +13,6 @@ agent-kit init --preset personal --agents claude --scope global --yes \
 
 assert_dir_nonempty "$HOME/.claude/rules"    "global rules"
 assert_dir_nonempty "$HOME/.claude/commands" "global commands"
+# Plugins (v0.2): personal preset includes 'superpowers'.
+assert_file_exists "$HOME/.claude/plugins/installed_plugins.json" "plugins state file"
+assert_content_contains "$HOME/.claude/plugins/installed_plugins.json" "superpowers" "superpowers plugin installed"

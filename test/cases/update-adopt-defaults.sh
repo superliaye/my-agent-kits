@@ -18,11 +18,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Force kit to old version FIRST so post-init bump produces a real delta
+node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
+
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
 agent-kit init --preset minimal --agents claude --scope repo --yes >/dev/null \
   || { fail "init failed"; exit 1; }
 
-# Bump kit version
+# Bump to a newer version so update sees the new react primitive as new
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.2.0';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 
 # Add a new react primitive

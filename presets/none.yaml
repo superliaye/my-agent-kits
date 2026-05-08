@@ -6,6 +6,7 @@ primitives:
   instructions: []
   prompts: []
   skills: []
+  plugins: []
   mcp: []
   hooks: []
 

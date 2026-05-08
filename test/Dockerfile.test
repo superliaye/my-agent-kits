@@ -9,6 +9,10 @@ RUN pipx install --pip-args='--no-cache-dir' "git+https://github.com/microsoft/a
     && ln -sf /root/.local/bin/apm /usr/local/bin/apm \
     && which apm && apm --version
 
+# Install Claude Code CLI (used by the v0.2 plugin primitive — `claude plugin install`)
+RUN npm install -g @anthropic-ai/claude-code --no-audit --no-fund --silent \
+    && which claude && claude --version
+
 WORKDIR /kit
 COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund

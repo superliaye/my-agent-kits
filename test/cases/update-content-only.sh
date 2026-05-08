@@ -17,11 +17,14 @@ restore() {
 }
 trap restore EXIT
 
+# Force kit to old version FIRST so the post-init bump produces a real delta
+node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
+
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
 agent-kit init --preset personal --agents claude --scope repo --yes >/dev/null \
   || { fail "init failed"; exit 1; }
 
-# Bump kit version
+# Bump to a newer version so update sees a delta
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.2.0';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 # Mutate one primitive
 echo "" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"

@@ -9,6 +9,8 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 | `presets/*.yaml` | Curated primitive bundles | Adding a new preset or editing membership |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules; YAML frontmatter required (`description`, `applyTo`, `added_in`) | Adding a rule |
 | `.apm/prompts/*.prompt.md` | Slash commands; same frontmatter requirements | Adding a slash command |
+| `.apm/skills/<name>/SKILL.md` | Multi-step skills (folder per skill) | Adding a skill |
+| `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (frontmatter: `marketplace_source`, `marketplace_name`, `plugin_name`) | Adding a plugin |
 | `lib/wizard.js` | Entrypoint; argv dispatcher | Adding a new top-level command |
 | `lib/init.js`, `lib/update.js` | Wizard flows | Changing wizard UX |
 | `lib/agents.js` | Per-agent capability table | Adding/changing an agent target |

@@ -78,6 +78,8 @@ my-agent-kits/                       (private, github.com/superliaye/my-agent-ki
 │   ├── skills/
 │   │   └── code-review/
 │   │       └── SKILL.md
+│   ├── plugins/                              # v0.2: Claude Code plugin pointers
+│   │   └── superpowers.plugin.md            # marketplace_source: anthropics/claude-plugins-official
 │   ├── mcp/                                  # (empty for MVP)
 │   └── hooks/                                # (empty for MVP)
 │
