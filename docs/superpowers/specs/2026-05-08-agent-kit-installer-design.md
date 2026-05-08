@@ -230,6 +230,124 @@ agent-kit init \
 
 Used by the test matrix and by power users.
 
+## 4b. `agent-kit update` flow
+
+After `init`, the kit (`my-agent-kits`) keeps evolving — new instructions, new prompts, new presets. The repo that was bootstrapped previously needs a low-friction way to catch up. `agent-kit update` is the answer.
+
+### State tracking
+
+`agent-kit init` writes a small state file to the repo on first run:
+
+```yaml
+# .agent-kit.yaml  (committed by default; user can move to .gitignore)
+preset: personal
+kit_version_at_last_run: 0.1.0       # the version of my-agent-kits at init/last update
+last_run: 2026-05-08T12:34:56Z
+selected_agents: [claude, copilot, codex]
+scope: repo
+primitives_at_last_run:              # snapshot — used to compute delta on update
+  instructions: [core, typescript]
+  prompts: [my-commit, my-commit-and-push, my-create-pr, my-explain, my-fix-build, my-clean-code]
+  skills: []
+  mcp: []
+```
+
+The kit's version comes from `package.json` of `my-agent-kits` (semver-tagged on each release). Per-primitive `added_in` field in each preset's YAML lets the wizard compute "what's new since `kit_version_at_last_run`".
+
+### Update flow (interactive)
+
+```
+$ cd ~/work/some-repo
+$ agent-kit update
+
+Kit:  my-agent-kits 0.1.0 → 0.3.0   (3 versions ahead)
+Repo: last initialized 2026-05-08, preset=personal, scope=repo
+
+Step 1/3  Refresh existing primitives
+  ✓ git pull on ~/my-agent-kits
+  ✓ apm install --update --force
+    - core.instructions.md         CONTENT changed (was sha256:abc..., now sha256:def...)
+    - typescript.instructions.md   unchanged
+    - my-commit.prompt.md          CONTENT changed
+    ... 4 of 8 primitives had content updates
+
+Step 2/3  New primitives available
+  Your 'personal' preset gained these since 0.1.0:
+    [ ] react.instructions.md       (added v0.2.0)
+    [ ] my-review.prompt.md          (added v0.3.0)
+
+  Other new primitives in the kit (not in your preset):
+    [ ] github.mcp.yaml              (new MCP server, v0.2.5)
+    [ ] code-review/SKILL.md         (new skill, v0.3.0)
+
+  ? Adopt any of these? (space=toggle, enter=skip):
+
+Step 3/3  Removed/renamed/deprecated primitives
+  None.
+
+✓ Updated apm.yml: 8 → 9 primitives
+✓ Re-ran apm install --force + apm compile
+✓ Re-verified deployments (same paths as init)
+✓ Updated .agent-kit.yaml (kit_version_at_last_run=0.3.0)
+```
+
+### Update modes
+
+| Command | Behavior | When to use |
+|---|---|---|
+| `agent-kit update` (default) | All 3 steps with prompts in Step 2 | Normal cadence — see what's new, decide what to adopt |
+| `agent-kit update --content-only` | Step 1 only; skip detection of new primitives | CI / scripted refresh; you want updates but no prompts |
+| `agent-kit update --adopt-preset-defaults` | Auto-add any new primitives the **preset** gained (not other kit additions); no prompt | "Give me whatever the latest preset says, no questions" |
+| `agent-kit update --dry-run` | Show what would change; no writes | Safety check before pulling |
+
+### Detecting new primitives
+
+The wizard computes the delta as:
+
+```
+new_in_preset       = primitives_in_preset_at_HEAD  - primitives_in_preset_at_kit_version_at_last_run
+new_in_kit_other    = all_primitives_at_HEAD        - primitives_in_preset_at_HEAD - primitives_user_already_has
+removed_in_preset   = primitives_at_last_run        - primitives_in_preset_at_HEAD - primitives_user_explicitly_added
+content_changed     = sha256(primitives_at_HEAD)   != sha256(primitives_at_last_run)
+```
+
+Each primitive file declares its origin version in YAML frontmatter:
+
+```yaml
+---
+description: React conventions
+applyTo: "**/*.{tsx,jsx}"
+added_in: 0.2.0
+---
+```
+
+`added_in` is set when the primitive is first committed to the kit and never changed afterward. (Edits to content don't bump it; only adding a brand-new primitive sets it.)
+
+### Removed primitives
+
+If a primitive the user has in their `apm.yml` was removed/renamed/deprecated in a later kit version, Step 3 surfaces it:
+
+```
+Step 3/3  Removed/renamed/deprecated primitives
+  - my-old-prompt.prompt.md     REMOVED in v0.2.0  (your apm.yml still references it)
+
+  ? What to do?
+    > Drop it from apm.yml (recommended)
+      Keep in apm.yml (will warn on each update)
+```
+
+### Re-running init vs. update
+
+| Situation | Command |
+|---|---|
+| First time setting up agent-kit in a repo | `agent-kit init` |
+| Catch up to latest kit | `agent-kit update` |
+| Change preset, agent list, or scope | `agent-kit init` (overwrites; reads `.agent-kit.yaml` to pre-fill prior choices) |
+| Adopt every new primitive automatically | `agent-kit update --adopt-preset-defaults` |
+| Just refresh content, no new primitives | `agent-kit update --content-only` |
+
+`agent-kit init` re-reads `.agent-kit.yaml` if present and uses the prior values as defaults — so re-running it isn't a complete restart, just an interactive change-of-mind.
+
 ## 5. Preset format
 
 ```yaml
@@ -273,6 +391,20 @@ primitives:
 
 **MVP note:** `extends:` is implemented at v0.1 as "copy the parent preset's primitives, then merge". No deep inheritance graph. If complexity grows, revisit.
 
+### Per-primitive `added_in` (used by `agent-kit update`)
+
+Each primitive declares the kit version where it was first introduced. Set when the primitive lands in the kit; never edited afterward. Used by Section 4b's update-flow delta detection.
+
+```yaml
+---
+description: React conventions
+applyTo: "**/*.{tsx,jsx}"
+added_in: 0.2.0
+---
+```
+
+If `added_in` is missing on a primitive, the wizard treats it as `0.0.0` (i.e., always existed) — safe default that keeps old kits compatible.
+
 ## 6. Per-agent deployment matrix
 
 This is the truth table the wizard implements:
@@ -284,16 +416,17 @@ This is the truth table the wizard implements:
 | **Codex** | `./AGENTS.md` (APM-compiled at repo root); optional `./AGENTS.override.md` (gitignored personal layer) | `~/.codex/AGENTS.md` (wizard copies from `~/.apm/AGENTS.md`) | Requires `apm compile` step. Global needs wizard's manual copy. |
 | **Cursor** | `.cursor/rules/*.mdc` | ❌ refuse | Workspace-only by agent design |
 
-### Per-agent install procedure (deploy.js logic)
+### Per-agent install procedure (deploy.js logic — used by both `init` and `update`)
 
 For each selected agent at the selected scope:
 
 1. Always: ensure `apm.yml` lists the right deps and `targets:`.
-2. Run `apm install` (workspace) or `apm install -g` (global). **Use `--force`** so re-runs overwrite previously-deployed APM-managed files. APM otherwise refuses to overwrite "locally-authored" files (observed in spike: 6 prompts skipped when `~/.claude/commands/` already had files from `sync-claude.sh`). Files outside APM's managed set (user's hand-written rules) are unaffected by `--force`.
+2. Run `apm install` (workspace) or `apm install -g` (global). **Use `--force`** so re-runs overwrite previously-deployed APM-managed files. APM otherwise refuses to overwrite "locally-authored" files (observed in spike: 6 prompts skipped when `~/.claude/commands/` already had files from `sync-claude.sh`). Files outside APM's managed set (user's hand-written rules) are unaffected by `--force`. For `update`, also pass `--update` to re-resolve to latest Git refs.
 3. Run `apm compile -t <comma-separated agents>` — needed for Codex/Gemini, harmless for others.
 4. **Codex global only:** copy `~/.apm/AGENTS.md` → `~/.codex/AGENTS.md`. (`apm compile` doesn't auto-place it.)
 5. **Codex personal layer (opt-in via Step 4b):** write `AGENTS.override.md` with the selected primitives' instructions concatenated, and add to `.gitignore`.
-6. Run verification (Section 10) and summarize.
+6. Write/refresh `.agent-kit.yaml` state file with kit version, preset, agents, scope, and primitives snapshot.
+7. Run verification (Section 10) and summarize.
 
 ## 7. Tech stack & invocation
 
@@ -334,18 +467,19 @@ cd ~/my-agent-kits && git pull && npm install
 
 ### In MVP (v0.1)
 
-- `agent-kit init` interactive — 5-step wizard, generates `apm.yml`, runs `apm install` + `apm compile`, performs post-steps (Codex global copy, optional `AGENTS.override.md`).
+- `agent-kit init` interactive — 5-step wizard, generates `apm.yml`, runs `apm install` + `apm compile`, performs post-steps (Codex global copy, optional `AGENTS.override.md`), writes `.agent-kit.yaml` state file.
 - `agent-kit init --preset ... --agents ... --scope ... --yes` non-interactive equivalent.
+- `agent-kit update` — Section 4b's 3-step update flow: refresh content, prompt for new primitives, handle removed ones. Includes flags: `--content-only`, `--adopt-preset-defaults`, `--dry-run`.
 - 3 presets: `personal`, `microsoft`, `minimal`.
 - 4 agent targets: Claude Code, Copilot, Codex CLI, Cursor.
 - Primitive types: instructions, prompts, skills. (MCP and hooks: directory exists but empty for MVP.)
+- Per-primitive `added_in` frontmatter for delta detection.
 - Bootstrap script with PATH setup.
-- Primitives folded in from `personal-agent-kit` (with `description` + `applyTo` frontmatter added).
+- Primitives folded in from `personal-agent-kit` (with `description` + `applyTo` + `added_in: 0.1.0` frontmatter added).
 - `agent-kit test` shortcut delegating to `bash test/run-tests.sh`.
 
 ### Deferred (v0.2+)
 
-- `agent-kit update` — pull new primitives in already-initialized repos.
 - `agent-kit list` — show what's installed in cwd.
 - `agent-kit add <primitive>` — quick add without re-running the full wizard.
 - MCP server primitives + the wizard step to pick them.
@@ -384,7 +518,16 @@ Following the dotfiles `Dockerfile.test` pattern, but specific to APM-deploy ver
 | 7 | `--agents copilot --scope global` | Wizard exits non-zero with message containing "Global scope is not supported by Copilot" |
 | 8 | `--agents cursor --scope global` | Wizard exits non-zero with similar message |
 
-**8 test cases total.**
+**Plus 2 update tests** (use a synthetic kit at version `0.1.0` then bump it to `0.2.0` with one added + one content-changed primitive):
+
+| # | Scenario | Expected |
+|---|---|---|
+| 9 | `agent-kit update --content-only` after init at v0.1.0 against a v0.2.0 kit | Refreshed content matches v0.2.0 sources; `apm.yml` primitive list unchanged; `.agent-kit.yaml` `kit_version_at_last_run` bumps to `0.2.0`. No interactive prompt invoked. |
+| 10 | `agent-kit update --adopt-preset-defaults` after init at v0.1.0 against a v0.2.0 kit (with one new primitive added to the preset) | New primitive auto-adopted into `apm.yml`; deployment includes it; `.agent-kit.yaml` reflects updated primitives snapshot. No prompt. |
+
+**10 test cases total.**
+
+The interactive Step 2 prompt path (selectively adopting some new primitives) is covered manually rather than in CI — driving an interactive multi-select via stdin is brittle and the underlying delta-detection logic is exercised by case #10.
 
 ### Test runner architecture
 
@@ -449,14 +592,14 @@ If any step fails, exit non-zero and print the specific gap. Don't claim success
 
 Suggested high-level sequencing for the implementation plan:
 
-1. Add `description` + `applyTo` frontmatter to `personal-agent-kit` primitives (preparatory).
+1. Add `description` + `applyTo` + `added_in: 0.1.0` frontmatter to `personal-agent-kit` primitives (preparatory).
 2. Create `my-agent-kits` repo skeleton with the directory layout from Section 3.
 3. Move `personal-agent-kit` primitives into `my-agent-kits/primitives/`.
 4. Author `presets/personal.yaml`, `presets/microsoft.yaml`, `presets/minimal.yaml`, `presets/none.yaml`.
-5. Implement `lib/` modules in order: `presets.js` → `primitives.js` → `apm-writer.js` → `agents.js` → `deploy.js` → `verify.js` → `wizard.js`.
+5. Implement `lib/` modules in order: `presets.js` → `primitives.js` → `state.js` (read/write `.agent-kit.yaml`) → `apm-writer.js` → `agents.js` → `deploy.js` → `verify.js` → `init.js` → `update.js` (delta detection) → `wizard.js` (entrypoint dispatcher).
 6. Implement `bootstrap.sh` and `bin/agent-kit`.
-7. Build out `test/Dockerfile.test`, `test/run-tests.sh`, and `cases/*.sh` per Section 9.
-8. Run the matrix; iterate until 8/8 green.
+7. Build out `test/Dockerfile.test`, `test/run-tests.sh`, and `cases/*.sh` per Section 9 (10 cases — 6 init happy paths, 2 negative, 2 update).
+8. Run the matrix; iterate until 10/10 green.
 9. Archive `personal-agent-kit` on GitHub with redirect README.
 10. Document in root `README.md` + `CLAUDE.md`.
 
