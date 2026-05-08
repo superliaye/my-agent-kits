@@ -15,6 +15,10 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 | `lib/deploy.js` | APM orchestration + post-steps | Changing how APM is invoked |
 | `test/cases/*.sh` | One per matrix cell | Adding a new agent×scope or bug repro |
 
+## v0.1 placeholders
+
+- **`presets/microsoft.yaml`** — `extends: personal` with no MS-specific primitives yet. The spec mentions `ms-rush`, `ms-sharepoint`, and `graduate-killswitches` but those primitives are deferred to a follow-up so v0.1 doesn't ship Microsoft-internal content publicly. The preset is a stable name (so `agent-kit init --preset microsoft` works in scripts) that currently behaves identically to `personal`.
+
 ## Layout note (APM-package conventions)
 
 Primitives MUST live where APM expects them, otherwise install/compile finds nothing:

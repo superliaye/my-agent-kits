@@ -13,7 +13,8 @@ primitives:
     - my-fix-build
     - my-explain
     - my-clean-code
-  skills: []
+  skills:
+    - code-review
   mcp: []
   hooks: []
 
