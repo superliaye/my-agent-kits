@@ -13,8 +13,6 @@ Deploying personal AI agent artifacts (instructions, slash-command prompts, skil
 - **Error-prone** — APM has agent-specific gaps (e.g., Codex global deploy compiles to `~/.apm/AGENTS.md` not `~/.codex/AGENTS.md`); user must remember which extra steps to run.
 - **Non-interactive** — APM assumes the user already knows which preset, agents, and primitives they want.
 
-**Scope note:** v0.1 supports Claude Code and Codex CLI only. Other agents (Copilot CLI, Cursor, Windsurf, Gemini, OpenCode) are deferred — see Section 8.
-
 Existing partial solutions:
 - `superliaye/dotfiles` + `sync-claude.sh` — works for Claude Code only.
 - `superliaye/personal-agent-kit` (APM package) — works at user scope for Claude only; doesn't deploy Codex global automatically.
@@ -166,7 +164,7 @@ Pre-checked = preset's defaults. User can add or remove.
                     available across all repos on this machine
 ```
 
-Both options work for both supported agents. No refusal logic in v0.1. (When v0.2 adds Copilot/Cursor, we revisit; their workspace-only nature will reintroduce the refusal sub-flow then.)
+Both options work for both supported agents. No refusal logic.
 
 #### Step 4b (conditional) — Codex personal layer
 
@@ -410,7 +408,7 @@ For each selected agent at the selected scope:
 
 1. Always: ensure `apm.yml` lists the right deps and `targets:`.
 2. Run `apm install` (workspace) or `apm install -g` (global). **Use `--force`** so re-runs overwrite previously-deployed APM-managed files. APM otherwise refuses to overwrite "locally-authored" files (observed in spike: 6 prompts skipped when `~/.claude/commands/` already had files from `sync-claude.sh`). Files outside APM's managed set (user's hand-written rules) are unaffected by `--force`. For `update`, also pass `--update` to re-resolve to latest Git refs.
-3. Run `apm compile -t <comma-separated agents>` — needed for Codex/Gemini, harmless for others.
+3. Run `apm compile -t claude,codex` — needed for Codex (compiles concatenated `AGENTS.md`); harmless for Claude.
 4. **Codex global only:** copy `~/.apm/AGENTS.md` → `~/.codex/AGENTS.md`. (`apm compile` doesn't auto-place it.)
 5. **Codex personal layer (opt-in via Step 4b):** write `AGENTS.override.md` with the selected primitives' instructions concatenated, and add to `.gitignore`.
 6. Write/refresh `.agent-kit.yaml` state file with kit version, preset, agents, scope, and primitives snapshot.
@@ -468,7 +466,6 @@ cd ~/my-agent-kits && git pull && npm install
 
 ### Deferred (v0.2+)
 
-- **Additional agent targets:** Copilot CLI, Cursor, Windsurf, Gemini, OpenCode. Adding any of these brings back the global-scope refusal logic (Copilot/Cursor are workspace-only by agent design).
 - `agent-kit list` — show what's installed in cwd.
 - `agent-kit add <primitive>` — quick add without re-running the full wizard.
 - MCP server primitives + the wizard step to pick them.
@@ -510,7 +507,7 @@ Use a synthetic kit at version `0.1.0` then bump it to `0.2.0` with one added + 
 
 The interactive Step 2 prompt path (selectively adopting some new primitives) is covered manually rather than in CI — driving an interactive multi-select via stdin is brittle, and the underlying delta-detection logic is exercised by case #6.
 
-No negative tests in v0.1: with only Claude and Codex supported, every `(agent, scope)` combo is valid. When v0.2 adds Copilot/Cursor, restore the refused-global negative tests.
+No negative tests: with Claude and Codex supported, every `(agent, scope)` combo is valid.
 
 ### Test runner architecture
 
@@ -565,11 +562,10 @@ If any step fails, exit non-zero and print the specific gap. Don't claim success
 |---|---|
 | APM is brand-new (v0.12.4); behavior may change | Pin `apm` version in `bootstrap.sh` requirements; document tested version in `CLAUDE.md`. |
 | Codex global copy step is fragile if APM changes its compile output location | Re-test on every APM version bump; consider replacing with a direct AGENTS.md write if APM behavior is unstable. |
-| `applyTo` semantics for Codex specifically: Codex's runtime is purely concat-and-feed, so `applyTo` is effectively advisory for Codex. | Document in `CLAUDE.md`; rely on Codex's 32 KiB cap for runtime behavior. (When Copilot is added in v0.2, `applyTo` becomes load-bearing for it.) |
+| `applyTo` is advisory for Codex (its runtime is concat-and-feed, doesn't filter by glob) | Document in `CLAUDE.md`; rely on Codex's 32 KiB cap for runtime behavior. Set `applyTo` correctly anyway — the wizard reads it for primitive metadata; Claude Code respects it. |
 | Personal-agent-kit primitives lack `description` + `applyTo` frontmatter | First implementation task: add frontmatter to every primitive before tests can pass. |
 | Private repo means bootstrap requires GitHub auth on every machine | Document SSH-key prerequisite in README; `bootstrap.sh` prints clear error if auth fails. |
 | Hooks and MCP primitive types are placeholders in MVP | Reserve directories now; add primitives + wizard prompts in v0.2. |
-| Adding Copilot/Cursor in v0.2 reintroduces the global-scope refusal logic | Build wizard with the decision-path already structured (per-agent capability table) so adding agents is config, not code restructure. |
 
 ## 13. Implementation order (next: writing-plans skill)
 
@@ -588,4 +584,4 @@ Suggested high-level sequencing for the implementation plan:
 
 ## Appendix A — Why these decisions, in one paragraph
 
-We picked a wrapper-on-APM mono-repo because rewriting APM is a year of work for diminishing returns; APM does deploy + lockfile + auth + per-agent format conversion well enough that the only missing pieces are (a) interactive UX, (b) presets, (c) a few specific gap-plugs (Codex global copy, `AGENTS.override.md`). A private mono-repo is the simplest visibility model — public/private split inside the kit creates more friction than it saves. Node + clack is the polish-vs-effort sweet spot for personal tooling. Narrowing v0.1 to Claude Code + Codex CLI was the late simplification: both fully support repo-scoped AND global instructions, so the matrix shrinks to 4 init combos + 2 update tests = 6 cases — no negative tests needed. The architecture leaves room to add Copilot/Cursor/Windsurf in v0.2 by extending the per-agent capability table, at which point the global-scope refusal logic returns.
+We picked a wrapper-on-APM mono-repo because rewriting APM is a year of work for diminishing returns; APM does deploy + lockfile + auth + per-agent format conversion well enough that the only missing pieces are (a) interactive UX, (b) presets, (c) a few specific gap-plugs (Codex global copy, `AGENTS.override.md`). A private mono-repo is the simplest visibility model — public/private split inside the kit creates more friction than it saves. Node + clack is the polish-vs-effort sweet spot for personal tooling. We support Claude Code and Codex CLI, period: both fully support repo-scoped AND global instructions, so the test matrix is 4 init combos + 2 update tests = 6 cases, no negative tests, no special-case handling for partial-support agents.
