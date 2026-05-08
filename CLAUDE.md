@@ -21,14 +21,17 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 
 ## Layout note (APM-package conventions)
 
-Primitives MUST live where APM expects them, otherwise install/compile finds nothing:
+Primitives MUST live where APM expects them, otherwise install/compile finds nothing. We standardize on the multi-primitive layout: everything under `.apm/`.
 
 - Instructions → `.apm/instructions/<name>.instructions.md`
-- Prompts → `<name>.prompt.md` at repo root
-- Skills → `<name>/SKILL.md` (folder per skill, at repo root)
-- MCP / Hooks → reserved for v0.2
+- Prompts → `.apm/prompts/<name>.prompt.md`
+- Skills → `.apm/skills/<name>/SKILL.md` (folder per skill)
+- MCP / Hooks → `.apm/mcp/`, `.apm/hooks/` (reserved for v0.2)
 
-This is the layout from `microsoft/apm`'s `hello-world` template. Don't put primitives in a subdirectory like `primitives/` — APM won't see them.
+Notes:
+
+- APM is lenient and ALSO accepts root-level `*.prompt.md` and root-level `skills/<name>/SKILL.md` (those are the single-skill-package conventions per the hello-world template). We use `.apm/*` consistently for symmetry and a clean repo root.
+- Don't put primitives in a different subdirectory like `primitives/` — APM won't discover them.
 
 ## Rules
 
