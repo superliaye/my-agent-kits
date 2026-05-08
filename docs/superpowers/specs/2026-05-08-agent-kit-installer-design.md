@@ -75,12 +75,11 @@ my-agent-kits/                       (private, github.com/superliaye/my-agent-ki
 │   │   ├── my-explain.prompt.md
 │   │   ├── my-fix-build.prompt.md
 │   │   └── my-clean-code.prompt.md
+│   ├── skills/
+│   │   └── code-review/
+│   │       └── SKILL.md
 │   ├── mcp/                                  # (empty for MVP)
 │   └── hooks/                                # (empty for MVP)
-│
-├── skills/                          # APM convention: skills/<name>/SKILL.md
-│   └── code-review/
-│       └── SKILL.md
 │
 ├── lib/                             # wizard implementation (Node)
 │   ├── wizard.js                    # entrypoint
