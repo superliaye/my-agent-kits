@@ -178,6 +178,21 @@ If the user picks **Global** with Copilot or Cursor selected, the wizard prints:
 
 …and returns to Step 3 or 4. No partial deployment.
 
+#### Step 4b (conditional) — Codex personal layer
+
+Shown only when `scope=repo` AND `Codex` is in the selected agents:
+
+```
+? Codex supports a personal layer (`AGENTS.override.md`, gitignored) on top of
+  the team's `AGENTS.md`. Add one for your selected primitives?
+  > No   (preset's primitives go in the committed AGENTS.md only)
+    Yes  (preset's primitives go in AGENTS.override.md, gitignored;
+          the committed AGENTS.md is left untouched if it already exists,
+          or created empty if it doesn't)
+```
+
+Default: **No**. Choosing Yes makes the install non-team-affecting at the cost of needing to redo on each clone. Useful when the user is testing a preset before promoting it to team standards.
+
 ### Step 5/5 — Apply + verify
 
 ```
@@ -274,10 +289,10 @@ This is the truth table the wizard implements:
 For each selected agent at the selected scope:
 
 1. Always: ensure `apm.yml` lists the right deps and `targets:`.
-2. Run `apm install` (workspace) or `apm install -g` (global).
+2. Run `apm install` (workspace) or `apm install -g` (global). **Use `--force`** so re-runs overwrite previously-deployed APM-managed files. APM otherwise refuses to overwrite "locally-authored" files (observed in spike: 6 prompts skipped when `~/.claude/commands/` already had files from `sync-claude.sh`). Files outside APM's managed set (user's hand-written rules) are unaffected by `--force`.
 3. Run `apm compile -t <comma-separated agents>` — needed for Codex/Gemini, harmless for others.
 4. **Codex global only:** copy `~/.apm/AGENTS.md` → `~/.codex/AGENTS.md`. (`apm compile` doesn't auto-place it.)
-5. **Codex personal layer (opt-in):** if user opted in during Step 5, write `AGENTS.override.md` with the personal preset's instructions concatenated, and add to `.gitignore`.
+5. **Codex personal layer (opt-in via Step 4b):** write `AGENTS.override.md` with the selected primitives' instructions concatenated, and add to `.gitignore`.
 6. Run verification (Section 10) and summarize.
 
 ## 7. Tech stack & invocation
