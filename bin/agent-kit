@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Tiny launcher: resolve our install dir, exec the Node entrypoint.
+
+set -e
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
+
+exec node "$DIR/lib/wizard.js" "$@"

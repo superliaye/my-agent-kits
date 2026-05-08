@@ -1,0 +1,26 @@
+FROM node:20-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git ca-certificates curl bash python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install APM CLI from the official Microsoft installer (Linux)
+RUN curl -sSL https://aka.ms/apm-unix | sh \
+    && (cp /root/.local/bin/apm /usr/local/bin/apm 2>/dev/null \
+        || cp /root/.apm/bin/apm /usr/local/bin/apm 2>/dev/null \
+        || ln -s "$(find / -name apm -type f -executable 2>/dev/null | head -1)" /usr/local/bin/apm) \
+    && which apm && apm --version
+
+WORKDIR /kit
+COPY package.json package-lock.json* ./
+RUN npm install --no-audit --no-fund
+COPY . .
+
+# Bootstrap (link agent-kit into /usr/local/bin)
+RUN chmod +x /kit/bin/agent-kit && ln -sf /kit/bin/agent-kit /usr/local/bin/agent-kit
+
+# Configure git for the apm install (it inspects git config)
+RUN git config --global user.email "test@example.com" \
+    && git config --global user.name "Test User"
+
+CMD ["bash", "/kit/test/run-tests.sh"]
