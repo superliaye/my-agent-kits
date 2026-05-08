@@ -1,0 +1,17 @@
+{
+  "name": "my-agent-kits",
+  "version": "0.1.0",
+  "description": "Personal AI agent artifact wizard for Claude Code and Codex CLI",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "bash test/run-tests.sh"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "yaml": "^2.4.0"
+  }
+}

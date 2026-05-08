@@ -1,0 +1,13 @@
+name: microsoft
+description: Personal kit + Microsoft-specific (ODSP/Rush/SharePoint placeholder for v0.1)
+extends: personal
+default_agents: [claude, codex]
+
+primitives:
+  instructions: []
+  prompts: []
+  skills: []
+  mcp: []
+  hooks: []
+
+apm_dependencies: []

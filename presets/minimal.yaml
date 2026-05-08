@@ -1,0 +1,13 @@
+name: minimal
+description: Just the core conduct rules — no slash commands, no language rules
+default_agents: [claude, codex]
+
+primitives:
+  instructions:
+    - core
+  prompts: []
+  skills: []
+  mcp: []
+  hooks: []
+
+apm_dependencies: []

@@ -1,0 +1,12 @@
+name: none
+description: Empty starting point — pick everything in the customize step
+default_agents: [claude, codex]
+
+primitives:
+  instructions: []
+  prompts: []
+  skills: []
+  mcp: []
+  hooks: []
+
+apm_dependencies: []

@@ -1,0 +1,8 @@
+name: my-agent-kits
+version: 0.1.0
+description: Personal AI agent artifact wizard for Claude Code and Codex CLI
+author: Leon YE
+
+dependencies:
+  apm: []
+  mcp: []
