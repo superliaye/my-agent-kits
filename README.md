@@ -1,16 +1,54 @@
 # my-agent-kits
 
-Status: **design phase — no implementation yet**.
+Personal AI agent artifact wizard for Claude Code and Codex CLI. Bootstrap or update any repo's agent setup with one command.
 
-Private mono-repo for personal + Microsoft-internal AI agent artifacts (instructions, prompts, skills, MCP configs) plus an interactive wizard (`agent-kit init`) that deploys them to Claude Code, GitHub Copilot, Codex CLI, and Cursor on a per-repo or global basis via APM.
+## Install (one time per machine)
 
-## Where to start
+```bash
+git clone git@github.com:superliaye/my-agent-kits.git ~/my-agent-kits
+cd ~/my-agent-kits && bash bootstrap.sh
+```
 
-- **[Design spec](docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md)** — the full plan (problem, decisions, repo layout, wizard flow, test matrix, migration path).
+Requires Node 20+, APM CLI (`scoop install apm` on Windows, `pipx install git+https://github.com/microsoft/apm.git` on Linux/macOS), and Git.
 
-The spec is the single source of truth until implementation begins. Implementation plan to be drafted next via the `superpowers:writing-plans` skill.
+## Usage
 
-## Related repos
+```bash
+cd ~/work/some-repo
+agent-kit init        # interactive 5-step wizard
+agent-kit update      # catch up to latest kit
+agent-kit help
+```
 
-- `superliaye/dotfiles` — shell aliases, install scripts (kept; out of scope for this tool).
-- `superliaye/personal-agent-kit` — APM package; will be folded into this repo and archived once `my-agent-kits` is operational.
+Non-interactive (CI / scripting):
+
+```bash
+agent-kit init --preset personal --agents claude,codex --scope repo --yes
+agent-kit update --content-only --yes
+agent-kit update --adopt-preset-defaults --yes
+```
+
+## What's in here
+
+| Path | Purpose |
+|---|---|
+| `presets/*.yaml` | Bundled artifact selections (`personal`, `microsoft`, `minimal`, `none`) |
+| `.apm/instructions/*.instructions.md` | Always-loaded rules (APM-package layout) |
+| `*.prompt.md` (root) | Slash-command prompts (APM-package layout) |
+| `bin/agent-kit` | Launcher (symlinked to `~/.local/bin/`) |
+| `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
+| `test/` | Docker-based test matrix (6 cases, all green) |
+
+## Tests
+
+```bash
+docker build -q -f test/Dockerfile.test -t my-agent-kits-test .
+docker run --rm my-agent-kits-test
+```
+
+Expected: `Results: 6 cases passed, 0 cases failed`.
+
+## Spec & Plan
+
+- Design spec: [`docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md`](docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md)
+- Implementation plan: [`docs/superpowers/plans/2026-05-08-agent-kit-installer.md`](docs/superpowers/plans/2026-05-08-agent-kit-installer.md)
