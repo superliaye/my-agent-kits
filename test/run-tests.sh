@@ -20,10 +20,15 @@ for case_script in "$HERE"/cases/*.sh; do
   case_name="$(basename "$case_script" .sh)"
   echo ""
   echo "[$case_name]"
-  PASS=0
-  FAIL=0
+  # Have each case subshell write its PASS/FAIL counts to a tmp file we can read.
+  COUNT_FILE="$(mktemp)"
+  export COUNT_FILE
   if bash "$case_script"; then
-    if [ "$FAIL" -eq 0 ]; then
+    case_pass=$(grep -c '^pass$' "$COUNT_FILE" 2>/dev/null); case_pass=${case_pass:-0}
+    case_fail=$(grep -c '^fail$' "$COUNT_FILE" 2>/dev/null); case_fail=${case_fail:-0}
+    TOTAL_PASS=$((TOTAL_PASS + case_pass))
+    TOTAL_FAIL=$((TOTAL_FAIL + case_fail))
+    if [ "$case_fail" -eq 0 ]; then
       CASES_PASSED+=("$case_name")
     else
       CASES_FAILED+=("$case_name")
@@ -31,8 +36,7 @@ for case_script in "$HERE"/cases/*.sh; do
   else
     CASES_FAILED+=("$case_name")
   fi
-  TOTAL_PASS=$((TOTAL_PASS + PASS))
-  TOTAL_FAIL=$((TOTAL_FAIL + FAIL))
+  rm -f "$COUNT_FILE"
 done
 
 echo ""

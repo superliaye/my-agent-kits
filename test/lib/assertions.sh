@@ -4,8 +4,11 @@
 PASS=${PASS:-0}
 FAIL=${FAIL:-0}
 
-ok()   { echo "  [pass] $1"; PASS=$((PASS+1)); }
-fail() { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); }
+# COUNT_FILE is set by run-tests.sh; ok/fail append a marker each call so the
+# runner can grep-count after the subshell exits (subshell var counts don't
+# propagate, and trap-EXIT doesn't work because cases set their own EXIT trap).
+ok()   { echo "  [pass] $1"; PASS=$((PASS+1)); [ -n "${COUNT_FILE:-}" ] && echo "pass" >> "$COUNT_FILE"; }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL+1)); [ -n "${COUNT_FILE:-}" ] && echo "fail" >> "$COUNT_FILE"; }
 
 assert_file_exists() {
   local path="$1"; local label="${2:-$path}"

@@ -14,7 +14,7 @@ ORIG_PRESET="$(cat "$KIT_ROOT/presets/minimal.yaml")"
 cleanup() {
   printf '%s' "$ORIG_PKG"    > "$KIT_ROOT/package.json"
   printf '%s' "$ORIG_PRESET" > "$KIT_ROOT/presets/minimal.yaml"
-  rm -f "$KIT_ROOT/primitives/instructions/react.instructions.md"
+  rm -f "$KIT_ROOT/.apm/instructions/react.instructions.md"
 }
 trap cleanup EXIT
 
@@ -26,7 +26,7 @@ agent-kit init --preset minimal --agents claude --scope repo --yes >/dev/null \
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.2.0';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 
 # Add a new react primitive
-cat > "$KIT_ROOT/primitives/instructions/react.instructions.md" <<'EOF'
+cat > "$KIT_ROOT/.apm/instructions/react.instructions.md" <<'EOF'
 ---
 description: React conventions (test fixture)
 applyTo: "**/*.{tsx,jsx}"

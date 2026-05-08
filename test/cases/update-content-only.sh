@@ -9,11 +9,11 @@ KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 . "$HERE/../lib/assertions.sh"
 
 ORIG_PKG="$(cat "$KIT_ROOT/package.json")"
-ORIG_CORE="$(cat "$KIT_ROOT/primitives/instructions/core.instructions.md")"
+ORIG_CORE="$(cat "$KIT_ROOT/.apm/instructions/core.instructions.md")"
 
 restore() {
   printf '%s' "$ORIG_PKG"  > "$KIT_ROOT/package.json"
-  printf '%s' "$ORIG_CORE" > "$KIT_ROOT/primitives/instructions/core.instructions.md"
+  printf '%s' "$ORIG_CORE" > "$KIT_ROOT/.apm/instructions/core.instructions.md"
 }
 trap restore EXIT
 
@@ -24,8 +24,8 @@ agent-kit init --preset personal --agents claude --scope repo --yes >/dev/null \
 # Bump kit version
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.2.0';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 # Mutate one primitive
-echo "" >> "$KIT_ROOT/primitives/instructions/core.instructions.md"
-echo "## Added in v0.2.0" >> "$KIT_ROOT/primitives/instructions/core.instructions.md"
+echo "" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"
+echo "## Added in v0.2.0" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"
 
 agent-kit update --content-only --yes >/dev/null \
   || { fail "agent-kit update exited non-zero"; exit 1; }
