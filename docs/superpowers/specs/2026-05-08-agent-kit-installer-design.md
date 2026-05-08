@@ -62,12 +62,12 @@ my-agent-kits/                       (private, github.com/superliaye/my-agent-ki
 │   ├── minimal.yaml                 # core only
 │   └── none.yaml                    # empty starting point
 │
-├── primitives/                      # all reusable building blocks
+├── .apm/                            # APM-package primitives (auto-discovered by APM)
 │   ├── instructions/
 │   │   ├── core.instructions.md             # applyTo: "**"
 │   │   ├── typescript.instructions.md       # applyTo: "**/*.{ts,tsx}"
-│   │   ├── ms-rush.instructions.md          # applyTo: "**"
-│   │   └── ms-sharepoint.instructions.md    # applyTo: "**"
+│   │   ├── ms-rush.instructions.md          # applyTo: "**" (deferred)
+│   │   └── ms-sharepoint.instructions.md    # applyTo: "**" (deferred)
 │   ├── prompts/
 │   │   ├── my-commit.prompt.md
 │   │   ├── my-commit-and-push.prompt.md
@@ -75,18 +75,17 @@ my-agent-kits/                       (private, github.com/superliaye/my-agent-ki
 │   │   ├── my-explain.prompt.md
 │   │   ├── my-fix-build.prompt.md
 │   │   └── my-clean-code.prompt.md
-│   ├── skills/
-│   │   └── graduate-killswitches/
-│   │       └── SKILL.md
-│   ├── mcp/
-│   │   └── (empty for MVP)
-│   └── hooks/
-│       └── (empty for MVP)
+│   ├── mcp/                                  # (empty for MVP)
+│   └── hooks/                                # (empty for MVP)
+│
+├── skills/                          # APM convention: skills/<name>/SKILL.md
+│   └── code-review/
+│       └── SKILL.md
 │
 ├── lib/                             # wizard implementation (Node)
 │   ├── wizard.js                    # entrypoint
 │   ├── presets.js                   # loads presets/*.yaml
-│   ├── primitives.js                # discovers primitives/
+│   ├── primitives.js                # discovers .apm/* and skills/
 │   ├── apm-writer.js                # generates per-repo apm.yml
 │   ├── deploy.js                    # orchestrates apm install + compile + post-steps
 │   ├── agents.js                    # per-agent quirks (Codex global copy, refuse rules)
