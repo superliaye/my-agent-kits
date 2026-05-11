@@ -4,7 +4,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Upstream
 
-- **Repo**: https://github.com/mattpocock/skills
+- **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/improve-codebase-architecture/`
 - **Last synced**: 2026-05-11 (vendored at `upstream_version: 1.0.0`)
 - **Files vendored**:
@@ -24,7 +24,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Local modifications
 
 - Dropped upstream's `name: improve-codebase-architecture` field — the kit's primitive loader derives the name from the folder.
-- Added kit-required fields: `disable-model-invocation: true`, `added_in`, `upstream`, `upstream_version`.
+- Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 
 ## Cross-skill dependencies
 
@@ -37,5 +37,5 @@ These resolve correctly in both the kit layout (`.apm/skills/*/`) and the deploy
 
 ## Notes
 
-- Manual-only (`disable-model-invocation: true`) — matches the diagnose skill. This is a deliberate architectural review tool, not something to auto-invoke on every "improve this" mention.
+- Model-invocable — `disable-model-invocation` is deliberately NOT set so the model can route here when the user asks about architecture or refactoring.
 - `diagnose`'s Phase 6 hands off to this skill — pairs naturally with it.

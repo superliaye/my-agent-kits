@@ -4,7 +4,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Upstream
 
-- **Repo**: https://github.com/mattpocock/skills
+- **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/diagnose/`
 - **Last synced**: 2026-05-11 (vendored at `upstream_version: 1.0.0`)
 - **Files vendored**:
@@ -22,9 +22,9 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Local modifications
 
 - Dropped upstream's `name: diagnose` field — the kit's primitive loader derives the name from the folder.
-- Added kit-required fields: `disable-model-invocation: true`, `added_in`, `upstream`, `upstream_version`.
+- Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 
 ## Notes
 
 - The body's Phase 6 hands off to the `/improve-codebase-architecture` skill — also vendored at `.apm/skills/improve-codebase-architecture/` from the same upstream.
-- This skill is **manual-only** (`disable-model-invocation: true`) so the model won't auto-invoke it on every bug report.
+- Model-invocable — `disable-model-invocation` is deliberately NOT set so the model can route into this skill when the user reports a bug or perf regression.

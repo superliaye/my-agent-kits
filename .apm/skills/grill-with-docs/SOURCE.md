@@ -4,7 +4,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Upstream
 
-- **Repo**: https://github.com/mattpocock/skills
+- **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/grill-with-docs/`
 - **Last synced**: 2026-05-11 (vendored at `upstream_version: 1.0.0`)
 - **Files vendored**:
