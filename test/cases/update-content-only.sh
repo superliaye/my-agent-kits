@@ -21,7 +21,7 @@ trap restore EXIT
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
-agent-kit init --preset personal --agents claude --scope repo --yes >/dev/null \
+agent-kit init --preset engineering --agents claude --scope repo --yes >/dev/null \
   || { fail "init failed"; exit 1; }
 
 # Bump to a newer version so update sees a delta

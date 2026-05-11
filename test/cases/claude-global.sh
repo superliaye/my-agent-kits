@@ -8,7 +8,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset personal --agents claude --scope global --yes \
+agent-kit init --preset engineering --agents claude --scope global --yes \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
 assert_dir_nonempty "$HOME/.claude/rules"    "global rules"
@@ -22,6 +22,3 @@ elif [ -d "$HOME/.claude/commands" ] && [ -n "$(ls -A "$HOME/.claude/commands" 2
 else
   fail "global skills missing"
 fi
-# Plugins (v0.2): personal preset includes 'superpowers'.
-assert_file_exists "$HOME/.claude/plugins/installed_plugins.json" "plugins state file"
-assert_content_contains "$HOME/.claude/plugins/installed_plugins.json" "superpowers" "superpowers plugin installed"

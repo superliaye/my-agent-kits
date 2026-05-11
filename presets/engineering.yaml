@@ -1,5 +1,5 @@
-name: personal
-description: Generic AI coding kit — language-agnostic rules + reusable skills (slash commands) + standard plugin
+name: engineering
+description: Engineering coding kit — language-agnostic rules + reusable workflow skills
 default_agents: [claude, codex]
 
 primitives:
@@ -14,8 +14,10 @@ primitives:
     - my-fix-build
     - my-explain
     - my-clean-code
-  plugins:
-    - superpowers
+    - grill-with-docs
+    - diagnose
+    - improve-codebase-architecture
+  plugins: []
   mcp: []
   hooks: []
 

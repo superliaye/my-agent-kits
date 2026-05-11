@@ -8,7 +8,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset personal --agents codex --scope global --yes \
+agent-kit init --preset engineering --agents codex --scope global --yes \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
 assert_file_exists "$HOME/.codex/AGENTS.md"  "global AGENTS.md"

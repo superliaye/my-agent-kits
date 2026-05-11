@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# v0.3: verify that a Codex-only init with the full `personal` preset
-# (which has instructions + skills + plugins) correctly:
+# v0.3: verify that a Codex-only init with the full `engineering` preset
+# (which has instructions + skills) correctly:
 # - delivers what Codex actually reads (AGENTS.md, .agents/skills/)
 # - does NOT leak Claude-only artifacts (.claude/ dir absent)
-# - does NOT install Claude Code plugins (superpowers not in installed_plugins.json)
+# - does NOT install Claude Code plugins (none in engineering preset, but
+#   the negative assertion stays as a defense for future preset changes)
 # - emits Codex sidecars for skills (manual-only policy)
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -19,7 +20,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset personal --agents codex --scope repo --yes \
+agent-kit init --preset engineering --agents codex --scope repo --yes \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive — what SHOULD reach Codex

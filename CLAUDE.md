@@ -18,7 +18,7 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 
 ## v0.1 placeholders
 
-- **`presets/microsoft.yaml`** — `extends: personal` with no MS-specific primitives yet. The spec mentions `ms-rush`, `ms-sharepoint`, and `graduate-killswitches` but those primitives are deferred to a follow-up so v0.1 doesn't ship Microsoft-internal content publicly. The preset is a stable name (so `agent-kit init --preset microsoft` works in scripts) that currently behaves identically to `personal`.
+- **`presets/microsoft.yaml`** — `extends: engineering` with no MS-specific primitives yet. The spec mentions `ms-rush`, `ms-sharepoint`, and `graduate-killswitches` but those primitives are deferred to a follow-up so v0.1 doesn't ship Microsoft-internal content publicly. The preset is a stable name (so `agent-kit init --preset microsoft` works in scripts) that currently behaves identically to `engineering`.
 
 ## Layout note (APM-package conventions, v0.3)
 
@@ -66,6 +66,15 @@ Notes:
 1. Create `presets/<name>.yaml`.
 2. Optionally `extends:` an existing preset.
 3. Run matrix.
+
+**Vendor (or re-sync) a skill from an external repo:**
+
+1. Bump `package.json` version.
+2. Create `.apm/skills/<name>/SKILL.md` with the upstream body; in frontmatter, drop the upstream's `name:` field (loader derives it from the folder), add `added_in`, `upstream`, `upstream_version`, and `disable-model-invocation: true` if manual-only.
+3. Also vendor any sibling files the SKILL.md references (e.g. format docs, scripts) into the same folder.
+4. Add `.apm/skills/<name>/SOURCE.md` with the upstream URL/path, last-synced date, files vendored, re-sync procedure, and any local modifications. This is the canonical place to look when syncing — APM ignores it (loader only reads `SKILL.md`), but it ships alongside the skill on deploy.
+5. Add `<name>` to the appropriate preset's `primitives.skills` list.
+6. Run matrix.
 
 **Debug a failing test case:**
 

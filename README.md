@@ -23,7 +23,7 @@ agent-kit help
 Non-interactive (CI / scripting):
 
 ```bash
-agent-kit init --preset personal --agents claude,codex --scope repo --yes
+agent-kit init --preset engineering --agents claude,codex --scope repo --yes
 agent-kit update --content-only --yes
 agent-kit update --adopt-preset-defaults --yes
 ```
@@ -32,7 +32,7 @@ agent-kit update --adopt-preset-defaults --yes
 
 | Path | Purpose |
 |---|---|
-| `presets/*.yaml` | Bundled artifact selections (`personal`, `microsoft`, `minimal`, `none`) |
+| `presets/*.yaml` | Bundled artifact selections (`engineering`, `microsoft`, `minimal`, `none`) |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (APM-package layout) |
 | `.apm/skills/<name>/SKILL.md` | All reusable workflows — slash commands AND multi-step skills (v0.3 unified). Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |

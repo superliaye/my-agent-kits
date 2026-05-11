@@ -1,6 +1,6 @@
 name: microsoft
-description: Personal kit + Microsoft-specific (ODSP/Rush/SharePoint placeholder for v0.1)
-extends: personal
+description: Engineering kit + Microsoft-specific (ODSP/Rush/SharePoint placeholder for v0.1)
+extends: engineering
 default_agents: [claude, codex]
 
 primitives:
