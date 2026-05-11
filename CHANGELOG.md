@@ -4,6 +4,33 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.0] - 2026-05-11
+
+### Breaking changes
+
+- **`prompts` primitive type removed.** Slash-command-like reusable invocations now live as skills with `disable-model-invocation: true` in frontmatter. Aligns with the direction both Anthropic ([commands merged into skills](https://code.claude.com/docs/en/skills)) and OpenAI ([custom prompts deprecated in favor of skills](https://developers.openai.com/codex/custom-prompts)) have published. Authors write SKILL.md once; the kit handles per-vendor translation at deploy time.
+- **`code-review` placeholder skill removed.** It was a stub from v0.1 to validate the skills code path; the 6 newly-migrated skills cover that ground.
+
+### Added
+
+- **karpathy instruction primitive** (`.apm/instructions/karpathy.instructions.md`) vendored from [forrestchang/andrej-karpathy-skills](https://github.com/forrestchang/andrej-karpathy-skills) v1.0.0. Always-loaded behavioral guidelines from Karpathy's LLM-coding-pitfalls observations. Matches community usage (most adopt as CLAUDE.md content rather than as a plugin).
+- **6 skills migrated from prompts**: `my-commit`, `my-commit-and-push`, `my-create-pr`, `my-explain`, `my-fix-build`, `my-clean-code`. Each authored in Claude format (frontmatter `disable-model-invocation: true`) so they behave as manual-only slash commands without polluting the model's context window.
+- **`compileSkillsForCodex` step in `lib/deploy.js`**: when Codex is selected, walks the deployed `.agents/skills/<name>/` folders and emits `agents/openai.yaml` sidecar with `policy.allow_implicit_invocation: false` for every skill that has `disable-model-invocation: true`. One-way translation, kit-author writes Claude format only.
+- **`codex-personal-isolation` test case**: verifies Codex-only runs (a) deliver instructions + skills, (b) generate Codex sidecars, (c) don't leak `.claude/` into the repo, (d) don't install Claude Code plugins.
+
+### Changed
+
+- All presets dropped `prompts:` field. `personal.yaml` skills list now contains the 6 migrated slash commands.
+- `lib/agents.js`: Claude's `primitiveTypes` is now `["instructions", "skills"]` (was `["instructions", "prompts", "skills"]`); `paths.repo` and `paths.global` removed the `prompts` entry.
+- `lib/primitives.js` `TYPE_LOCATIONS`: `prompts` entry deleted; updated comment to reflect v0.3 layout.
+- `lib/presets.js` `PRIMITIVE_TYPES`: removed `"prompts"`.
+- `lib/init.js`, `lib/update.js`: hardcoded primitive-type loops/skeletons updated to drop `prompts`.
+- Test matrix grew from 6/24 to 7/36 — added the codex-personal-isolation case + skills-deployment assertions for both agents.
+
+### Notes
+
+This is a personal kit; semver is informal. Calling this 0.3.0 because dropping a primitive type IS a breaking change for anyone who was relying on `prompts` in their state file or preset config. In practice the only consumer (me) gets clean v0.3 layout via `agent-kit init` in fresh repos.
+
 ## [0.2.0] - 2026-05-08
 
 ### Added

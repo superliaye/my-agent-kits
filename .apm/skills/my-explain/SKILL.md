@@ -1,7 +1,8 @@
 ---
 description: Explain code with clear examples and context
 allowed-tools: Read, Grep, Bash(git:*)
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Explain the code:

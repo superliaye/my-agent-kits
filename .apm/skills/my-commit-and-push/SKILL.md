@@ -1,7 +1,8 @@
 ---
 description: Create a detailed git commit and push to remote
 allowed-tools: Bash(git:*)
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Create a git commit and push, following best practices:

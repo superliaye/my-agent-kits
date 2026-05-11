@@ -1,7 +1,8 @@
 ---
 description: Clean up code and docs - remove unused, fix style, improve quality
 allowed-tools: Read, Edit, Grep, Bash(npm:*, rushx:*)
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Clean up code and documentation:

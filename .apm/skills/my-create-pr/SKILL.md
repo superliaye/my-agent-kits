@@ -1,7 +1,8 @@
 ---
 description: Create a pull request with detailed description
 allowed-tools: Bash(git:*, gh:*)
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Create a pull request:

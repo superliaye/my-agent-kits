@@ -8,8 +8,7 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 |---|---|---|
 | `presets/*.yaml` | Curated primitive bundles | Adding a new preset or editing membership |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules; YAML frontmatter required (`description`, `applyTo`, `added_in`) | Adding a rule |
-| `.apm/prompts/*.prompt.md` | Slash commands; same frontmatter requirements | Adding a slash command |
-| `.apm/skills/<name>/SKILL.md` | Multi-step skills (folder per skill) | Adding a skill |
+| `.apm/skills/<name>/SKILL.md` | All reusable workflows (former prompts + skills, unified in v0.3). Author in Claude format with `disable-model-invocation: true` for manual-only. Wizard generates Codex sidecar at deploy. | Adding/migrating a slash command or skill |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (frontmatter: `marketplace_source`, `marketplace_name`, `plugin_name`) | Adding a plugin |
 | `lib/wizard.js` | Entrypoint; argv dispatcher | Adding a new top-level command |
 | `lib/init.js`, `lib/update.js` | Wizard flows | Changing wizard UX |
@@ -21,18 +20,19 @@ Wizard repo: deploys personal AI agent artifacts to Claude Code and Codex CLI vi
 
 - **`presets/microsoft.yaml`** — `extends: personal` with no MS-specific primitives yet. The spec mentions `ms-rush`, `ms-sharepoint`, and `graduate-killswitches` but those primitives are deferred to a follow-up so v0.1 doesn't ship Microsoft-internal content publicly. The preset is a stable name (so `agent-kit init --preset microsoft` works in scripts) that currently behaves identically to `personal`.
 
-## Layout note (APM-package conventions)
+## Layout note (APM-package conventions, v0.3)
 
 Primitives MUST live where APM expects them, otherwise install/compile finds nothing. We standardize on the multi-primitive layout: everything under `.apm/`.
 
 - Instructions → `.apm/instructions/<name>.instructions.md`
-- Prompts → `.apm/prompts/<name>.prompt.md`
 - Skills → `.apm/skills/<name>/SKILL.md` (folder per skill)
-- MCP / Hooks → `.apm/mcp/`, `.apm/hooks/` (reserved for v0.2)
+- Plugins → `.apm/plugins/<name>.plugin.md` (Claude Code marketplace pointers)
+- MCP / Hooks → `.apm/mcp/`, `.apm/hooks/` (reserved)
 
 Notes:
 
-- APM is lenient and ALSO accepts root-level `*.prompt.md` and root-level `skills/<name>/SKILL.md` (those are the single-skill-package conventions per the hello-world template). We use `.apm/*` consistently for symmetry and a clean repo root.
+- The former `prompts` primitive type was dropped in v0.3. Slash commands now live as skills with `disable-model-invocation: true` (Anthropic and OpenAI are both pushing this direction; see the v0.3 CHANGELOG entry).
+- APM is lenient and ALSO accepts root-level `SKILL.md` (single-skill-package convention per the hello-world template). We use `.apm/skills/<name>/` consistently for symmetry and a clean repo root.
 - Don't put primitives in a different subdirectory like `primitives/` — APM won't discover them.
 
 ## Rules
@@ -53,12 +53,13 @@ Notes:
 4. Run matrix to confirm nothing broke.
 5. Commit.
 
-**Add a new prompt primitive:**
+**Add a new skill (slash command or workflow):**
 
 1. Bump `package.json` version.
-2. Create `<name>.prompt.md` at repo root with frontmatter.
-3. Optionally add to a preset.
-4. Run matrix.
+2. Create `.apm/skills/<name>/SKILL.md` with frontmatter. Set `disable-model-invocation: true` for manual-only invocation (recommended default for kit skills — keeps the model's context window focused).
+3. Optionally add `agents/openai.yaml` sidecar manually for Codex-specific UI metadata. The wizard auto-generates the `policy.allow_implicit_invocation: false` sidecar from the `disable-model-invocation: true` flag at deploy time.
+4. Optionally add to a preset's `primitives.skills` list.
+5. Run matrix.
 
 **Add a new preset:**
 
@@ -87,6 +88,7 @@ agent-kit update --adopt-preset-defaults --yes  # CI-friendly, auto-adopt new pr
 2. **Codex global deploy** lands at `~/.apm/AGENTS.md`, not `~/.codex/AGENTS.md` where Codex actually reads. Wizard copies the file post-compile.
 3. **Codex personal layer** (`AGENTS.override.md` + `.gitignore`) is wizard-managed. APM doesn't know about this convention.
 4. **State tracking** (`.agent-kit.yaml`) is wizard-only; APM only tracks its own lockfile.
+5. **Codex skill sidecar generation (v0.3)**: APM ships `SKILL.md` to `.agents/skills/<name>/` but doesn't translate Claude's `disable-model-invocation: true` to Codex's `agents/openai.yaml policy.allow_implicit_invocation: false`. The wizard's `compileSkillsForCodex` step does this per-vendor translation at deploy time — author writes Claude format once.
 
 ## Spec & Plan
 

@@ -1,20 +1,19 @@
 name: personal
-description: Generic AI coding kit — language-agnostic rules + universal slash commands
+description: Generic AI coding kit — language-agnostic rules + reusable skills (slash commands) + standard plugin
 default_agents: [claude, codex]
 
 primitives:
   instructions:
     - core
     - typescript
-  prompts:
+    - karpathy
+  skills:
     - my-commit
     - my-commit-and-push
     - my-create-pr
     - my-fix-build
     - my-explain
     - my-clean-code
-  skills:
-    - code-review
   plugins:
     - superpowers
   mcp: []

@@ -5,7 +5,6 @@ default_agents: [claude, codex]
 
 primitives:
   instructions: []
-  prompts: []
   skills: []
   plugins: []
   mcp: []

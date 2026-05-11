@@ -12,7 +12,16 @@ agent-kit init --preset personal --agents claude --scope global --yes \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
 assert_dir_nonempty "$HOME/.claude/rules"    "global rules"
-assert_dir_nonempty "$HOME/.claude/commands" "global commands"
+# v0.3: skills (formerly prompts + skills primitives unified)
+if [ -d "$HOME/.claude/skills" ] && [ -n "$(ls -A "$HOME/.claude/skills" 2>/dev/null)" ]; then
+  ok "global skills deployed"
+elif [ -d "$HOME/.claude/agents" ] && [ -n "$(ls -A "$HOME/.claude/agents" 2>/dev/null)" ]; then
+  ok "global skills deployed (alternate placement)"
+elif [ -d "$HOME/.claude/commands" ] && [ -n "$(ls -A "$HOME/.claude/commands" 2>/dev/null)" ]; then
+  ok "global skills deployed to .claude/commands (APM placement)"
+else
+  fail "global skills missing"
+fi
 # Plugins (v0.2): personal preset includes 'superpowers'.
 assert_file_exists "$HOME/.claude/plugins/installed_plugins.json" "plugins state file"
 assert_content_contains "$HOME/.claude/plugins/installed_plugins.json" "superpowers" "superpowers plugin installed"

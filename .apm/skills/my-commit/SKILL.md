@@ -1,7 +1,8 @@
 ---
 description: Create a detailed git commit with comprehensive summary
 allowed-tools: Bash(git:*)
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Create a git commit following best practices:

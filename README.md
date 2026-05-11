@@ -34,11 +34,11 @@ agent-kit update --adopt-preset-defaults --yes
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`personal`, `microsoft`, `minimal`, `none`) |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (APM-package layout) |
-| `.apm/prompts/*.prompt.md` | Slash-command prompts (APM-package layout) |
-| `.apm/skills/<name>/SKILL.md` | Multi-step skills (folder per skill) |
+| `.apm/skills/<name>/SKILL.md` | All reusable workflows — slash commands AND multi-step skills (v0.3 unified). Authored in Claude format with `disable-model-invocation: true` for manual-only. |
+| `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `bin/agent-kit` | Launcher (symlinked to `~/.local/bin/`) |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
-| `test/` | Docker-based test matrix (6 cases, all green) |
+| `test/` | Docker-based test matrix (7 cases, all green) |
 
 ## Tests
 
@@ -47,7 +47,7 @@ docker build -q -f test/Dockerfile.test -t my-agent-kits-test .
 docker run --rm my-agent-kits-test
 ```
 
-Expected: `Results: 6 cases passed, 0 cases failed`.
+Expected: `Results: 7 cases passed, 0 cases failed`.
 
 ## Spec & Plan
 

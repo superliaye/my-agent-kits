@@ -2,7 +2,8 @@
 description: Analyze and fix build/lint errors
 argument-hint: [optional: specific package]
 allowed-tools: Bash(npm:*, rushx:*, rush:*), Read, Edit, Grep
-added_in: 0.1.0
+disable-model-invocation: true
+added_in: 0.3.0
 ---
 
 Fix build or lint errors:

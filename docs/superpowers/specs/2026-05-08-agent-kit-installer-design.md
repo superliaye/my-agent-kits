@@ -1,8 +1,18 @@
 # agent-kit-installer (`my-agent-kits`) — Design Spec
 
-**Date:** 2026-05-08
-**Status:** Approved for implementation planning
+**Date:** 2026-05-08 (v0.1 design); updated 2026-05-11 (v0.3 deltas — see CHANGELOG)
+**Status:** Implemented; current code is v0.3
 **Author:** Leon YE (with Claude as brainstorming partner)
+
+> **v0.3 deltas not yet rewritten throughout this spec — see [CHANGELOG.md](../../../CHANGELOG.md) for authoritative current state:**
+>
+> - `prompts` primitive type was dropped; reusable invocations moved into `.apm/skills/<name>/SKILL.md` with `disable-model-invocation: true`.
+> - Added `plugins` primitive type for Claude Code marketplace plugins (superpowers).
+> - Added `karpathy.instructions.md` (v0.2.1).
+> - `lib/deploy.js` gained `compileSkillsForCodex` step (writes per-skill `agents/openai.yaml` sidecars).
+> - Test matrix grew from 6 to 7 cases (+ `codex-personal-isolation`).
+>
+> Historic sections below describing prompts as a separate primitive type are retained for v0.1 design context; current architecture treats slash commands as a subset of skills.
 
 ## 1. Problem statement
 
@@ -66,18 +76,16 @@ my-agent-kits/                       (private, github.com/superliaye/my-agent-ki
 │   ├── instructions/
 │   │   ├── core.instructions.md             # applyTo: "**"
 │   │   ├── typescript.instructions.md       # applyTo: "**/*.{ts,tsx}"
+│   │   ├── karpathy.instructions.md         # applyTo: "**" (v0.2.1, vendored)
 │   │   ├── ms-rush.instructions.md          # applyTo: "**" (deferred)
 │   │   └── ms-sharepoint.instructions.md    # applyTo: "**" (deferred)
-│   ├── prompts/
-│   │   ├── my-commit.prompt.md
-│   │   ├── my-commit-and-push.prompt.md
-│   │   ├── my-create-pr.prompt.md
-│   │   ├── my-explain.prompt.md
-│   │   ├── my-fix-build.prompt.md
-│   │   └── my-clean-code.prompt.md
-│   ├── skills/
-│   │   └── code-review/
-│   │       └── SKILL.md
+│   ├── skills/                               # v0.3 absorbed prompts into skills
+│   │   ├── my-commit/SKILL.md
+│   │   ├── my-commit-and-push/SKILL.md
+│   │   ├── my-create-pr/SKILL.md
+│   │   ├── my-explain/SKILL.md
+│   │   ├── my-fix-build/SKILL.md
+│   │   └── my-clean-code/SKILL.md
 │   ├── plugins/                              # v0.2: Claude Code plugin pointers
 │   │   └── superpowers.plugin.md            # marketplace_source: anthropics/claude-plugins-official
 │   ├── mcp/                                  # (empty for MVP)
@@ -458,7 +466,7 @@ cd ~/my-agent-kits && git pull && npm install
 - `agent-kit update` — Section 4b's 3-step update flow: refresh content, prompt for new primitives, handle removed ones. Includes flags: `--content-only`, `--adopt-preset-defaults`, `--dry-run`.
 - 3 presets: `personal`, `microsoft`, `minimal`.
 - 2 agent targets: Claude Code, Codex CLI.
-- Primitive types: instructions, prompts, skills. (MCP and hooks: directory exists but empty for MVP.)
+- Primitive types: instructions, prompts (v0.1 only — folded into skills in v0.3), skills, plugins (added v0.2). (MCP and hooks: directory exists but empty.)
 - Per-primitive `added_in` frontmatter for delta detection.
 - Bootstrap script with PATH setup.
 - Primitives folded in from `personal-agent-kit` (with `description` + `applyTo` + `added_in: 0.1.0` frontmatter added).
