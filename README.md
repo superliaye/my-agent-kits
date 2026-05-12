@@ -57,6 +57,7 @@ Flag reference:
 - `--claude-md {overwrite|concat|skip}` — what to do if a `CLAUDE.md` already exists
 - `--codex-personal-layer` — write a gitignored `AGENTS.override.md` (Codex repo scope only)
 - `--primitives '+name,-name'` — tweak the preset's primitive set on the fly
+- `--bundles name1,name2` — external installers (e.g. `gstack`) to run after primitives deploy. Always install globally. Pass `--bundles ''` to skip all.
 
 Updating:
 
@@ -74,6 +75,7 @@ Updating:
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (concatenated into CLAUDE.md / AGENTS.md at deploy) |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
+| `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills). Always installed globally; runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
 | `bin/agent-kit` | Launcher — invoke as `./bin/agent-kit` from the kit dir, or via absolute path from anywhere |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |

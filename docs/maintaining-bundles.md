@@ -1,0 +1,68 @@
+# Maintaining bundles
+
+A **bundle** wraps an external installer (e.g. [gstack](https://github.com/garrytan/gstack)) as a single primitive that the wizard can deploy alongside instructions, skills, and plugins. Unlike skills (which the kit deploys by copying Markdown), bundles delegate to a third-party setup script — the kit's job is to clone the source at a pinned commit, ensure runtime deps, and run the installer with consistent flags.
+
+## File layout
+
+Each bundle is one file: `.apm/bundles/<name>.bundle.md`
+
+```yaml
+---
+description: One-line summary shown in the wizard prompt
+added_in: 0.7.0
+source: https://github.com/<owner>/<repo>.git
+pinned_commit: <40-char sha>
+scope: global                       # informational; bundles always install globally
+installer:
+  command: ./setup                  # path inside the cloned repo
+  flags: ["--prefix", "--quiet"]    # fixed flags applied every run
+  host_flag_map:
+    claude: ["--host", "claude"]    # per-agent flags appended per invocation
+    codex:  ["--host", "codex"]
+requires:                            # checked before invoking installer
+  - bun
+  - git
+verify_paths:                        # checked by verify.js after install
+  claude: "~/.claude/skills/<name>"
+  codex:  "~/.codex/skills/<name>"
+license: MIT
+---
+
+# Bundle: <name>
+
+Free-form Markdown body — shown to humans, not parsed by the kit. Use it to
+list the slash commands the bundle adds, link to upstream docs, etc.
+```
+
+The kit reads only the frontmatter. Field reference is in [lib/primitives.js](../lib/primitives.js) (search for `type === "bundles"`).
+
+## Updating gstack (or any bundle) to a newer upstream
+
+1. **Pick the new commit.** Use a commit SHA from the upstream repo, not a tag or branch — the wizard's source-URL safety check requires a 40-char hex pin.
+2. **Edit the bundle file.** Bump `pinned_commit:` in [.apm/bundles/gstack.bundle.md](../.apm/bundles/gstack.bundle.md). If upstream changed its installer flags or runtime deps, update those too.
+3. **Bump the kit version.** Update [package.json](../package.json) and add a [CHANGELOG.md](../CHANGELOG.md) entry under the new version. This matters because the wizard's update flow detects "new in preset" by comparing `added_in:` to the consumer repo's last-deployed kit version — bumping the bundle's `added_in:` is what makes existing consumer repos see it on `agent-kit update`.
+4. **Test locally.** Run `bash test/run-tests.sh` (or `docker run --rm my-agent-kits-test`) to catch regressions in the preset/state plumbing. The bundle install itself is skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
+5. **Commit, tag, push.**
+6. **Consumer-side pickup.** Users run `agent-kit update <repo>`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent — gstack's is, per its README.
+
+## Adding a new bundle
+
+1. Create `.apm/bundles/<name>.bundle.md` with the frontmatter schema above.
+2. Verify the installer accepts non-interactive flags. The wizard runs it with `stdio: "inherit"` so prompts WILL block; if upstream has no `--yes` / `--quiet` mode, file an issue upstream first.
+3. Decide which agents the bundle supports via `host_flag_map`. Omit agents that aren't supported — the wizard will warn and skip those.
+4. List runtime deps in `requires:`. Currently the kit only special-cases `bun` (auto-installs via `bun.sh/install`). Other deps must be on PATH already; the kit's pre-flight will fail with an actionable message if missing.
+5. Add the bundle to a preset's `bundles:` array if it should be selected by default. Otherwise users can opt in via `--bundles <name>` or the interactive prompt.
+6. Add a test case under `test/cases/`. Mirror `test/cases/gstack-bundle.sh` — set `AGENT_KIT_SKIP_BUNDLE_INSTALL=1` and assert on the state file + scaffolding.
+
+## Why bundles exist (and what NOT to use them for)
+
+Use a bundle when the upstream maintainer has invested in:
+- a stateful installer (symlink graph, native binary builds, cache priming)
+- per-platform install logic the kit shouldn't duplicate
+- a runtime that needs more than file copies (Playwright Chromium, Bun, etc.)
+
+If you can express the workflow as **just Markdown files** that an agent reads, prefer a regular skill (`.apm/skills/<name>/SKILL.md`) — it's lighter, doesn't require network at deploy time, and survives upstream disappearing.
+
+## Security notes
+
+The wizard validates `source:` (must be `https://.../*.git`) and `pinned_commit:` (must be hex SHA) before invoking `git clone`. This is a defense-in-depth check against a hostile fork of the kit pointing at `file:///` or a non-git URL. Don't relax these patterns without considering the impact on `--scope global` users (where the wizard cumulatively trusts every bundle in every preset they install).

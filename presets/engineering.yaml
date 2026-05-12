@@ -21,5 +21,6 @@ primitives:
   plugins: []
   mcp: []
   hooks: []
+  bundles: []
 
 apm_dependencies: []

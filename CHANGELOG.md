@@ -4,6 +4,34 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.7.0] - 2026-05-12
+
+### Added
+
+- **`bundles` primitive type** — wraps external installers as single deployable primitives. Lives at `.apm/bundles/<name>.bundle.md`. Bundles always install to user-global locations (the upstream installers have no `--target` flag) and run once per selected agent via a `host_flag_map`. Frontmatter declares `source`, `pinned_commit`, `installer.command/flags`, `requires`, and `verify_paths`. The kit validates `source` (https git URL only) and `pinned_commit` (hex SHA only) before invoking `git clone`.
+- **gstack bundle** ([.apm/bundles/gstack.bundle.md](.apm/bundles/gstack.bundle.md)) — pinned to commit `dc6252d`. Installs all 30+ gstack slash commands as `/gstack-*` prefixed via gstack's `--prefix` flag. Adds planning (`/gstack-office-hours`, `/gstack-autoplan`), build/QA (`/gstack-design-shotgun`, `/gstack-qa`, `/gstack-review`), ship (`/gstack-ship`), security (`/gstack-cso`), browser automation (`/gstack-browse`), and more. Opt-in via the post-scope wizard prompt or `--bundles gstack` in flag mode — no dedicated preset needed.
+- **Auto-install of Bun** — gstack's setup requires Bun. The wizard's `pickBundles` step pre-flights and offers to install Bun via the official installer (`curl -fsSL https://bun.sh/install | bash` / Windows MSI). Interactive mode prompts; flag mode auto-installs silently.
+- **`--bundles name1,name2` flag** in `agent-kit init` for non-interactive bundle selection. Pass `--bundles ''` to skip all bundles.
+- **`bundle_commits:` field in `.agent-kit.yaml`** — records the commit each bundle was last successfully installed at. `agent-kit update` re-runs the installer when the kit's `pinned_commit:` drifts from this record.
+- **`AGENT_KIT_SKIP_BUNDLE_INSTALL=1` env var** — skips clone + bun pre-flight + setup, records state as if installed. Used by the Docker test matrix to avoid downloading Chromium per CI run.
+- **`gstack-bundle` test case** — verifies preset loads, bundle is recorded in state with the correct pin, engineering primitives still land, no gstack artifacts leak into the consumer repo.
+- **[`docs/maintaining-bundles.md`](docs/maintaining-bundles.md)** — maintainer procedure for bumping upstream pins and adding new bundles.
+
+### Changed
+
+- `lib/primitives.js` `TYPE_LOCATIONS`: added `bundles` entry. `listAllPrimitives()` returns a `bundles` array with `source`, `pinnedCommit`, `scope`, `installer`, `requires`, `verifyPaths` parsed from frontmatter.
+- `lib/presets.js` `PRIMITIVE_TYPES`: added `bundles`. All 4 existing presets gained `bundles: []`.
+- `lib/init.js`: new `pickBundles` step after `pickScope`. Bundles are deliberately excluded from `pickPrimitives` so they appear as a focused yes/no question rather than buried in a long multiselect.
+- `lib/deploy.js`: new `deployBundle` branch (step 4b). Pre-flights Bun, clones source at pin, runs installer per agent, persists commit to state. Helpers `bundlesNeedingBunInstall` and `ensureBunInstalledNow` exposed for init's pre-flight prompt.
+- `lib/update.js`: type lists now include `bundles`. Commit drift is handled implicitly — `cloneOrUpdateBundleSource` is idempotent, so re-running update with a bumped `pinned_commit:` fetches and reinstalls.
+- `lib/verify.js`: checks each bundle's `verify_paths.{agent}` exists and is non-empty. Skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
+- `lib/state.js`: persists `bundle_commits: { <name>: <sha>, ... }`.
+- `lib/cli.js`: `--bundles` listed in help text.
+
+### Notes on scope
+
+Bundles ALWAYS install globally (`~/.claude/skills/<bundle>/`, `~/.codex/skills/<bundle>/`) regardless of the wizard's `--scope` choice, because the upstream installers don't accept a target directory. The rest of the kit still respects `--scope repo`; only the bundle install bypasses it. This is called out in the interactive prompt and the bundle's frontmatter `scope: global` field.
+
 ## [0.3.0] - 2026-05-11
 
 ### Breaking changes
