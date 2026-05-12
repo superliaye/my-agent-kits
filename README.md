@@ -5,7 +5,7 @@ Personal AI agent artifact wizard for Claude Code and Codex CLI. Bootstrap or up
 ## Install (one time per machine)
 
 ```bash
-git clone git@github.com:superliaye/my-agent-kits.git ~/my-agent-kits
+git clone https://github.com/superliaye/my-agent-kits.git ~/my-agent-kits
 cd ~/my-agent-kits
 bash bootstrap.sh
 ```
