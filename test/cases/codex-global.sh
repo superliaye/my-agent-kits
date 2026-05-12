@@ -8,7 +8,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents codex --scope global \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents codex --scope global \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
 # Positive: AGENTS.md written directly to where Codex reads (no APM-staged copy step)

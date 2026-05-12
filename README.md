@@ -6,18 +6,28 @@ Personal AI agent artifact wizard for Claude Code and Codex CLI. Bootstrap or up
 
 ```bash
 git clone git@github.com:superliaye/my-agent-kits.git ~/my-agent-kits
-cd ~/my-agent-kits && bash bootstrap.sh
+cd ~/my-agent-kits
+bash bootstrap.sh
 ```
 
-Requires Node 20+ and Git. No APM CLI dependency.
+Requires Node 20+ and Git. No APM CLI dependency. `bootstrap.sh` only installs Node deps — it does **not** touch your PATH or shell rc files.
 
 ## Usage
 
+Stay in `~/my-agent-kits` and invoke the launcher with the target repo as the first argument:
+
+```bash
+cd ~/my-agent-kits
+./bin/agent-kit init ~/work/some-repo        # interactive 5-step wizard
+./bin/agent-kit update ~/work/some-repo      # catch up to latest kit
+./bin/agent-kit help
+```
+
+If you omit the target argument, the wizard deploys into the current directory — convenient when invoking via the absolute path from inside the consumer repo:
+
 ```bash
 cd ~/work/some-repo
-agent-kit init        # interactive 5-step wizard
-agent-kit update      # catch up to latest kit
-agent-kit help
+~/my-agent-kits/bin/agent-kit init
 ```
 
 ### One-shot install (each flag is one decision)
@@ -25,18 +35,18 @@ agent-kit help
 Passing `--preset`, `--agents`, and `--scope` together is enough — the wizard treats it as "you've decided" and skips all prompts:
 
 ```bash
-agent-kit init --preset engineering --agents claude --scope repo --claude-md overwrite
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md overwrite
 ```
 
-That writes `CLAUDE.md` (overwriting any existing one) and `.claude/skills/` in the current repo. No `apm.yml`, no `apm_modules/`.
+That writes `CLAUDE.md` (overwriting any existing one) and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
 
 Common variations — change exactly the flag(s) that differ:
 
 ```bash
-agent-kit init --preset engineering --agents claude,codex --scope repo --claude-md overwrite  # Codex too
-agent-kit init --preset engineering --agents claude --scope global --claude-md overwrite      # install globally to ~/.claude/
-agent-kit init --preset engineering --agents claude --scope repo --claude-md concat           # preserve existing CLAUDE.md
-agent-kit init --preset minimal --agents claude --scope repo --claude-md overwrite            # just core rules, no skills
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude,codex --scope repo --claude-md overwrite  # Codex too
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope global --claude-md overwrite      # install globally to ~/.claude/
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md concat           # preserve existing CLAUDE.md
+./bin/agent-kit init ~/work/some-repo --preset minimal --agents claude --scope repo --claude-md overwrite            # just core rules, no skills
 ```
 
 Flag reference:
@@ -51,9 +61,9 @@ Flag reference:
 Updating:
 
 ```bash
-agent-kit update                          # interactive — pick which new primitives to adopt
-agent-kit update --content-only           # refresh content only (no new primitives)
-agent-kit update --adopt-preset-defaults  # auto-adopt new preset members
+./bin/agent-kit update ~/work/some-repo                          # interactive — pick which new primitives to adopt
+./bin/agent-kit update ~/work/some-repo --content-only           # refresh content only (no new primitives)
+./bin/agent-kit update ~/work/some-repo --adopt-preset-defaults  # auto-adopt new preset members
 ```
 
 ## What's in here
@@ -64,7 +74,7 @@ agent-kit update --adopt-preset-defaults  # auto-adopt new preset members
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (concatenated into CLAUDE.md / AGENTS.md at deploy) |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
-| `bin/agent-kit` | Launcher (symlinked to `~/.local/bin/`) |
+| `bin/agent-kit` | Launcher — invoke as `./bin/agent-kit` from the kit dir, or via absolute path from anywhere |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |
 

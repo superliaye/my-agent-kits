@@ -13,9 +13,10 @@ COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 COPY . .
 
-# Bootstrap (link agent-kit into /usr/local/bin)
-RUN chmod +x /kit/bin/agent-kit /kit/bootstrap.sh /kit/test/run-tests.sh /kit/test/cases/*.sh /kit/test/lib/assertions.sh \
-    && ln -sf /kit/bin/agent-kit /usr/local/bin/agent-kit
+# Make the launcher and test scripts executable. Test cases invoke
+# /kit/bin/agent-kit directly via $KIT_ROOT — no PATH shim, matching the
+# install flow documented in README.md.
+RUN chmod +x /kit/bin/agent-kit /kit/bootstrap.sh /kit/test/run-tests.sh /kit/test/cases/*.sh /kit/test/lib/assertions.sh
 
 # Configure git (test cases `git init` inside their tmpdirs)
 RUN git config --global user.email "test@example.com" \

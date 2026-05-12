@@ -8,7 +8,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents claude --scope global \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --scope global \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
 # Positive: what should land at user-scope locations Claude Code reads

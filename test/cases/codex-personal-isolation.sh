@@ -20,12 +20,12 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents codex --scope repo \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents codex --scope repo \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive — what SHOULD reach Codex
 assert_file_exists "$WORK/AGENTS.md" "AGENTS.md present"
-assert_content_contains "$WORK/AGENTS.md" "Karpathy" "karpathy instruction in concatenated AGENTS.md"
+assert_content_contains "$WORK/AGENTS.md" "Think Before Coding" "karpathy instruction in concatenated AGENTS.md"
 assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in concatenated AGENTS.md"
 assert_dir_nonempty "$WORK/.agents/skills" "skills landed at cross-client location"
 assert_file_exists "$WORK/.agents/skills/my-commit/SKILL.md" "my-commit skill deployed"

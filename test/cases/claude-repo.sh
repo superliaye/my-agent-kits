@@ -8,7 +8,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents claude --scope repo \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --scope repo \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive: what should land in the consumer repo

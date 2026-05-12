@@ -23,7 +23,7 @@ This is hand-authored content that I care about.
 Some rules I wrote myself.
 EOF
 
-agent-kit init --preset engineering --agents claude --scope repo --claude-md concat \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --scope repo --claude-md concat \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # User content preserved
@@ -36,7 +36,7 @@ assert_content_contains "$WORK/CLAUDE.md" "agent-kit:claude-md:end" "end marker 
 
 # Agent-kit content present
 assert_content_contains "$WORK/CLAUDE.md" "Delete commented-out code and personal dev notes" "core instruction merged in"
-assert_content_contains "$WORK/CLAUDE.md" "Karpathy" "karpathy instruction merged in"
+assert_content_contains "$WORK/CLAUDE.md" "Think Before Coding" "karpathy instruction merged in"
 
 # APM boilerplate stripped (lean output)
 if grep -q "Build ID:" "$WORK/CLAUDE.md"; then fail "APM Build ID not stripped"; else ok "APM Build ID stripped"; fi
@@ -78,7 +78,7 @@ assert_content_contains "$WORK/.agent-kit.yaml" "claude_md_merge: concat" "merge
 
 # Idempotency: re-run with same flags must replace marker block in place, not double-append.
 SIZE_BEFORE=$(stat -c%s "$WORK/CLAUDE.md" 2>/dev/null || stat -f%z "$WORK/CLAUDE.md")
-agent-kit init --preset engineering --agents claude --scope repo --claude-md concat \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --scope repo --claude-md concat \
   || { fail "second init exited non-zero"; exit 1; }
 SIZE_AFTER=$(stat -c%s "$WORK/CLAUDE.md" 2>/dev/null || stat -f%z "$WORK/CLAUDE.md")
 if [ "$SIZE_BEFORE" = "$SIZE_AFTER" ]; then

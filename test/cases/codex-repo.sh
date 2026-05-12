@@ -8,13 +8,13 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents codex --scope repo \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents codex --scope repo \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive: what Codex reads
 assert_file_exists "$WORK/AGENTS.md" "AGENTS.md"
 assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in AGENTS.md"
-assert_content_contains "$WORK/AGENTS.md" "Karpathy" "karpathy instruction in AGENTS.md"
+assert_content_contains "$WORK/AGENTS.md" "Think Before Coding" "karpathy instruction in AGENTS.md"
 assert_size_under "$WORK/AGENTS.md" 32768 "AGENTS.md size <= 32 KiB"
 assert_file_exists "$WORK/.agent-kit.yaml" "state file"
 
