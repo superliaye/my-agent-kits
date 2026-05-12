@@ -21,7 +21,7 @@ trap restore EXIT
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
-agent-kit init --preset engineering --agents claude --scope repo --yes >/dev/null \
+agent-kit init --preset engineering --agents claude --scope repo >/dev/null \
   || { fail "init failed"; exit 1; }
 
 # Bump to a newer version so update sees a delta
@@ -30,9 +30,9 @@ node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/pa
 echo "" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"
 echo "## Added in v0.2.0" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"
 
-agent-kit update --content-only --yes >/dev/null \
+agent-kit update --content-only >/dev/null \
   || { fail "agent-kit update exited non-zero"; exit 1; }
 
 NEW_VERSION="$(grep kit_version_at_last_run "$WORK/.agent-kit.yaml" | awk '{print $2}')"
 [ "$NEW_VERSION" = "0.2.0" ] && ok "kit_version bumped to 0.2.0" || fail "kit_version not bumped (got $NEW_VERSION)"
-assert_content_contains "$WORK/.claude/rules/core.md" "Added in v0.2.0" "v0.2.0 content visible after update"
+assert_content_contains "$WORK/CLAUDE.md" "Added in v0.2.0" "v0.2.0 content visible in CLAUDE.md after update"

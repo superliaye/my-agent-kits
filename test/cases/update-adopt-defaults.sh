@@ -22,7 +22,7 @@ trap cleanup EXIT
 node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
 
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
-agent-kit init --preset minimal --agents claude --scope repo --yes >/dev/null \
+agent-kit init --preset minimal --agents claude --scope repo >/dev/null \
   || { fail "init failed"; exit 1; }
 
 # Bump to a newer version so update sees the new react primitive as new
@@ -47,8 +47,8 @@ p.primitives.instructions.push('react');
 fs.writeFileSync('$KIT_ROOT/presets/minimal.yaml', yaml.stringify(p));
 "
 
-agent-kit update --adopt-preset-defaults --yes >/dev/null \
+agent-kit update --adopt-preset-defaults >/dev/null \
   || { fail "agent-kit update exited non-zero"; exit 1; }
 
 assert_content_contains "$WORK/.agent-kit.yaml" "react" "react primitive in state"
-assert_file_exists "$WORK/.claude/rules/react.md" "react rule deployed"
+assert_content_contains "$WORK/CLAUDE.md" "Use functional components" "react rule body merged into CLAUDE.md"

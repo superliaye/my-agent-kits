@@ -2,15 +2,9 @@
 description: Karpathy's behavioral guidelines for LLM-assisted coding (Think before, simplicity, surgical, goal-driven)
 applyTo: "**"
 added_in: 0.2.1
-upstream: https://github.com/forrestchang/andrej-karpathy-skills
-upstream_version: 1.0.0
+derived_from: https://github.com/forrestchang/andrej-karpathy-skills
+synced: false
 ---
-
-# Karpathy's LLM-coding guidelines
-
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
 ## 1. Think Before Coding
 
@@ -72,7 +66,3 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

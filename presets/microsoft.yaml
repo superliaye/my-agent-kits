@@ -1,7 +1,7 @@
 name: microsoft
 description: Engineering kit + Microsoft-specific (ODSP/Rush/SharePoint placeholder for v0.1)
 extends: engineering
-default_agents: [claude, codex]
+default_agents: [claude]
 
 primitives:
   instructions: []

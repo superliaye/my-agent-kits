@@ -11,7 +11,6 @@ CASES_PASSED=()
 CASES_FAILED=()
 
 command -v node >/dev/null || { echo "Error: node not found"; exit 1; }
-command -v apm  >/dev/null || { echo "Error: apm not found";  exit 1; }
 command -v git  >/dev/null || { echo "Error: git not found";  exit 1; }
 
 [ ! -d "$KIT_ROOT/node_modules" ] && ( cd "$KIT_ROOT" && npm install --no-audit --no-fund --silent )

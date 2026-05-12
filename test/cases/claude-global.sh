@@ -8,17 +8,15 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents claude --scope global --yes \
+agent-kit init --preset engineering --agents claude --scope global \
   || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
 
-assert_dir_nonempty "$HOME/.claude/rules"    "global rules"
-# v0.3: skills (formerly prompts + skills primitives unified)
-if [ -d "$HOME/.claude/skills" ] && [ -n "$(ls -A "$HOME/.claude/skills" 2>/dev/null)" ]; then
-  ok "global skills deployed"
-elif [ -d "$HOME/.claude/agents" ] && [ -n "$(ls -A "$HOME/.claude/agents" 2>/dev/null)" ]; then
-  ok "global skills deployed (alternate placement)"
-elif [ -d "$HOME/.claude/commands" ] && [ -n "$(ls -A "$HOME/.claude/commands" 2>/dev/null)" ]; then
-  ok "global skills deployed to .claude/commands (APM placement)"
-else
-  fail "global skills missing"
-fi
+# Positive: what should land at user-scope locations Claude Code reads
+assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md (instructions concatenated)"
+assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction in global CLAUDE.md"
+assert_dir_nonempty "$HOME/.claude/skills" "global skills deployed"
+assert_file_exists "$HOME/.claude/skills/my-commit/SKILL.md" "specific skill (my-commit) deployed"
+
+# Negative: no APM artifacts at user scope either
+if [ -f "$HOME/.apm/apm.yml" ]; then fail "~/.apm/apm.yml should not be written"; else ok "no ~/.apm/apm.yml created"; fi
+if [ -d "$HOME/.claude/rules" ]; then fail "~/.claude/rules/ should not be created"; else ok "no ~/.claude/rules/ created"; fi

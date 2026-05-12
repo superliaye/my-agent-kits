@@ -1,6 +1,6 @@
 name: none
 description: Empty starting point — pick everything in the customize step
-default_agents: [claude, codex]
+default_agents: [claude]
 
 primitives:
   instructions: []

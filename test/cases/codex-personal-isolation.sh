@@ -20,7 +20,7 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents codex --scope repo --yes \
+agent-kit init --preset engineering --agents codex --scope repo \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive — what SHOULD reach Codex

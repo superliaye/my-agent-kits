@@ -8,25 +8,19 @@ trap "rm -rf '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-agent-kit init --preset engineering --agents claude --scope repo --yes \
+agent-kit init --preset engineering --agents claude --scope repo \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
-assert_file_exists "$WORK/apm.yml" "apm.yml"
-assert_dir_nonempty "$WORK/.claude/rules" "rules"
-# Skills (v0.3 absorbs the former 'prompts' primitive). engineering preset ships
-# 9 skills (my-commit, my-commit-and-push, my-create-pr, my-explain,
-# my-fix-build, my-clean-code, grill-with-docs, diagnose, improve-codebase-architecture).
-# APM may deploy them at .claude/skills/ or .claude/agents/ (cross-client convention
-# varies by APM version).
-if [ -d "$WORK/.claude/skills" ] && [ -n "$(ls -A "$WORK/.claude/skills" 2>/dev/null)" ]; then
-  ok "skills deployed to .claude/skills"
-elif [ -d "$WORK/.claude/agents" ] && [ -n "$(ls -A "$WORK/.claude/agents" 2>/dev/null)" ]; then
-  ok "skills deployed to .claude/agents (APM alternate placement)"
-elif [ -d "$WORK/.claude/commands" ] && [ -n "$(ls -A "$WORK/.claude/commands" 2>/dev/null)" ]; then
-  ok "skills deployed to .claude/commands (APM v0.12 places SKILL.md folders here for Claude)"
-else
-  fail "skills missing — none of .claude/skills, .claude/agents, .claude/commands populated"
-fi
+# Positive: what should land in the consumer repo
+assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md (instructions concatenated)"
+assert_content_contains "$WORK/CLAUDE.md" "Core Instructions" "core instruction in CLAUDE.md"
+assert_dir_nonempty "$WORK/.claude/skills" "skills deployed to .claude/skills"
+assert_file_exists "$WORK/.claude/skills/my-commit/SKILL.md" "specific skill (my-commit) deployed"
 assert_file_exists "$WORK/.agent-kit.yaml" "state file"
 assert_content_contains "$WORK/.agent-kit.yaml" "preset: engineering" "preset recorded"
 assert_content_contains "$WORK/.agent-kit.yaml" "scope: repo" "scope recorded"
+
+# Negative: APM artifacts should NOT exist (v0.6+ wizard bypasses apm entirely)
+if [ -f "$WORK/apm.yml" ]; then fail "apm.yml should not be written"; else ok "no apm.yml created"; fi
+if [ -d "$WORK/apm_modules" ]; then fail "apm_modules/ should not be created"; else ok "no apm_modules/ created"; fi
+if [ -d "$WORK/.claude/rules" ]; then fail ".claude/rules/ should not be created (Claude reads CLAUDE.md)"; else ok "no .claude/rules/ created"; fi
