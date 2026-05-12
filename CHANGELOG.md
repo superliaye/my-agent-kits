@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.7.1] - 2026-05-12
+
+### Fixed
+
+- **Bundle installers now force `NPM_CONFIG_REGISTRY=https://registry.npmjs.org/`** for their subprocess unless the user has explicitly set one. Bundles vendor from public GitHub, so their dependency manifests expect public npm — users on Microsoft codespaces (whose `~/.npmrc` points at `onedrive.pkgs.visualstudio.com/_packaging/odsp-npm` requiring SSO) and other corporate-mirror setups hit 401s on every package fetch inside the installer's `bun install`. Override stays available for legitimate internal mirrors via `NPM_CONFIG_REGISTRY=... ./bin/agent-kit init`.
+
 ## [0.7.0] - 2026-05-12
 
 ### Added
