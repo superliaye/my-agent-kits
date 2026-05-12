@@ -18,6 +18,7 @@ primitives_at_last_run:
     - my-fix-build
     - my-explain
     - my-clean-code
+    - grill-me
     - grill-with-docs
     - diagnose
     - improve-codebase-architecture
