@@ -34,6 +34,13 @@ What lands in `~/.claude/skills/gstack/` (per-agent, depending on selection):
 - **Knowledge**: `/gstack-retro`, `/gstack-learn`, `/gstack-setup-gbrain`, `/gstack-sync-gbrain`
 - **Misc**: `/gstack-codex`, `/gstack-setup-deploy`, `/gstack-gstack-upgrade`
 
+## Windows caveat
+
+gstack's setup script registers commands via `ln -snf` (POSIX symlinks). On Windows that requires either **Developer Mode enabled** (Settings → Privacy & Security → For developers) or running the wizard from an **elevated shell**. Without either, the installer exits with status 0 but no `~/.claude/skills/gstack/` link is created — and the kit's post-install verify will flag it MISSING. If you hit this:
+
+1. Enable Developer Mode (no reboot needed).
+2. Re-run `agent-kit update <repo>` (or re-init the bundle) — gstack's setup is idempotent.
+
 ## How updates work
 
 The pinned commit in this file's frontmatter determines which gstack revision the wizard installs. To upgrade gstack across all consumer repos:

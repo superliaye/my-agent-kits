@@ -19,7 +19,9 @@ license: Apache-2.0
 
 Wraps [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) — an open-source, HTML-native video rendering framework built for AI agents. Write HTML compositions, render to MP4 deterministically.
 
-What lands in `~/.claude/skills/` (and `~/.codex/skills/`, `<repo>/.cursor-plugin/` if those hosts are present — the upstream `skills` CLI detects each AI host itself):
+The kit invokes `npx skills add heygen-com/hyperframes --global --agent <claude-code|codex> --yes` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes directly to `~/.claude/skills/`, `--agent codex` to `~/.codex/skills/`. (Without `--agent`, the CLI defaults to `~/.agents/skills/` — a host-agnostic scratch dir that no host actually reads.)
+
+What lands in `~/.claude/skills/`:
 
 - **Composition / CLI**: `/hyperframes`, `/hyperframes-cli`
 - **Media preprocessing**: `/hyperframes-media` — text-to-speech, transcription, background removal
