@@ -1,0 +1,16 @@
+name: productivity
+description: Productivity kit — core conduct rule, grill-me planning skill, hyperframes video bundle
+default_agents: [claude]
+
+primitives:
+  instructions:
+    - core
+  skills:
+    - grill-me
+  plugins: []
+  mcp: []
+  hooks: []
+  bundles:
+    - hyperframes
+
+apm_dependencies: []

@@ -4,6 +4,37 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.8.0] - 2026-05-13
+
+### Added
+
+- **`productivity` preset** ([presets/productivity.yaml](presets/productivity.yaml)) — standalone preset containing `core` (instruction), `grill-me` (skill), and `hyperframes` (bundle). Use for repos that want only planning + video tooling without the full engineering skill set.
+- **`hyperframes` bundle** ([.apm/bundles/hyperframes.bundle.md](.apm/bundles/hyperframes.bundle.md)) — wraps [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes), an HTML-native video rendering framework for AI agents. Installs `/hyperframes`, `/hyperframes-cli`, `/hyperframes-media`, `/hyperframes-registry`, plus animation runtime skills (`/gsap`, `/animejs`, `/css-animations`, `/lottie`, `/three`, `/waapi`). Requires Node ≥ 22 and FFmpeg on PATH (FFmpeg checked at render time, not install).
+- **`installer.kind: npx-skills` bundle flavor** — second installer kind alongside the existing `setup-script` (gstack pattern). Bundles using `npx-skills` declare a single `installer.package` field (e.g. `heygen-com/hyperframes` or `heygen-com/hyperframes@1.2.3`) instead of `source` + `pinned_commit`. The wizard invokes `npx -y skills add <package>` once — the upstream `skills` CLI is host-aware and writes to each detected agent's skills dir itself, so no `host_flag_map` / per-agent loop is needed. State persists the package spec verbatim in `bundle_commits.<name>` for drift detection on `agent-kit update`.
+- **Multi-preset selection** — `agent-kit init --preset engineering,productivity` now accepts a comma-separated list. The wizard merges the primitives of every named preset (union, deduped per type) before deploying. Interactive form uses a `multiselect` prompt (must pick at least one). State persists the joined name (`engineering+productivity`) in `.agent-kit.yaml`, and `agent-kit update` round-trips it via `splitPresetNames()`.
+- **`hyperframes-bundle` and `multi-preset` test cases** — mirror `gstack-bundle.sh`; assert state captures the `productivity` preset's npx-skills bundle and that multi-preset union/dedupe + state round-trip work end-to-end.
+
+### Removed
+
+- **`microsoft`, `minimal`, `personal` presets** — `microsoft` was an empty alias of `engineering` (v0.1 placeholder); `minimal` overlapped with `none`; `personal` was introduced earlier this release and consolidated into `productivity`. Remaining presets: `engineering`, `productivity`, `none`. Users on the removed presets should re-run `agent-kit init --preset {engineering|productivity|none}` to land on a supported one.
+
+### Changed
+
+- `lib/primitives.js`: bundle metadata reads `installer.kind` from frontmatter (default `setup-script`). Surfaces it as `item.installerKind` for `deploy.js`.
+- `lib/deploy.js`: `deployBundle` now dispatches on `installer.kind`. The existing clone-and-run-setup path was refactored into `deploySetupScriptBundle`. New `deployNpxSkillsBundle` runs `npx -y skills add <package>` with a `NPM_CONFIG_REGISTRY` defaulted to the public registry (same fix as 0.7.1 for setup-script bundles).
+- `lib/presets.js`: added `loadPresets(names)` for multi-preset merging and `splitPresetNames(field)` for state round-tripping. `loadPreset` now validates the name against `^[A-Za-z0-9][A-Za-z0-9_\-]*$` — `+` is reserved as the multi-preset join character.
+- `lib/init.js`: `pickPreset` accepts a comma-separated `--preset` flag and uses `multiselect` interactively. Returns the merged preset directly.
+- `lib/update.js`: loads the preset via `loadPresets(splitPresetNames(state.preset))` so multi-preset state files round-trip without breaking the v0.4 migration path.
+- `lib/cli.js`: help text shows `--preset NAME[,NAME2]`.
+- [docs/maintaining-bundles.md](docs/maintaining-bundles.md): documents the `installer.kind: npx-skills` flavor and when to choose each kind.
+
+### Notes on installer kinds
+
+| Kind | Pin mechanism | Best for |
+| --- | --- | --- |
+| `setup-script` (default) | 40-char git SHA on a public HTTPS git URL | Stateful installers that need a setup script, native binaries, or per-platform logic (e.g. gstack: bun-driven setup, Playwright Chromium install) |
+| `npx-skills` | npm package spec (`pkg` or `pkg@version`) | Skill bundles already packaged for the `skills` CLI; no setup script, no extra runtime install (e.g. hyperframes) |
+
 ## [0.7.1] - 2026-05-12
 
 ### Fixed

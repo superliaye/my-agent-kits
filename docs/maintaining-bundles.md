@@ -4,7 +4,11 @@ A **bundle** wraps an external installer (e.g. [gstack](https://github.com/garry
 
 ## File layout
 
-Each bundle is one file: `.apm/bundles/<name>.bundle.md`
+Each bundle is one file: `.apm/bundles/<name>.bundle.md`. There are two installer kinds, distinguished by `installer.kind`. Pick the one that matches how upstream packages itself.
+
+### `installer.kind: setup-script` (default — clone + run)
+
+For upstream projects that ship a setup script in their repo (e.g. [gstack](https://github.com/garrytan/gstack)). The kit clones at a pinned SHA, runs the script once per selected agent.
 
 ```yaml
 ---
@@ -14,6 +18,7 @@ source: https://github.com/<owner>/<repo>.git
 pinned_commit: <40-char sha>
 scope: global                       # informational; bundles always install globally
 installer:
+  kind: setup-script                # optional; this is the default
   command: ./setup                  # path inside the cloned repo
   flags: ["--prefix", "--quiet"]    # fixed flags applied every run
   host_flag_map:
@@ -27,7 +32,35 @@ verify_paths:                        # checked by verify.js after install
   codex:  "~/.codex/skills/<name>"
 license: MIT
 ---
+```
 
+### `installer.kind: npx-skills` (registry-based)
+
+For skill bundles already packaged for the [`skills`](https://www.npmjs.com/package/skills) CLI (e.g. [hyperframes](https://github.com/heygen-com/hyperframes)). The kit runs `npx -y skills add <package>` once — the CLI is host-aware and writes to each detected agent's skills dir itself, so `host_flag_map` is not used.
+
+```yaml
+---
+description: One-line summary shown in the wizard prompt
+added_in: 0.8.0
+scope: global
+installer:
+  kind: npx-skills
+  package: heygen-com/hyperframes   # may include @version (e.g. ...@1.2.3)
+requires:
+  - node
+  - npx
+verify_paths:
+  claude: "~/.claude/skills/<name>"
+  codex:  "~/.codex/skills/<name>"
+license: Apache-2.0
+---
+```
+
+`source` and `pinned_commit` are not used for `npx-skills` bundles; the "pin" is the package spec in `installer.package`, recorded verbatim into `bundle_commits.<name>` so `agent-kit update` re-runs the installer when the maintainer bumps it.
+
+### Body
+
+```markdown
 # Bundle: <name>
 
 Free-form Markdown body — shown to humans, not parsed by the kit. Use it to

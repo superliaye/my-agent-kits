@@ -46,12 +46,12 @@ Common variations — change exactly the flag(s) that differ:
 ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude,codex --scope repo --claude-md overwrite  # Codex too
 ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope global --claude-md overwrite      # install globally to ~/.claude/
 ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md concat           # preserve existing CLAUDE.md
-./bin/agent-kit init ~/work/some-repo --preset minimal --agents claude --scope repo --claude-md overwrite            # just core rules, no skills
+./bin/agent-kit init ~/work/some-repo --preset productivity --agents claude --scope repo --claude-md overwrite       # core + grill-me + hyperframes video
 ```
 
 Flag reference:
 
-- `--preset {engineering|microsoft|minimal|none}` — bundle of primitives
+- `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
 - `--scope {repo|global}` — repo-local or `~/.claude/` (and `~/.codex/`)
 - `--claude-md {overwrite|concat|skip}` — what to do if a `CLAUDE.md` already exists
@@ -71,11 +71,11 @@ Updating:
 
 | Path | Purpose |
 |---|---|
-| `presets/*.yaml` | Bundled artifact selections (`engineering`, `microsoft`, `minimal`, `none`) |
+| `presets/*.yaml` | Bundled artifact selections (`engineering`, `productivity`, `none`). Multi-select via `--preset a,b` |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules (concatenated into CLAUDE.md / AGENTS.md at deploy) |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
-| `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills). Always installed globally; runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
+| `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
 | `bin/agent-kit` | Launcher — invoke as `./bin/agent-kit` from the kit dir, or via absolute path from anywhere |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |
