@@ -1,6 +1,6 @@
 {
   "name": "my-agent-kits",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Personal AI agent artifact wizard for Claude Code and Codex CLI",
   "private": true,
   "type": "module",

@@ -4,6 +4,19 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.9.0] - 2026-05-17
+
+### Added
+
+- **`electron-visual-loop` skill** ([.apm/skills/electron-visual-loop/](.apm/skills/electron-visual-loop/)) — vendored from [fcakyon/claude-codex-settings](https://github.com/fcakyon/claude-codex-settings) (`plugins/agent-browser/skills/electron/SKILL.md`, commit `9ad3323`). Teaches the agent to drive any Electron app over Chrome DevTools Protocol via the [`agent-browser`](https://agent-browser.dev/) CLI: launch with `--remote-debugging-port`, `connect`, `snapshot -i`, `click`, `fill`, `screenshot`, `tab`, multi-session, webview routing, dark-mode preservation. Closes the "coding blind" gap for Electron renderers — the agent can edit code, screenshot the running window, and judge the pixels itself.
+- **Opt-in only** — not wired into any preset. Install with `agent-kit init … --primitives '+electron-visual-loop'`. Rationale: most engineering projects aren't Electron; bundling Electron tooling into the default `engineering` preset would be dead weight for the majority of consumers.
+- **`electron-visual-loop` test case** ([test/cases/electron-visual-loop.sh](test/cases/electron-visual-loop.sh)) — mirrors `update-adopt-defaults.sh`'s preset-mutation pattern; adds the skill to a transient copy of the `none` preset, inits, asserts the skill folder + `SKILL.md` land at `.claude/skills/electron-visual-loop/` and state captures it.
+
+### Notes
+
+- Runtime dependency: `agent-browser` must be on PATH or invoked via `npx agent-browser`. The kit does not auto-install it; the skill's `allowed-tools` frontmatter whitelists both forms (`Bash(agent-browser:*)`, `Bash(npx agent-browser:*)`).
+- The skill is model-invocable (`disable-model-invocation` deliberately unset) so the model routes here when working with Electron apps or when the user asks for a visual feedback loop.
+
 ## [0.8.0] - 2026-05-13
 
 ### Added
