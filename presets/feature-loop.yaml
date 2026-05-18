@@ -1,0 +1,19 @@
+name: feature-loop
+description: Autonomous feature-build orchestrator. Main agent drives plan → implement → review → test → summary, delegating each phase to a sub-agent (depth=1) so the main context stays clean enough to judge and drill in. Stack-specific visual loops (Electron, web) and aesthetic plug-ins (design-critique, ui-ux-pro-max) are opt-in via `--primitives '+name'`.
+default_agents: [claude]
+
+primitives:
+  instructions:
+    - core
+  skills:
+    - feature-loop
+    - improve-codebase-architecture
+    - my-create-pr
+    - my-fix-build
+    - diagnose
+  plugins: []
+  mcp: []
+  hooks: []
+  bundles: []
+
+apm_dependencies: []

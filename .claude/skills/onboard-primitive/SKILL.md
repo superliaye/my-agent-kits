@@ -69,7 +69,7 @@ For a feature add, this is **minor** (e.g. `0.8.0` → `0.9.0`). For a fix only,
 bash test/run-tests.sh
 ```
 
-Expected on Windows host: 8 passing, 3 pre-existing failures (`claude-global`, `update-adopt-defaults`, `update-content-only` — path-translation quirks). Docker should be 11/0.
+Expected: full pass on Windows host (13/13 since v0.10.1, when the `node -e` + `$KIT_ROOT` path-inlining pattern was replaced with helper scripts in `test/lib/`). Docker should also be full pass.
 
 ## 7. Commit
 

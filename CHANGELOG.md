@@ -4,6 +4,46 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.10.1] - 2026-05-17
+
+### Fixed
+
+- **Windows test failures: `update-adopt-defaults` and `update-content-only`** — both tests inlined `$KIT_ROOT` into `node -e "..."` JavaScript string literals to mutate `package.json` and preset YAML. On Git Bash for Windows, `$KIT_ROOT` is the POSIX form `/e/dev/...`; Node interpreted the leading `/` as drive-root, producing bogus paths like `E:\e\dev\GitRepos\my-agent-kits\package.json` (note duplicated `e\`). Extracted the logic into two helper scripts that resolve `KIT_ROOT` via `import.meta.url` — no inlining, no path translation needed:
+  - [test/lib/set-kit-version.mjs](test/lib/set-kit-version.mjs) — `node "$KIT_ROOT/test/lib/set-kit-version.mjs" <version>` overwrites `package.json`'s `version` field.
+  - [test/lib/add-preset-primitive.mjs](test/lib/add-preset-primitive.mjs) — `node "$KIT_ROOT/test/lib/add-preset-primitive.mjs" <preset> <type> <name>` pushes a primitive onto a preset's list. Path resolves through MSYS argv translation, which works correctly (unlike string-inlined paths).
+  - Test suite now passes **13/13 cases, 112/112 asserts** on Windows host directly — up from 11/13. Docker test image (`docker run --rm my-agent-kits-test`) was already 11/11; both environments now match.
+- **`assertions.sh` `ok()` / `fail()` exit status** — `ok()` returned the exit status of its final `[ -n "${COUNT_FILE:-}" ] && ...` test, which is `1` (false) when `COUNT_FILE` is unset (i.e. running a test case standalone outside `run-tests.sh`). This made `[ cond ] && ok ... || fail ...` chains run both branches in standalone mode, producing confusing dual pass+fail output. Added explicit `return 0` to `ok()` and `return 1` to `fail()`. No behavior change inside the full runner; standalone debug runs now report correctly.
+
+### Changed
+
+- **`feature-loop` SKILL.md** ([.apm/skills/feature-loop/SKILL.md](.apm/skills/feature-loop/SKILL.md)) — condensed from ~250 lines to 131 by removing tutorial prose and embedded prompt examples. The skill now reads as a tight protocol spec for a reasoning model (Opus): scope rules, constraints, phase order, dependency map, and smoke recipes — no rationale paragraphs, no "compact returns is important" reminders, no `>` quoted prompt templates. Substantive changes (six refinements driven by dogfooding) preserved verbatim:
+  - **Plan vs Design scope:** the architectural-constraints section now states "Plan owns mechanism; Design owns aesthetics" and gives a conflict-resolution rule ("design wins on aesthetics, plan wins on architecture; main resolves silently"). Phase 1c's prompt restricts the planner to structural decisions; Phase 2's prompt expands the designer's ownership of all aesthetic choices including specific hex values, sizes, hover/focus visuals, icon glyphs, and motion.
+  - **Planner research mandate:** Phase 1c now explicitly cites the `core` instruction's "Research current-state claims" rule. The planner must do live research (WebSearch + WebFetch) for facts that go stale — framework conventions, API behavior, browser quirks, library status — and cite URLs in the plan. Closes a gap where the planner was implicitly trusting training data.
+  - **Phase 1a as optional:** Repo exploration is now opt-in. Skip when the repo is familiar or scope ≤5 files; the planner does its own light exploration in that case. Removes wasted sub-agent dispatches on tiny features.
+  - **Selective validator step (Phase 4):** validators are spawned **only** when verifying requires reading >20 lines or branching context. For trivially-confirmable findings (5–10 lines), main validates inline. Eliminates wasted sub-agent calls on objectively-true reviewer findings.
+  - **Lightweight mode (new section):** for changes touching ≤3 files with no architectural impact, collapse Phases 1a + 1c into a single planner call and Phase 4 fans out to a single combined reviewer instead of 3 parallel workers. Phase 2 still runs if `ui_work=true`.
+  - **Phase 6 verification gap is a finding, not a silent skip:** Phase 6 now distinguishes 6a (repo's existing harness) from 6b (no harness exists for this kind of change). 6b mandates a fallback smoke recipe + a surfaced gap-finding for Phase 7. Phase 7 has a new prominent **Loop gaps** section listing every degraded/skipped phase + a **Recommended loop improvements** section turning gaps into actionable next steps.
+  - **Smoke test recipes appendix (new):** concrete fallback recipes per stack (static client-side, Node/TS, Vite/Next, Electron, backend API). The agent never has "nothing to run" — there's always at least syntax + structure + load checks.
+- **Memory: feedback rule saved** — "Missing verification loop is a finding, not a silent skip." Generalizes beyond feature-loop to any autonomous workflow.
+
+### Notes
+
+- This is a patch release (text-only changes to one skill body + one CHANGELOG + one memory file). No infrastructure, no new primitives, no preset changes. Tests unchanged.
+- Source of corrections: real dogfood run on `C:\Users\super\AppData\Local\Temp\feature-loop-dogfood\` exercising the dark-mode-toggle feature against a vanilla HTML/CSS/JS sandbox. The corrections close the friction points that surfaced during that run (planner-designer scope overlap, validator over-eagerness, silent verification skipping).
+
+## [0.10.0] - 2026-05-17
+
+### Added
+
+- **`feature-loop` skill** ([.apm/skills/feature-loop/SKILL.md](.apm/skills/feature-loop/SKILL.md)) — autonomous E2E feature-build orchestrator. The main agent loads this skill when handed a feature request and drives a structured loop: parse → collect & plan → (UI design brief) → implement → code review (parallel workers fanned out from main) → (design critique) → test → summarize. Sub-agents are spawned via the Task tool at depth=1 (Claude Code's hard limit per issues [#4182](https://github.com/anthropics/claude-code/issues/4182) and [#19077](https://github.com/anthropics/claude-code/issues/19077)) — all fan-out happens at the main-agent level. Phases gracefully degrade when optional skills/plugins aren't installed (e.g. design critique skips if no visual-loop is installed). Iteration caps per phase + total loop budget prevent runaway loops.
+- **`feature-loop` preset** ([presets/feature-loop.yaml](presets/feature-loop.yaml)) — curated set for the orchestrator: `core` instruction + `feature-loop`, `improve-codebase-architecture`, `my-create-pr`, `my-fix-build`, `diagnose` skills. Stack-agnostic only — Electron-specific (`electron-visual-loop`), web-specific (future `web-visual-loop`), and aesthetic plug-ins (future `design-critique`, `ui-ux-pro-max`) are opt-in via `--primitives '+name'`. Composes with `engineering` via multi-preset syntax: `agent-kit init --preset engineering,feature-loop`.
+- **`feature-loop` test case** ([test/cases/feature-loop.sh](test/cases/feature-loop.sh)) — asserts the preset deploys the orchestrator skill + supporting skills, that the orchestrator body documents the depth-1 constraint and phase-skip flags, and that stack-specific opt-ins are correctly absent.
+
+### Notes
+
+- **Why no vendored `review-code` skill:** Anthropic's [code-review plugin](https://github.com/anthropics/claude-code/tree/main/plugins/code-review) was the obvious source to vendor from, but [anthropics/claude-code/LICENSE.md](https://github.com/anthropics/claude-code/blob/main/LICENSE.md) is Anthropic's Commercial Terms of Service — not Apache-2.0/MIT — so verbatim vendoring isn't permissible. Instead, Phase 4 of the orchestrator describes the multi-worker review pattern inline (publicly documented behavior, clean-room implementation) and gracefully invokes Anthropic's `/code-review` plugin if the user has it installed.
+- **Sub-agent depth = 1.** Phase 4 spawns 3 review workers in parallel **from the main agent**, not from a wrapping reviewer sub-agent (which would attempt depth=2 and fail). The skill body calls this out as the first architectural constraint.
+
 ## [0.9.0] - 2026-05-17
 
 ### Added

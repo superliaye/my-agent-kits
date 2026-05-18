@@ -19,14 +19,14 @@ cleanup() {
 trap cleanup EXIT
 
 # Force kit to old version FIRST so post-init bump produces a real delta
-node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.0.1';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
+node "$KIT_ROOT/test/lib/set-kit-version.mjs" 0.0.1
 
 WORK="$(mktemp -d)"; cd "$WORK"; git init -q .
 "$KIT_ROOT/bin/agent-kit" init --preset none --agents claude --scope repo >/dev/null \
   || { fail "init failed"; exit 1; }
 
 # Bump to a newer version so update sees the new react primitive as new
-node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('$KIT_ROOT/package.json'));p.version='0.2.0';fs.writeFileSync('$KIT_ROOT/package.json',JSON.stringify(p,null,2));"
+node "$KIT_ROOT/test/lib/set-kit-version.mjs" 0.2.0
 
 # Add a new react primitive
 cat > "$KIT_ROOT/.apm/instructions/react.instructions.md" <<'EOF'
@@ -40,12 +40,7 @@ Use functional components.
 EOF
 
 # Add 'react' to none preset
-node -e "
-const fs=require('fs'); const yaml=require('$KIT_ROOT/node_modules/yaml');
-const p=yaml.parse(fs.readFileSync('$KIT_ROOT/presets/none.yaml','utf8'));
-p.primitives.instructions.push('react');
-fs.writeFileSync('$KIT_ROOT/presets/none.yaml', yaml.stringify(p));
-"
+node "$KIT_ROOT/test/lib/add-preset-primitive.mjs" none instructions react
 
 "$KIT_ROOT/bin/agent-kit" update --adopt-preset-defaults >/dev/null \
   || { fail "agent-kit update exited non-zero"; exit 1; }
