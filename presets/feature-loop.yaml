@@ -1,5 +1,5 @@
 name: feature-loop
-description: Autonomous feature-build orchestrator. Main agent drives plan → implement → review → test → summary, delegating each phase to a sub-agent (depth=1) so the main context stays clean enough to judge and drill in. Stack-specific visual loops (Electron, web) and aesthetic plug-ins (design-critique, ui-ux-pro-max) are opt-in via `--primitives '+name'`.
+description: Autonomous feature-build orchestrator + every skill and plugin the loop calls. Main agent drives plan → implement → review → test → summary, delegating each phase to a sub-agent (depth=1). Ships the full toolkit out of the box — visual loops (Electron + web), design critique, and the Anthropic design/review plugins all included.
 default_agents: [claude]
 
 primitives:
@@ -8,10 +8,14 @@ primitives:
   skills:
     - feature-loop
     - improve-codebase-architecture
-    - my-create-pr
-    - my-fix-build
     - diagnose
-  plugins: []
+    - electron-visual-loop
+    - web-visual-loop
+    - design-critique
+  plugins:
+    - ui-ux-pro-max
+    - frontend-design
+    - code-review
   mcp: []
   hooks: []
   bundles: []

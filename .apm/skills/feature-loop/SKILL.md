@@ -51,7 +51,7 @@ Scope:
 
 ## Phase 3 — Implement (main)
 
-Main edits per plan + brief. If >15 files or >500 lines, chunk the work and spawn an implementer per chunk; otherwise inline. Use `my-clean-code` / `my-fix-build` as needed.
+Main edits per plan + brief. If >15 files or >500 lines, chunk the work and spawn an implementer per chunk; otherwise inline.
 
 ## Phase 4 — Code review (parallel from main)
 
@@ -89,7 +89,7 @@ Sections, in order:
 - **Verified** — Phase 4/5/6 outcomes, one line each.
 - **Loop gaps** — *prominent.* Every degraded phase, skipped phase, and iteration-cap stall. Not a footnote.
 - **Loop improvements** — actionable remediations: missing-skill installs, missing-test scaffolds, missing-harness suggestions. Restate 6b findings verbatim.
-- **Next** — `my-create-pr`, specific smoke-test steps, or accept.
+- **Next** — open a PR (the project's PR command, e.g. `gh pr create`), specific smoke-test steps the human should run, or "accept as-is".
 
 Never open PRs autonomously.
 
@@ -107,19 +107,18 @@ Never open PRs autonomously.
 
 ## Dependency map
 
-| Skill / plugin | Phase |
-|---|---|
-| `improve-codebase-architecture` | 1c |
-| `electron-visual-loop` | 1b, 5a (Electron) |
-| `web-visual-loop` | 1b, 5a (web) |
-| `ui-ux-pro-max` / `frontend-design` plugin | 2 |
-| `/code-review` plugin | 4 |
-| `design-critique` skill | 5b |
-| `diagnose` | 6 |
-| `my-create-pr` | 7 |
-| `my-fix-build`, `my-clean-code` | 3 |
+| Skill / plugin | Phase | Shipped in `feature-loop` preset |
+|---|---|---|
+| `improve-codebase-architecture` | 1c | yes |
+| `electron-visual-loop` | 1b, 5a (Electron) | yes |
+| `web-visual-loop` | 1b, 5a (web) | yes |
+| `ui-ux-pro-max` plugin | 2 (preferred) | yes |
+| `frontend-design` plugin | 2 (fallback) | yes |
+| `code-review` plugin | 4 (preferred — invokes `/code-review`) | yes |
+| `design-critique` skill | 5b | yes |
+| `diagnose` | 6 | yes |
 
-Missing dependency → degraded mode + 6b/7 finding.
+All dependencies ship with the preset. Any later removal → degraded mode + 6b/7 finding.
 
 ## Smoke recipes (6b fallbacks)
 

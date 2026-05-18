@@ -4,6 +4,29 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.11.0] - 2026-05-17
+
+### Added
+
+- **`web-visual-loop` skill** ([.apm/skills/web-visual-loop/](.apm/skills/web-visual-loop/)) — web-stack counterpart to `electron-visual-loop`, using the **same transport** (`agent-browser` CDP). Launches a Chromium instance with `--remote-debugging-port`, connects via `agent-browser`, navigates to a local dev-server URL, snapshots / screenshots / interacts. Covers Vite, Next, SvelteKit, Astro, plain HTML — anything that ships an HTTP dev server. Clean-room implementation (see [SOURCE.md](.apm/skills/web-visual-loop/SOURCE.md) for the rationale against vendoring `webapp-testing`, which would have introduced a separate Python+Playwright transport alongside the existing Node `agent-browser`).
+- **`design-critique` skill** ([.apm/skills/design-critique/](.apm/skills/design-critique/)) — vendored from [anthropics/knowledge-work-plugins](https://github.com/anthropics/knowledge-work-plugins) (`design/skills/design-critique/SKILL.md`, commit `a0fda66`, Apache-2.0). Structured design feedback framework across first impression, usability, hierarchy, consistency, accessibility. Used by `feature-loop`'s Phase 5b to critique screenshots produced by the visual-loop skills against the Phase 2 design brief.
+- **Both wired into the `feature-loop` preset** by default. The preset now ships the **full** autonomous-loop toolkit out of the box — no remaining "queued for later" gaps for web or design phases.
+
+### Changed (preset scope — breaking from 0.10.0)
+
+- **`feature-loop` preset rescoped** ([presets/feature-loop.yaml](presets/feature-loop.yaml)) to ship a *complete* autonomous-loop kit instead of a stack-agnostic subset:
+  - **Removed `my-*` skills** (`my-create-pr`, `my-fix-build`, `my-clean-code`) — personal-prefix skills the user never asked to be wired into this preset. The orchestrator's Phase 3 / Phase 7 descriptions now refer to generic actions (`gh pr create`, build/lint failures) rather than specific kit skills.
+  - **Added `electron-visual-loop`, `web-visual-loop`, `design-critique` skills** — carves the feature-loop preset out of the broad "platform-specific stays opt-in" rule. The preset is *about* the workflow that needs visual verification; opt-in here would mean silent degradation.
+  - **Added three plugin primitives**, new to the kit, all wired into the preset:
+    - [`.apm/plugins/ui-ux-pro-max.plugin.md`](.apm/plugins/ui-ux-pro-max.plugin.md) — [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) (MIT). Phase 2 designer.
+    - [`.apm/plugins/frontend-design.plugin.md`](.apm/plugins/frontend-design.plugin.md) — Anthropic's `claude-plugins-official` (Apache-2.0). Phase 2 fallback.
+    - [`.apm/plugins/code-review.plugin.md`](.apm/plugins/code-review.plugin.md) — Anthropic's `claude-plugins-official` (Apache-2.0). Phase 4 preferred.
+- **Saved feedback memory updated** to reflect the carve-out: stack-specific primitives stay opt-in in **broad** workflow presets (`engineering`, `productivity`) but are included in **purpose-scoped** presets like `feature-loop` where the workflow is *about* the primitive.
+
+### Added (infrastructure)
+
+- **`AGENT_KIT_SKIP_PLUGIN_INSTALL=1` escape hatch** ([lib/deploy.js](lib/deploy.js), [lib/verify.js](lib/verify.js)) — mirrors the existing `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`. Records plugin names in state without invoking `claude plugin install`. Used by the `feature-loop` test case to keep the dev environment's Claude Code plugin set untouched during test runs.
+
 ## [0.10.1] - 2026-05-17
 
 ### Fixed
