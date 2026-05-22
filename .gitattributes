@@ -1,0 +1,18 @@
+# Pin text files to LF. The kit reads these and pipes their contents into
+# CLAUDE.md / AGENTS.md / .claude/skills/*. If CRLF leaks in (Windows checkouts
+# with core.autocrlf=true), it surfaces inside the Docker test image as
+# `$'\r': command not found` for scripts, and breaks `grep '^…$'` anchors in
+# tests that scan the rendered CLAUDE.md. Belt-and-suspenders: the Docker test
+# image also runs a CRLF strip during build (test/Dockerfile.test).
+
+*.sh text eol=lf
+*.bash text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.mjs text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+
+bin/agent-kit text eol=lf
+bootstrap.sh text eol=lf

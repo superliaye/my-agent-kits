@@ -53,7 +53,7 @@ Mirror the closest existing test in `test/cases/`. Naming matches the primitive:
 - **Instruction:** mirror `test/cases/claude-md-concat.sh` — assert the rule body shows up in `CLAUDE.md`.
 - **Plugin:** mirror an existing plugin test if one exists; otherwise an assert on the state file's `plugins:` list is the minimum.
 
-The test runner is `bash test/run-tests.sh` (or `docker run --rm my-agent-kits-test` for a clean POSIX environment — Windows host has pre-existing path-translation failures on a few tests).
+The test runner is `npm test` (builds + runs Docker — isolated, doesn't touch your host's `~/.claude/`). For faster inner-loop iteration use `npm run test:host` — that mode writes to your real `$HOME/.claude/` and `$HOME/.codex/`, so only use it when you know what you're doing.
 
 ## 5. Bump version + CHANGELOG
 
@@ -66,10 +66,11 @@ For a feature add, this is **minor** (e.g. `0.8.0` → `0.9.0`). For a fix only,
 ## 6. Verify
 
 ```bash
-bash test/run-tests.sh
+npm test            # Docker (default)
+npm run test:host   # this machine — touches real ~/.claude/
 ```
 
-Expected: full pass on Windows host (13/13 since v0.10.1, when the `node -e` + `$KIT_ROOT` path-inlining pattern was replaced with helper scripts in `test/lib/`). Docker should also be full pass.
+Expected: full pass in Docker. Host mode passes the same case set when `~/.claude/` is in a clean enough state — but `--scope global` cases trip on pre-existing artifacts (e.g. `~/.claude/rules/`).
 
 ## 7. Commit
 

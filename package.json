@@ -8,7 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "bash test/run-tests.sh"
+    "test": "docker build -q -f test/Dockerfile.test -t my-agent-kits-test . && docker run --rm my-agent-kits-test",
+    "test:host": "AGENT_KIT_TEST_HOST=1 bash test/run-tests.sh"
   },
   "dependencies": {
     "@clack/prompts": "^0.7.0",

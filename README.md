@@ -97,12 +97,22 @@ That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` fil
 
 ## Tests
 
+Default — isolated Docker run (Unix-only validation, doesn't touch your host's `~/.claude/` or `~/.codex/`):
+
 ```bash
-docker build -q -f test/Dockerfile.test -t my-agent-kits-test .
-docker run --rm my-agent-kits-test
+npm test
+# equivalent to: docker build -q -f test/Dockerfile.test -t my-agent-kits-test . && docker run --rm my-agent-kits-test
 ```
 
-Expected: `Results: 8 cases passed, 0 cases failed`.
+Opt-in — run the suite on this machine (faster inner loop, but `--scope global` cases overwrite your real `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md` and may delete `~/.claude/plugins/`):
+
+```bash
+npm run test:host
+# or via the CLI:
+./bin/agent-kit test --host
+```
+
+Host mode is gated behind `AGENT_KIT_TEST_HOST=1` so direct `bash test/run-tests.sh` runs refuse without the env var; use the npm script or the `--host` flag.
 
 ## Spec & Plan
 

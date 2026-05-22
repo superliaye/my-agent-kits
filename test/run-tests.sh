@@ -1,10 +1,40 @@
 #!/usr/bin/env bash
 # Iterate test/cases/*.sh, aggregate pass/fail.
+#
+# This runner writes to the host's real $HOME/.claude/ and $HOME/.codex/ when
+# the suite hits --scope global cases — by design, since those code paths
+# write to those exact locations in production. Inside the Docker image
+# (test/Dockerfile.test) HOME is the container's clean HOME, so this is safe.
+# On a host machine it overwrites your live agent config.
+#
+# Default flow: `npm test` builds + runs the Docker image. Use `npm run test:host`
+# (which sets AGENT_KIT_TEST_HOST=1) to opt in to host execution.
 
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KIT_ROOT="$( cd "$HERE/.." && pwd )"
 export KIT_ROOT
+
+if [ -f /.dockerenv ]; then
+  : # inside the test container — proceed silently
+elif [ -n "${AGENT_KIT_TEST_HOST:-}" ]; then
+  cat <<'BANNER'
+================================================================
+HOST MODE — this run touches your real ~/.claude/ and ~/.codex/.
+  --scope global cases will overwrite CLAUDE.md / AGENTS.md and may
+  delete ~/.claude/plugins/ and ~/.apm/. Ctrl+C now if not intended.
+For isolated runs use: npm test  (Docker)
+================================================================
+BANNER
+else
+  cat >&2 <<'REFUSE'
+Refusing to run in host mode (would touch your real ~/.claude/ and ~/.codex/).
+
+Default isolated run:   npm test            # Docker; Unix-only validation
+Opt in to host mode:    npm run test:host   # uses real $HOME on this machine
+REFUSE
+  exit 2
+fi
 TOTAL_PASS=0
 TOTAL_FAIL=0
 CASES_PASSED=()

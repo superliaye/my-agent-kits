@@ -74,7 +74,7 @@ The kit reads only the frontmatter. Field reference is in [lib/primitives.js](..
 1. **Pick the new commit.** Use a commit SHA from the upstream repo, not a tag or branch — the wizard's source-URL safety check requires a 40-char hex pin.
 2. **Edit the bundle file.** Bump `pinned_commit:` in [.apm/bundles/gstack.bundle.md](../.apm/bundles/gstack.bundle.md). If upstream changed its installer flags or runtime deps, update those too.
 3. **Bump the kit version.** Update [package.json](../package.json) and add a [CHANGELOG.md](../CHANGELOG.md) entry under the new version. This matters because the wizard's update flow detects "new in preset" by comparing `added_in:` to the consumer repo's last-deployed kit version — bumping the bundle's `added_in:` is what makes existing consumer repos see it on `agent-kit update`.
-4. **Test locally.** Run `bash test/run-tests.sh` (or `docker run --rm my-agent-kits-test`) to catch regressions in the preset/state plumbing. The bundle install itself is skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
+4. **Test locally.** Run `npm test` (Docker, isolated) to catch regressions in the preset/state plumbing. `npm run test:host` is the opt-in inner-loop alternative — it writes to your real `~/.claude/`. The bundle install itself is skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
 5. **Commit, tag, push.**
 6. **Consumer-side pickup.** Users run `agent-kit update <repo>`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent — gstack's is, per its README.
 

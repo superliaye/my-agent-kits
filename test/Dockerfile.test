@@ -13,6 +13,12 @@ COPY package.json package-lock.json* ./
 RUN npm install --no-audit --no-fund
 COPY . .
 
+# Strip any CRLF line endings on shell scripts. Files committed from a Windows
+# host with `core.autocrlf=true` land in the build context with CRLF, which
+# breaks bash inside this Linux image (`$'\r': command not found`). .gitattributes
+# at the repo root pins .sh to LF going forward; this is belt-and-suspenders.
+RUN find /kit -type f \( -name "*.sh" -o -name "agent-kit" \) -exec sed -i 's/\r$//' {} +
+
 # Make the launcher and test scripts executable. Test cases invoke
 # /kit/bin/agent-kit directly via $KIT_ROOT — no PATH shim, matching the
 # install flow documented in README.md.
