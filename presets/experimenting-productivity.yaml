@@ -1,0 +1,15 @@
+name: experimenting-productivity
+description: Experimental add-on to productivity — bundles HyperFrames (HTML-based video composition with TTS, captions, audio-reactive animation). Opt-in (not default-selected); pick when you do video work.
+default_agents: [claude]
+extends: productivity
+
+primitives:
+  instructions: []
+  skills: []
+  plugins: []
+  mcp: []
+  hooks: []
+  bundles:
+    - hyperframes
+
+apm_dependencies: []

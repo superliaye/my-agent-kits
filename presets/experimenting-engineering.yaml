@@ -1,0 +1,15 @@
+name: experimenting-engineering
+description: Experimental add-on to engineering — bundles gstack (30+ /gstack-* planning/design/QA/ship slash commands via external setup script). Default-selected alongside engineering in init. Stable engineering preset stays bundle-free.
+default_agents: [claude]
+extends: engineering
+
+primitives:
+  instructions: []
+  skills: []
+  plugins: []
+  mcp: []
+  hooks: []
+  bundles:
+    - gstack
+
+apm_dependencies: []

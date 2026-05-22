@@ -4,6 +4,18 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.13.0] - 2026-05-22
+
+### Added
+
+- **`experimenting-engineering` preset** ([presets/experimenting-engineering.yaml](presets/experimenting-engineering.yaml)) — extends `engineering`, adds the `gstack` bundle (30+ `/gstack-*` planning/design/QA/ship slash commands via external setup script). Pre-selected in the interactive wizard alongside `engineering`. Lets the stable `engineering` preset stay bundle-free while keeping the experimental external installer one click away.
+- **`experimenting-productivity` preset** ([presets/experimenting-productivity.yaml](presets/experimenting-productivity.yaml)) — extends `productivity`, adds the `hyperframes` bundle (HTML-based video composition with TTS, captions, audio-reactive animation). **Opt-in only — not default-selected.** Pick when you actually do video work.
+
+### Changed (breaking for `productivity` preset consumers)
+
+- **`hyperframes` removed from `productivity` preset** ([presets/productivity.yaml](presets/productivity.yaml)) — moved to the new `experimenting-productivity` preset. Existing consumer repos on `productivity` will see `hyperframes` drop out of the preset's bundle list on `agent-kit update`; pick `experimenting-productivity` to get it back. Rationale: stable presets should not auto-install heavy external bundles. The "stable / experimenting" split mirrors what the engineering side now has.
+- **Wizard default selection** ([lib/init.js](lib/init.js)) — pre-selects `engineering, experimenting-engineering, productivity, feature-loop`. `experimenting-productivity` is deliberately *not* pre-checked.
+
 ## [0.12.0] - 2026-05-22
 
 ### Added
