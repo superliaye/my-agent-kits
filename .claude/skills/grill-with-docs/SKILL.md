@@ -2,7 +2,7 @@
 description: Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallise. Use when user wants to stress-test a plan against their project's language and documented decisions.
 added_in: 0.4.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: 1.0.0
+upstream_version: 1.1.0
 ---
 
 <what-to-do>
@@ -75,7 +75,7 @@ When the user states how something works, check whether the code agrees. If you 
 
 When a term is resolved, update `CONTEXT.md` right there. Don't batch these up — capture them as they happen. Use the format in [CONTEXT-FORMAT.md](./CONTEXT-FORMAT.md).
 
-Don't couple `CONTEXT.md` to implementation details. Only include terms that are meaningful to domain experts.
+`CONTEXT.md` should be totally devoid of implementation details. Do not treat `CONTEXT.md` as a spec, a scratch pad, or a repository for implementation decisions. It is a glossary and nothing else.
 
 ### Offer ADRs sparingly
 

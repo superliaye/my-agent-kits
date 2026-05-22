@@ -5,12 +5,10 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/grill-with-docs/`
+- **Path**: `skills/engineering/zoom-out/`
 - **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
 - **Files vendored**:
   - `SKILL.md`
-  - `CONTEXT-FORMAT.md`
-  - `ADR-FORMAT.md`
 
 ## Re-sync procedure
 
@@ -22,10 +20,6 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: grill-with-docs` field — the kit's primitive loader derives the name from the folder.
+- Dropped upstream's `name: zoom-out` field — the kit's primitive loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
-- `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
-
-## Known upstream inconsistency (1.1.0)
-
-Upstream commit `e7df78b` (2026-05-19) removed three sections from the `## Structure` template in `CONTEXT-FORMAT.md` (`## Relationships`, `## Example dialogue`, `## Flagged ambiguities`) but left the `## Rules` block still referencing them ("Flag conflicts explicitly" / "Write an example dialogue"). Vendored as-is to mirror upstream; revisit if upstream patches this.
+- Preserved upstream's `disable-model-invocation: true` — this is a slash-command-only skill (the model shouldn't auto-route into it; the user invokes it explicitly when they want to step up an abstraction layer).

@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/productivity/grill-me/`
-- **Last synced**: 2026-05-12 (vendored at `upstream_version: 1.0.0`)
+- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
 - **Files vendored**:
   - `SKILL.md`
 

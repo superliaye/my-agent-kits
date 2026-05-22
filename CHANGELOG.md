@@ -4,6 +4,30 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.12.0] - 2026-05-22
+
+### Added
+
+- **Six new vendored skills from [mattpocock/skills](https://github.com/mattpocock/skills)** at upstream HEAD `b8be62f`:
+  - **`prototype`** ([.apm/skills/prototype/](.apm/skills/prototype/)) — throwaway-code-that-answers-a-question discipline. Routes between a logic branch (interactive terminal app for state/business-logic questions) and a UI branch (radically different UI variations switchable from a floating bottom bar). Three files: [SKILL.md](.apm/skills/prototype/SKILL.md), [LOGIC.md](.apm/skills/prototype/LOGIC.md), [UI.md](.apm/skills/prototype/UI.md). Wired into the `engineering` preset.
+  - **`to-prd`** ([.apm/skills/to-prd/](.apm/skills/to-prd/)) — turns the current conversation into a PRD published to the project issue tracker. Pairs with `to-issues`. Wired into the `engineering` preset.
+  - **`to-issues`** ([.apm/skills/to-issues/](.apm/skills/to-issues/)) — breaks a plan/spec/PRD into tracer-bullet vertical-slice issues. Wired into the `engineering` preset.
+  - **`zoom-out`** ([.apm/skills/zoom-out/](.apm/skills/zoom-out/)) — explicit-invocation skill that asks the agent to step up a layer of abstraction and map the relevant modules + callers using domain vocabulary. Preserves upstream's `disable-model-invocation: true` (slash-command only). Wired into the `engineering` preset.
+  - **`write-a-skill`** ([.apm/skills/write-a-skill/](.apm/skills/write-a-skill/)) — meta-skill for authoring new agent skills with progressive disclosure and bundled resources. Wired into the `productivity` preset.
+  - **`handoff`** ([.apm/skills/handoff/](.apm/skills/handoff/)) — compact the current conversation into a handoff document for a fresh agent to pick up. Preserves upstream's `argument-hint:` field so Claude Code surfaces it when the user invokes `/handoff <args>`. Wired into the `productivity` preset.
+
+### Changed
+
+- **Upstream sync to `upstream_version: 1.1.0` for all six previously-vendored mattpocock skills**:
+  - **`improve-codebase-architecture`** — substantive update. Phase 2 ("Present candidates") now generates a self-contained HTML report (Tailwind + Mermaid via CDN) opened from the OS temp dir, with before/after diagrams and recommendation-strength badges (`Strong` / `Worth exploring` / `Speculative`). New file [HTML-REPORT.md](.apm/skills/improve-codebase-architecture/HTML-REPORT.md) provides the full scaffold + diagram patterns + style guidance.
+  - **`grill-with-docs`** — wording-only changes. [SKILL.md](.apm/skills/grill-with-docs/SKILL.md) sharpens the CONTEXT.md framing ("totally devoid of implementation details… a glossary and nothing else"). [CONTEXT-FORMAT.md](.apm/skills/grill-with-docs/CONTEXT-FORMAT.md) drops three example-template sections (`## Relationships`, `## Example dialogue`, `## Flagged ambiguities`) and loosens the definition-length rule from "one sentence" to "one or two sentences". An upstream inconsistency (the `## Rules` block still references the removed sections) is mirrored as-is and documented in [SOURCE.md](.apm/skills/grill-with-docs/SOURCE.md).
+  - **`diagnose`** + **`grill-me`** — content unchanged upstream. Metadata-only bump (`upstream_version` + `Last synced` + HEAD pin in [SOURCE.md](.apm/skills/diagnose/SOURCE.md)).
+
+### Notes
+
+- `to-prd` and `to-issues` reference `/setup-matt-pocock-skills` for issue-tracker + triage-label configuration. That setup skill is upstream-specific (configures Matt's conventions) and **not vendored**. Each skill's [SOURCE.md](.apm/skills/to-prd/SOURCE.md) documents the fallback: ask the user which issue tracker (GitHub Issues, Linear, etc.) and what triage label to apply.
+- Upstream has no `package.json`, no releases, and no tags. `upstream_version` is a local convention; bumped 1.0.0 → 1.1.0 to mark the substantive content delta + additive `HTML-REPORT.md`.
+
 ## [0.11.0] - 2026-05-17
 
 ### Added

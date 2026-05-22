@@ -18,6 +18,10 @@ primitives:
     - grill-with-docs
     - diagnose
     - improve-codebase-architecture
+    - prototype
+    - to-prd
+    - to-issues
+    - zoom-out
   plugins: []
   mcp: []
   hooks: []

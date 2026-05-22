@@ -2,7 +2,7 @@
 description: Disciplined diagnosis loop for hard bugs and performance regressions. Reproduce → minimise → hypothesise → instrument → fix → regression-test. Use when user says "diagnose this" / "debug this", reports a bug, says something is broken/throwing/failing, or describes a performance regression.
 added_in: 0.4.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: 1.0.0
+upstream_version: 1.1.0
 ---
 
 # Diagnose

@@ -5,12 +5,10 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/grill-with-docs/`
+- **Path**: `skills/productivity/write-a-skill/`
 - **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
 - **Files vendored**:
   - `SKILL.md`
-  - `CONTEXT-FORMAT.md`
-  - `ADR-FORMAT.md`
 
 ## Re-sync procedure
 
@@ -22,10 +20,10 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: grill-with-docs` field — the kit's primitive loader derives the name from the folder.
+- Dropped upstream's `name: write-a-skill` field — the kit's primitive loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
 
-## Known upstream inconsistency (1.1.0)
+## Notes
 
-Upstream commit `e7df78b` (2026-05-19) removed three sections from the `## Structure` template in `CONTEXT-FORMAT.md` (`## Relationships`, `## Example dialogue`, `## Flagged ambiguities`) but left the `## Rules` block still referencing them ("Flag conflicts explicitly" / "Write an example dialogue"). Vendored as-is to mirror upstream; revisit if upstream patches this.
+- The "SKILL.md Template" snippet inside the body shows an upstream-style frontmatter block (with `name:`, without `added_in`/`upstream`/`upstream_version`). That's a template the model is supposed to *write out for the user*, not the schema this kit uses for vendored skills. If you author a skill specifically for this kit, follow the conventions in the surrounding [.apm/skills/](../) folders — see `improve-codebase-architecture/SOURCE.md` for the canonical vendor pattern, or any of the `my-*` skills for an in-house pattern.
