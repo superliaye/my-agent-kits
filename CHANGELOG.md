@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.13.1] - 2026-05-22
+
+### Added
+
+- **`superpowers` plugin added to `experimenting-engineering` preset** ([presets/experimenting-engineering.yaml](presets/experimenting-engineering.yaml)) — Claude Code plugin from `anthropics/claude-plugins-official` (TDD, systematic debugging, brainstorming, writing/executing plans, subagent-driven development, rubric-based code review, skill authoring). Lands at user-scope `~/.claude/plugins/`. Plugin file [.apm/plugins/superpowers.plugin.md](.apm/plugins/superpowers.plugin.md) existed since 0.2.0 but wasn't wired into any preset.
+
 ## [0.13.0] - 2026-05-22
 
 ### Added
