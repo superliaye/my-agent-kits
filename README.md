@@ -38,7 +38,7 @@ Passing `--preset`, `--agents`, and `--scope` together is enough — the wizard 
 ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md overwrite
 ```
 
-That writes `CLAUDE.md` (overwriting any existing one) and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
+That writes a canonical `AGENTS.md` (the instructions), a thin `CLAUDE.md` that imports it via `@AGENTS.md` (overwriting any existing one), and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
 
 Common variations — change exactly the flag(s) that differ:
 
@@ -72,7 +72,7 @@ Updating:
 | Path | Purpose |
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`engineering`, `productivity`, `none`). Multi-select via `--preset a,b` |
-| `.apm/instructions/*.instructions.md` | Always-loaded rules (concatenated into CLAUDE.md / AGENTS.md at deploy) |
+| `.apm/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into the canonical `AGENTS.md` (repo-scope `CLAUDE.md` imports it via `@AGENTS.md`; global scope writes them inline) |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
@@ -86,10 +86,10 @@ After `agent-kit init` in `~/work/some-repo`:
 
 ```text
 some-repo/
-├── CLAUDE.md           # concatenated instructions (Claude Code reads this)
-├── AGENTS.md           # concatenated instructions for Codex (if --agents codex)
+├── AGENTS.md           # canonical instructions — Claude imports it; Codex & other AGENTS.md-native agents read it directly
+├── CLAUDE.md           # thin `@AGENTS.md` import (global scope: carries instructions inline instead)
 ├── .claude/skills/     # Claude Code reads skills here
-├── .agents/skills/     # cross-client skills (Codex sidecar reads here)
+├── .agents/skills/     # cross-client skills (Codex sidecar reads here; if --agents codex)
 └── .agent-kit.yaml     # wizard state — what was deployed, for `agent-kit update`
 ```
 

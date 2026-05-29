@@ -35,4 +35,4 @@ echo "## Added in v0.2.0" >> "$KIT_ROOT/.apm/instructions/core.instructions.md"
 
 NEW_VERSION="$(grep kit_version_at_last_run "$WORK/.agent-kit.yaml" | awk '{print $2}')"
 [ "$NEW_VERSION" = "0.2.0" ] && ok "kit_version bumped to 0.2.0" || fail "kit_version not bumped (got $NEW_VERSION)"
-assert_content_contains "$WORK/CLAUDE.md" "Added in v0.2.0" "v0.2.0 content visible in CLAUDE.md after update"
+assert_content_contains "$WORK/AGENTS.md" "Added in v0.2.0" "v0.2.0 content visible in canonical AGENTS.md after update"

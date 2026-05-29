@@ -19,8 +19,9 @@ export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive: productivity preset's content lands.
-assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md (instructions concatenated)"
-assert_content_contains "$WORK/CLAUDE.md" "Core Instructions" "core instruction in CLAUDE.md"
+assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md (thin @AGENTS.md import)"
+assert_content_contains "$WORK/CLAUDE.md" "@AGENTS.md" "CLAUDE.md imports canonical AGENTS.md"
+assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in canonical AGENTS.md"
 assert_dir_nonempty "$WORK/.claude/skills" "skills deployed to .claude/skills"
 assert_file_exists "$WORK/.claude/skills/grill-me/SKILL.md" "productivity skill (grill-me) deployed"
 

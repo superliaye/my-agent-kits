@@ -46,9 +46,10 @@ assert_file_exists "$WORK/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
 assert_file_exists "$WORK/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
 assert_file_exists "$WORK/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
 
-# Core instruction concatenated
+# Core instruction lives in the canonical AGENTS.md; CLAUDE.md imports it.
 assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md generated"
-assert_content_contains "$WORK/CLAUDE.md" "Core Instructions" "core instruction in CLAUDE.md"
+assert_content_contains "$WORK/CLAUDE.md" "@AGENTS.md" "CLAUDE.md imports canonical AGENTS.md"
+assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in canonical AGENTS.md"
 
 # State recorded — preset + plugins
 assert_content_contains "$WORK/.agent-kit.yaml" "preset: build-feature-dynamic-workflow" "preset recorded"

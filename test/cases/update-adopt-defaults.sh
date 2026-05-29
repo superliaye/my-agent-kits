@@ -46,4 +46,4 @@ node "$KIT_ROOT/test/lib/add-preset-primitive.mjs" none instructions react
   || { fail "agent-kit update exited non-zero"; exit 1; }
 
 assert_content_contains "$WORK/.agent-kit.yaml" "react" "react primitive in state"
-assert_content_contains "$WORK/CLAUDE.md" "Use functional components" "react rule body merged into CLAUDE.md"
+assert_content_contains "$WORK/AGENTS.md" "Use functional components" "react rule body merged into canonical AGENTS.md"

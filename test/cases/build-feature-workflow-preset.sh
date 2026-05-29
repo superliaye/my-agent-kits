@@ -59,9 +59,10 @@ assert_content_contains "$WORK/.claude/skills/e2e-validate/SKILL.md" "descriptio
 assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "added_in:" "improve-DDD-architecture frontmatter has added_in"
 assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "description:" "improve-DDD-architecture frontmatter has description"
 
-# Core instruction concatenated
+# Core instruction lives in the canonical AGENTS.md; CLAUDE.md imports it.
 assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md generated"
-assert_content_contains "$WORK/CLAUDE.md" "Core Instructions" "core instruction in CLAUDE.md"
+assert_content_contains "$WORK/CLAUDE.md" "@AGENTS.md" "CLAUDE.md imports canonical AGENTS.md"
+assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in canonical AGENTS.md"
 
 # State recorded — preset + plugins
 assert_content_contains "$WORK/.agent-kit.yaml" "preset: build-feature-workflow" "preset recorded"
