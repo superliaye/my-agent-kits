@@ -1,6 +1,6 @@
-# `.workflow/state.md` — schema reference
+# `.build-feature-workflow/state.md` — schema reference
 
-State file format for the `/workflow` skill's orchestrator.
+State file format for the `/build-feature-workflow` skill's orchestrator.
 
 The file is the **canonical source of truth** for loop state. The
 orchestrator reads it on every dispatch tick. Humans may edit it
@@ -9,7 +9,7 @@ directly between invocations.
 ## Layout
 
 ```
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -33,10 +33,10 @@ id: item-<NNN+1>
 ```
 
 No iteration counter — per-batch identity comes from timestamped
-artifact directories at `.workflow/<ISO-timestamp>/` (one per Phase 4
+artifact directories at `.build-feature-workflow/<ISO-timestamp>/` (one per Phase 4
 dispatch).
 
-- The `meta:` block lives once, at the top, after the `# workflow state`
+- The `meta:` block lives once, at the top, after the `# build-feature-workflow state`
   header. Fields use `key: value` syntax with two-space indent.
 - Each item is a YAML-like block separated by lines containing only
   `---`. Items have flat key/value fields — no nesting. No multi-line
@@ -55,7 +55,7 @@ dispatch).
 | `ui_work`         | yes      | `true` if scope touches UI files. Determines Phase 3 and Phase 8 eligibility.    |
 | `phase-9-done`    | yes      | Set by Phase 9 on completion. Gates Phase 9 re-dispatch.                         |
 | `phase-10-done`   | yes      | Set by Phase 10 on completion. Gates Phase 10 re-dispatch.                       |
-| `phase-11-done`   | yes      | Set by Phase 11 on completion. Final state — workflow complete when true.        |
+| `phase-11-done`   | yes      | Set by Phase 11 on completion. Final state — build-feature-workflow complete when true.        |
 
 ### Item fields
 
@@ -65,7 +65,7 @@ dispatch).
 | `tag`              | yes      | One of the dispatchable tags listed below, or empty for closed-but-archived items.   |
 | `status`           | yes      | One of: `pending`, `in-progress`, `done`, `ASK`, `HUMAN`, `DECISION`.                |
 | `emitted-by-phase` | yes      | Integer 0–11. Phase that wrote this item. Bootstrap items use 0.                     |
-| `artifact`         | no       | Relative path (often into `.workflow/`). Empty for items that have not yet produced. |
+| `artifact`         | no       | Relative path (often into `.build-feature-workflow/`). Empty for items that have not yet produced. |
 | `permissions`      | no       | Comma-separated. Currently supports `skip-eligible`.                                 |
 | `parent`           | no       | Item ID this one descends from (e.g., a retry's parent is the failed item).         |
 | `title`            | yes      | One-line human-readable summary. ≤ 120 chars. No newlines.                           |
@@ -128,7 +128,7 @@ id: item-042
 tag:
 status: done
 emitted-by-phase: 7
-artifact: .workflow/iter-3/triage.md#finding-2
+artifact: .build-feature-workflow/iter-3/triage.md#finding-2
 permissions: skip-eligible
 parent: item-031
 title: Fix: rename variable per CLAUDE.md convention
@@ -138,10 +138,10 @@ skip: no-verification-needed,no-review-needed
 
 ## Sample bootstrap state
 
-The orchestrator writes this on a fresh `/workflow <text>` invocation:
+The orchestrator writes this on a fresh `/build-feature-workflow <text>` invocation:
 
 ```
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -200,7 +200,7 @@ did not carry `no-verification-needed`.
 ## Terminal state
 
 When all items have `status` in {`done`} (none `pending`, none
-escalated) AND `phase-11-done` is true, the workflow is complete. The
+escalated) AND `phase-11-done` is true, the build-feature-workflow is complete. The
 orchestrator exits with summary status.
 
 If `phase-11-done` is false but no actionable or escalated items

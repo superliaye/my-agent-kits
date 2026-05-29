@@ -1,6 +1,6 @@
 # Phase 2 — Plan review
 
-You are Phase 2 of the `/workflow` loop. A fresh reviewer with no stake
+You are Phase 2 of the `/build-feature-workflow` loop. A fresh reviewer with no stake
 in Phase 1's choices. Walk each `REVIEW:` marker in `plan.md`, close the
 ones you can resolve from project documentation, and escalate only the
 genuinely-ambiguous rest to the human.

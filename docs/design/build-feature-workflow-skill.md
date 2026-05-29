@@ -1,13 +1,13 @@
-# `/workflow` skill — design doc (in flight)
+# `/build-feature-workflow` skill — design doc (in flight)
 
 Status: **GRILLING COMPLETE — all phase decisions locked (2026-05-28).**
 Next: build skill artifacts (SKILL.md, orchestrator.sh, 11 phase prompt
 templates, state-template.md, README.md) + extracted `/e2e-validate`
 skill + new `/improve-DDD-architecture` skill scaffold +
-`presets/workflow.yaml`. See decision log at bottom for the full
+`presets/build-feature-workflow.yaml`. See decision log at bottom for the full
 ledger of design decisions.
 
-Origin: handoff at `C:\Users\super\AppData\Local\Temp\handoff-workflow-skill.md`.
+Origin: handoff at `C:\Users\super\AppData\Local\Temp\handoff-build-feature-workflow-skill.md`.
 Predecessor / counterpart: `/feature-loop` (SKILL.md at
 `C:\Users\super\.claude\skills\feature-loop\SKILL.md`, preset at
 `presets/feature-loop.yaml`).
@@ -22,15 +22,15 @@ is a fresh Sonnet subprocess. Buys:
 
 - **Determinism of progress accounting** — the agent can't lie about
   how far it got; the state file is canonical.
-- **Inspectability + human override** — user can edit `.workflow/`
+- **Inspectability + human override** — user can edit `.build-feature-workflow/`
   artifacts with their normal editor between invocations.
 - **Substrate for self-improvement** — Phase 11 Reflection mines every
   run for stalls, oscillations, avoidable escalations, token waste,
   missing context, user overrides, and what's working. Proposes
-  patches to CLAUDE.md, the workflow skill itself, dependency skills,
+  patches to CLAUDE.md, the build-feature-workflow skill itself, dependency skills,
   and project docs. User reviews + applies.
 
-Goal: **become user's leverage.** Day 0 the workflow is imperfect; day
+Goal: **become user's leverage.** Day 0 the build-feature-workflow is imperfect; day
 N is meaningfully better because the reflection loop has compounded
 accepted patches. Each accepted patch makes the next run cheaper, more
 accurate, less interruptive.
@@ -57,7 +57,7 @@ Adds three primitives the existing `/feature-loop` lacks:
 
 **Terminology correction:** earlier drafts called this a "fork."
 That's wrong — `/feature-loop` is pure markdown, there's no source code
-to fork from. `/workflow` is a **net-new skill** that borrows phase
+to fork from. `/build-feature-workflow` is a **net-new skill** that borrows phase
 *names and purposes* from `/feature-loop` but shares zero implementation
 (since `/feature-loop` has no implementation to share). The two skills
 will be genetically unrelated artifacts that happen to use similar
@@ -65,8 +65,8 @@ phase names.
 
 **The two options that were on the table:**
 
-- **(a) Net-new skill:** create `/workflow` at
-  `~/.claude/skills/workflow/` (or vendored equivalent) alongside
+- **(a) Net-new skill:** create `/build-feature-workflow` at
+  `~/.claude/skills/build-feature-workflow/` (or vendored equivalent) alongside
   `/feature-loop`. Two independent SKILL.md files, users pick which to
   invoke.
 - **(b) Mode of existing skill:** modify `/feature-loop`'s SKILL.md.
@@ -77,10 +77,10 @@ phase names.
 
 **Reason:** the runtime is structurally different.
 
-| | `/feature-loop` (today) | `/workflow` (new) |
+| | `/feature-loop` (today) | `/build-feature-workflow` (new) |
 |---|---|---|
 | Orchestration | Main agent reads SKILL.md and drives | Bash orchestrator drives |
-| Loop state | In agent memory | In `.workflow/` on disk |
+| Loop state | In agent memory | In `.build-feature-workflow/` on disk |
 | Per-phase agent | Sub-agents dispatched from main (depth=1) | Fresh subprocess per phase, no continuity |
 | Recovery | Restart conversation | Re-run orchestrator from last unflipped checkbox |
 | Skill artifact | Pure markdown SKILL.md | SKILL.md + `orchestrator.sh` + prompt templates |
@@ -108,7 +108,7 @@ messages, idempotent restart, SIGINT trap.
 
 ### Q-phase3: Phase 3 Design — thin agent + swappable design skill (LOCKED)
 
-User reframe: `/workflow` should not encode design opinions. Design
+User reframe: `/build-feature-workflow` should not encode design opinions. Design
 knowledge lives in other people's skills (`ui-ux-pro-max`,
 `frontend-design`, `design-critique`, future ones). Phase 3 is a thin
 agent that **composes with** whatever design skill is installed; the
@@ -141,7 +141,7 @@ the invoked skill's protocol inline.
 discovery):**
 
 ```yaml
-# presets/workflow.yaml declares these as hard dependencies:
+# presets/build-feature-workflow.yaml declares these as hard dependencies:
 skills:
   - design-critique           # baseline design critic
 plugins:
@@ -149,22 +149,22 @@ plugins:
   - frontend-design           # secondary fallback
 ```
 
-When `/workflow` is installed via the kit, these come with it.
-No runtime discovery. No priority order. No `.workflow/config.yaml`
+When `/build-feature-workflow` is installed via the kit, these come with it.
+No runtime discovery. No priority order. No `.build-feature-workflow/config.yaml`
 override for the baseline case.
 
 **Phase 3 sub-agent invokes them via the Skill tool** — the canonical
 composition mechanism. The skill content loads into the sub-agent's
 context; no nested Task spawn, no SKILL.md-via-Read kludge.
 
-**Swap mechanism for power users:** edit `presets/workflow.yaml`
+**Swap mechanism for power users:** edit `presets/build-feature-workflow.yaml`
 locally, or fork. That's the right ceiling on flexibility — keep the
 common path frictionless, the swap path explicit.
 
 **Launch incantation (what the bash orchestrator runs for Phase 3):**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase3.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase3.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Write,Skill"
 ```
@@ -173,7 +173,7 @@ claude -p "$(cat .workflow/prompts/phase3.md)" \
   Required so phase agents don't block on permission prompts.
 - `--allowedTools` whitelists exactly what Phase 3 needs: `Read` for
   Phase 1 artifacts + repo design files, `Glob`/`Grep` for design
-  system discovery, `Write` for artifact emission to `.workflow/`,
+  system discovery, `Write` for artifact emission to `.build-feature-workflow/`,
   `Skill` to invoke the baseline design skills.
 
 **Why no Phase 4 Design Review (asymmetric with Phase 1/2):** Plan
@@ -185,12 +185,12 @@ accepted: design briefs from a sloppy skill go uncaught until Phase 7
 (post-implementation). Document this in SKILL.md so users know to
 install something they trust.
 
-**Output:** `.workflow/design-brief.md` (single artifact, format
+**Output:** `.build-feature-workflow/design-brief.md` (single artifact, format
 determined by the invoked design skill).
 
 ### Q-research: Research delegation rule (LOCKED)
 
-Top-level discipline in `/workflow`'s SKILL.md, applies to every phase
+Top-level discipline in `/build-feature-workflow`'s SKILL.md, applies to every phase
 (not just Phase 1).
 
 **Trigger** (when to research at all): reuse `core.instructions.md`
@@ -204,8 +204,8 @@ Top-level discipline in `/workflow`'s SKILL.md, applies to every phase
 - **SIZABLE** — multi-source synthesis, topic survey, state-of-art
   evaluation, technology trend assessment, "is X still maintained"
   with uncertain answer. **Agent MUST NOT do inline.** Delegate:
-  1. Append to `.workflow/plan.md`:
-     `- [ ] Research: <topic> → .workflow/research/<slug>.md`
+  1. Append to `.build-feature-workflow/plan.md`:
+     `- [ ] Research: <topic> → .build-feature-workflow/research/<slug>.md`
   2. Spawn sub-agent via Task with: topic, scope, expected artifact
      path, output cap (≤300 words summary + cited URLs).
   3. Sub-agent writes the artifact, flips its own checkbox to `[x]`.
@@ -225,7 +225,7 @@ ONLY. A sub-agent asked to "research and propose a fix" mixes roles and
 muddies discipline. Two separate sub-agents instead.
 
 **Depth implication:** `/feature-loop` locks sub-agent depth = 1. This
-rule allows depth = 2 in `/workflow` (orchestrator → phase agent →
+rule allows depth = 2 in `/build-feature-workflow` (orchestrator → phase agent →
 research sub-agent). Safe because the state machine bounds it — every
 spawned sub-agent corresponds to a checkbox, orchestrator can count.
 **Depth = 2 ONLY for research delegation.** No other depth-2 patterns
@@ -234,7 +234,7 @@ allowed under this allowance.
 **Sync, not async:** phase agent blocks while research sub-agent runs.
 Async would require cross-phase dependency tracking — overkill.
 
-**Scope:** this rule lives in `/workflow`'s SKILL.md, not promoted to
+**Scope:** this rule lives in `/build-feature-workflow`'s SKILL.md, not promoted to
 `core.instructions.md` yet. The MECHANISM (append checkbox to plan.md)
 only works where a state machine exists. Reflection phase can propose
 promotion later if it generalizes.
@@ -318,14 +318,14 @@ loop:
   if actionable is empty:
     if ASK/HUMAN/DECISION items exist: EXIT (pause for user)
     if all done and Phase 9-11 unrun: dispatch Phase 9 → 10 → 11
-    if all done and Phase 11 ran: EXIT (workflow complete)
+    if all done and Phase 11 ran: EXIT (build-feature-workflow complete)
   next = highest-priority actionable
   dispatch phase agent for next.tag
   phase agent runs subprocess, updates state file, may add new items
   goto loop
 ```
 
-**Bootstrap:** when `/workflow` is invoked fresh, the script writes a
+**Bootstrap:** when `/build-feature-workflow` is invoked fresh, the script writes a
 single `to-plan` item into the state file. Loop picks it up → Phase 1
 runs → Phase 1 closes `to-plan` and emits `to-review-plan` items (one
 per REVIEW marker). Loop continues.
@@ -387,13 +387,13 @@ pending items.**
 
 Example:
 ```
-/workflow point A is ok, ignore. point B should be fixed.
+/build-feature-workflow point A is ok, ignore. point B should be fixed.
   for point C, use approach X.
 ```
 
 **Mechanics:**
 
-1. User invokes `/workflow <free-text>` in Claude Code.
+1. User invokes `/build-feature-workflow <free-text>` in Claude Code.
 2. Skill's front-end detects: state file has ASK/HUMAN/DECISION items
    pending. The free-text is the resolution input.
 3. Skill calls the script, passing the free-text as a `--user-prompt`
@@ -405,7 +405,7 @@ Example:
 6. The phase agent re-processes its pending items WITH the user's
    additional context. Closes resolvable ones, may still escalate any
    that the user's input didn't cover (those go back to ASK / HUMAN /
-   DECISION, awaiting another `/workflow <more text>` invocation).
+   DECISION, awaiting another `/build-feature-workflow <more text>` invocation).
 
 **Why this is better than file-edit:**
 - No file format for user to learn. They just describe in natural
@@ -420,12 +420,12 @@ Example:
   Unable-to-Validate, Phase 7 ASK, Phase 8 design ASK).
 
 **Capture for Phase 11 Reflection:** the script logs each
-`--user-prompt` invocation to `.workflow/user-overrides.log`. That log
+`--user-prompt` invocation to `.build-feature-workflow/user-overrides.log`. That log
 becomes Phase 11's input. The user need not manually maintain
 `user-overrides.md`.
 
 **Hand-edit path still supported.** Power users can edit
-`.workflow/state.md` (or whichever file it ends up being) directly
+`.build-feature-workflow/state.md` (or whichever file it ends up being) directly
 between invocations. The script doesn't care how state changed — it
 re-reads on each invocation. This is a corollary of cybernetic state,
 not a separate feature.
@@ -452,7 +452,7 @@ All chunks of the same batch share the same `iter-N/` directory.
 **`iter-N/` contents:**
 
 ```
-.workflow/iter-N/
+.build-feature-workflow/iter-N/
 ├── plan-attempt.md          ← Phase 4's reading of plan items for this batch
 ├── status.md                ← Phase 4 / Phase 5 emissions
 ├── validation-report.md     ← Phase 5 detailed findings (if Phase 5 ran)
@@ -485,7 +485,7 @@ iter-N.
 **Diff scope rule:** Phase 6 reviewers compute
 `git diff <last-review-sha>..HEAD` where `<last-review-sha>` is the
 commit SHA reviewed in the prior iteration. Recorded in
-`.workflow/iter-N/review/sha.txt` by Phase 6 itself.
+`.build-feature-workflow/iter-N/review/sha.txt` by Phase 6 itself.
 
 **First iteration's last-review-sha is the Phase 4-start sha** (so
 Phase 6 reviews everything Phase 4 produced).
@@ -554,7 +554,7 @@ mirroring Phase 2's protocol. Output trichotomy:
 | `ASK` | Emit ASK item in state file. Source-phase=7. Includes finding text + "checked against: CLAUDE.md, repo-profile.md, architecture-impact.md, docs/adr/; answer not found" audit line per Q-escalation-discipline. |
 
 **Inputs:**
-- `.workflow/iter-N/review/{architecture,ddd,general}-review.md`
+- `.build-feature-workflow/iter-N/review/{architecture,ddd,general}-review.md`
 - Phase 1 artifacts (`plan.md`, `repo-profile.md`,
   `architecture-impact.md`)
 - `~/.claude/CLAUDE.md` and `<repo>/CLAUDE.md`
@@ -568,7 +568,7 @@ immunity per the no-narrative rule.
 **Tool whitelist:**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase7.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase7.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Write" \
   --model sonnet
@@ -582,7 +582,7 @@ claude -p "$(cat .workflow/prompts/phase7.md)" \
 - NOT `Skill`: triager decides on its own, no delegation
 
 **Output:**
-- `.workflow/iter-N/triage.md` — per-finding decisions + rationale
+- `.build-feature-workflow/iter-N/triage.md` — per-finding decisions + rationale
 - State file updates: new `to-implement` items (AUTO_APPLY), new ASK
   items, closed source review-finding markers
 
@@ -601,7 +601,7 @@ permission authority for AUTO_APPLY items (per Q-fast-route), same
 no-narrative input discipline.
 
 **Inputs:**
-- `.workflow/design-brief.md` (Phase 3)
+- `.build-feature-workflow/design-brief.md` (Phase 3)
 - Screenshots from `/e2e-validate` re-screenshot pass
 - Phase 1 artifacts
 - CLAUDE.md + design docs (DESIGN.md, design-tokens, etc.)
@@ -610,14 +610,14 @@ no-narrative input discipline.
 **Tool whitelist:** `Read,Glob,Grep,Write,Skill,Bash` (Skill for
 `/e2e-validate`; Bash for any commands the validation skill needs).
 
-**Output:** `.workflow/iter-N/design-critique.md` + state file updates.
+**Output:** `.build-feature-workflow/iter-N/design-critique.md` + state file updates.
 
 ### Q-phase4: Phase 4 Implement (LOCKED)
 
 **Artifacts available to Phase 4 implementer:**
 
 ```
-.workflow/
+.build-feature-workflow/
 ├── research.md              ← Phase 1
 ├── repo-profile.md          ← Phase 1 (architectural principles, file:line)
 ├── architecture-impact.md   ← Phase 1 (branch 1/2/3, state delta,
@@ -635,7 +635,7 @@ Plus the live repo for `Read`/`Glob`/`Grep`.
 **Tool whitelist:**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase4.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase4.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Edit,Write,Bash" \
   --model sonnet
@@ -689,7 +689,7 @@ multi-modal payloads (screenshots, large test reports) that bloat the
 implementer's context. Separation gives each subprocess a bounded
 responsibility and its own token budget.
 
-On chunk completion the implementer writes `.workflow/status.md`:
+On chunk completion the implementer writes `.build-feature-workflow/status.md`:
 
 ```
 phase: 4
@@ -740,12 +740,12 @@ in settings").
 - Phase 1 `plan.md` (for success criteria)
 - Phase 1 `architecture-impact.md` (taste-preservation contract)
 - Phase 3 `design-brief.md` (if ui_work=true)
-- `.workflow/status.md` (which chunk just completed)
+- `.build-feature-workflow/status.md` (which chunk just completed)
 - The live repo
 
 **Writes:**
-- `.workflow/status.md` (updated with new status)
-- `.workflow/validation-report.md` (details when status != passing)
+- `.build-feature-workflow/status.md` (updated with new status)
+- `.build-feature-workflow/validation-report.md` (details when status != passing)
 
 **Loop-back semantics (per-status dispatch):**
 
@@ -781,8 +781,8 @@ when stalled.
 ```
 You are Phase 4, iteration N+1.
 Prior iterations:
-  N-2: .workflow/iter-N-2/validation-report.md, plan-attempt.md
-  N-1: .workflow/iter-N-1/validation-report.md, plan-attempt.md
+  N-2: .build-feature-workflow/iter-N-2/validation-report.md, plan-attempt.md
+  N-1: .build-feature-workflow/iter-N-1/validation-report.md, plan-attempt.md
 Before implementing, check whether you're making real progress. If
 prior fix attempts produced the same failure mode, append
 "- [ ] DECISION: <specific reason no progress, e.g. 'same NullPointer
@@ -794,7 +794,7 @@ Either Phase 4 (implementer) or Phase 5 (validator) can bail. Whichever
 side recognizes stall first appends DECISION and exits. Orchestrator
 detects DECISION → universal human resumption mechanism.
 
-**Iteration history is surfaced via `.workflow/iter-N/` subdirectories.**
+**Iteration history is surfaced via `.build-feature-workflow/iter-N/` subdirectories.**
 Each iteration writes its artifacts (plan-attempt.md, status.md,
 validation-report.md, commit ref) into its own subdirectory.
 Orchestrator passes pointers to N most recent iterations into each
@@ -815,7 +815,7 @@ review/triage findings driving re-implementation.
 **Tool whitelist:**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase5.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase5.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Skill,Write,Bash" \
   --model sonnet
@@ -832,12 +832,12 @@ claude -p "$(cat .workflow/prompts/phase5.md)" \
 
 Feature-loop's Phase 6 Verify recipes (currently embedded in feature-loop
 SKILL.md) extracted into a standalone skill. Cross-cutting reuse:
-both `/workflow` (Phase 5) and `/feature-loop` (could replace its inline
+both `/build-feature-workflow` (Phase 5) and `/feature-loop` (could replace its inline
 Phase 6 recipes) invoke it.
 
 **Location:** `.apm/skills/e2e-validate/SKILL.md` in the kit.
 
-**Declared as preset dep** in `workflow.yaml`. Also in `feature-loop.yaml`
+**Declared as preset dep** in `build-feature-workflow.yaml`. Also in `feature-loop.yaml`
 once feature-loop is migrated.
 
 **Skill interface:**
@@ -880,7 +880,7 @@ design-related changes).
 
 **Drop the `/code-review` plugin.** The Anthropic plugin is PR-required
 (`gh pr view` / `gh pr comment`), gh-only tool whitelist, and posts
-results to GitHub. `/workflow` Phase 6 runs mid-loop, pre-PR — no PR
+results to GitHub. `/build-feature-workflow` Phase 6 runs mid-loop, pre-PR — no PR
 to operate on, no GitHub destination. Wrong shape.
 
 **Three parallel reviewer sub-agents, dispatched by the bash
@@ -893,9 +893,9 @@ the three reviewers are siblings at depth=1, like any other phase agent.
 
 | # | Reviewer | Skill invoked | Output file |
 |---|---|---|---|
-| 1 | Architecture | `/improve-codebase-architecture` | `.workflow/iter-N/review/architecture-review.md` |
-| 2 | DDD | `/improve-DDD-architecture` (new — see Q-ddd-skill) | `.workflow/iter-N/review/ddd-review.md` |
-| 3 | General | none — direct diff review | `.workflow/iter-N/review/general-review.md` |
+| 1 | Architecture | `/improve-codebase-architecture` | `.build-feature-workflow/iter-N/review/architecture-review.md` |
+| 2 | DDD | `/improve-DDD-architecture` (new — see Q-ddd-skill) | `.build-feature-workflow/iter-N/review/ddd-review.md` |
+| 3 | General | none — direct diff review | `.build-feature-workflow/iter-N/review/general-review.md` |
 
 **Reviewer 3 (General)** is a straightforward "review the diff" agent.
 It computes the diff itself (`git diff <phase4-start-sha>..HEAD`), reads
@@ -905,17 +905,17 @@ what to flag on its own.
 **Launch pattern (bash orchestrator):**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase6-arch.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase6-arch.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Bash,Write,Skill" \
   --model sonnet &
 
-claude -p "$(cat .workflow/prompts/phase6-ddd.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase6-ddd.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Bash,Write,Skill" \
   --model sonnet &
 
-claude -p "$(cat .workflow/prompts/phase6-general.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase6-general.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Bash,Write" \
   --model sonnet &
@@ -925,7 +925,7 @@ wait
 
 `Skill` is whitelisted on reviewers 1 and 2 (they invoke specialized
 skills); reviewer 3 doesn't need it. None get `Edit` — reviewers are
-read-only against the codebase, write-only against `.workflow/`.
+read-only against the codebase, write-only against `.build-feature-workflow/`.
 
 **Skills run as-is, no report-only-mode coercion.** Earlier candidate
 mitigation was to force `/improve-codebase-architecture` and the DDD
@@ -954,13 +954,13 @@ directly. If a normalized intermediate proves useful later (Phase 11
 reflection input?), it's an additive concern — not Phase 6's emission.
 
 **Iteration directory:** each iteration writes to its own
-`.workflow/iter-N/review/` subdirectory (consistent with the iter-N
+`.build-feature-workflow/iter-N/review/` subdirectory (consistent with the iter-N
 discipline already locked in Q-no-caps). Triage on iteration N reads
 iter-N review files; Phase 11 reflection can scan iter-N-1, iter-N-2
 etc. for trends.
 
 **Skills as preset dependencies.** `improve-codebase-architecture` and
-`improve-DDD-architecture` declared in `workflow.yaml`. The DDD skill is
+`improve-DDD-architecture` declared in `build-feature-workflow.yaml`. The DDD skill is
 a build-it dependency (see Q-ddd-skill).
 
 ### Q-ddd-skill: `improve-DDD-architecture` skill — new dependency (LOCKED, BUILT)
@@ -1070,7 +1070,7 @@ processes them (close on resolution, keep as HUMAN, escalate). If any
 HUMAN items remain, orchestrator exits per the universal human
 resumption mechanism (see phase layout below).
 
-**Output:** multi-artifact, all written to `.workflow/`:
+**Output:** multi-artifact, all written to `.build-feature-workflow/`:
 
 - `research.md` — index of delegated research artifacts per Q-research
   rule, plus any inline citations
@@ -1093,14 +1093,14 @@ resumption mechanism (see phase layout below).
 
 **Tools available to planner:** WebSearch, WebFetch, Read, Grep, Glob.
 **Tools NOT available:** Edit, Write (except writing artifacts to
-`.workflow/`).
+`.build-feature-workflow/`).
 
 ---
 
 ## Current phase layout
 
 Dispatch is tag-driven per Q-state-machine. The script reads
-`.workflow/state.md`, finds the next pending actionable item, and
+`.build-feature-workflow/state.md`, finds the next pending actionable item, and
 dispatches the phase that handles that item's tag. Phases listed below
 in *typical* run order; actual dispatch sequence depends on what tags
 are pending.
@@ -1178,20 +1178,20 @@ Phase   Tag handled                              Notes
                                                  diffs.
 ```
 
-State lives in `.workflow/` inside the user's repo (so the human can
+State lives in `.build-feature-workflow/` inside the user's repo (so the human can
 edit artifacts with their normal editor between invocations).
 Per-phase-dispatch git commits make every state change auditable.
 
-**Single entrypoint (`/workflow`):**
+**Single entrypoint (`/build-feature-workflow`):**
 
 The skill is one slash command, mode-aware. The user invokes it with
 optional free-text args. The skill calls the script, forwarding the
-args. The script reads `.workflow/state.md` to decide the mode:
+args. The script reads `.build-feature-workflow/state.md` to decide the mode:
 
 ```
-User invokes /workflow [free-text args]
+User invokes /build-feature-workflow [free-text args]
 
-Script examines .workflow/state.md:
+Script examines .build-feature-workflow/state.md:
 
   No state file exists
     → Fresh start. Write a single to-plan item with the user's args as
@@ -1221,7 +1221,7 @@ Script examines .workflow/state.md:
 **Canonical state remains in files.** The script doesn't carry a
 conversational front-end — the user's natural-language args + the
 phase agent's reasoning ARE the conversational layer. The user can
-always edit `.workflow/state.md` directly and re-invoke; the script
+always edit `.build-feature-workflow/state.md` directly and re-invoke; the script
 re-reads on every dispatch.
 
 **Re-running the script:** idempotent. Reads state from disk, picks up
@@ -1229,7 +1229,7 @@ at first pending actionable item. The script doesn't know humans
 intervened; the state file tells the story.
 
 **User-prompt logging:** every invocation's free-text args appended to
-`.workflow/user-overrides.log` (one entry per invocation, with
+`.build-feature-workflow/user-overrides.log` (one entry per invocation, with
 timestamp + which phase received it). Phase 11 Reflection reads this
 log for learning signals.
 
@@ -1248,7 +1248,7 @@ principles it observes; granularity = sophistication signal.
 
 End-of-run human-readable summary. Reads `state.md` + all `iter-*/` +
 `reflection.md` (if Phase 11 ran before Phase 10, but it doesn't —
-Phase 10 runs first). Emits `.workflow/summary.md`:
+Phase 10 runs first). Emits `.build-feature-workflow/summary.md`:
 
 - What was requested (Phase 1's goal)
 - What was built (Phase 4 commits + final diff stats)
@@ -1260,16 +1260,16 @@ Phase 10 runs first). Emits `.workflow/summary.md`:
 
 Tool whitelist `Read,Glob,Grep,Bash,Write`. No skip-eligible. Mechanical.
 
-### Q-deploy: Skill ships vendored at `.apm/skills/workflow/` + `presets/workflow.yaml` preset (LOCKED)
+### Q-deploy: Skill ships vendored at `.apm/skills/build-feature-workflow/` + `presets/build-feature-workflow.yaml` preset (LOCKED)
 
 Kit convention: skills vendored under `.apm/skills/<name>/`, presets
 under `presets/<name>.yaml`, preset declares dependencies.
 `feature-loop.yaml` is the canonical model.
 
-**`/workflow` deploy layout:**
+**`/build-feature-workflow` deploy layout:**
 
 ```
-.apm/skills/workflow/
+.apm/skills/build-feature-workflow/
   SKILL.md
   orchestrator.sh
   prompts/
@@ -1304,13 +1304,13 @@ under `presets/<name>.yaml`, preset declares dependencies.
     domain-driven-hexagon/
     dotnet/                   ← URL TBD from user
 
-presets/workflow.yaml
+presets/build-feature-workflow.yaml
 ```
 
-**`presets/workflow.yaml`** declares:
+**`presets/build-feature-workflow.yaml`** declares:
 
 ```yaml
-name: workflow
+name: build-feature-workflow
 description: Cybernetic, self-improving feature-build loop with
   architecture-aware planning, separate-context triage, and
   reflection-driven amendment proposals.
@@ -1320,7 +1320,7 @@ primitives:
   instructions:
     - core
   skills:
-    - workflow
+    - build-feature-workflow
     - e2e-validate
     - improve-codebase-architecture
     - improve-DDD-architecture
@@ -1338,21 +1338,21 @@ primitives:
 apm_dependencies: []
 ```
 
-Note: `code-review` plugin is NOT a workflow dependency (Q-phase6 lock
+Note: `code-review` plugin is NOT a build-feature-workflow dependency (Q-phase6 lock
 — wrong shape for mid-loop review). It remains in `feature-loop.yaml`.
 
 **Coexistence with `/feature-loop`:** both presets live in `presets/`.
 Simple work uses `/feature-loop`; full architecture-aware + self-
-improving work uses `/workflow`. Per out-of-scope: `/workflow` does NOT
+improving work uses `/build-feature-workflow`. Per out-of-scope: `/build-feature-workflow` does NOT
 replace `/feature-loop`.
 
 ### Q-phase11: Phase 11 Reflection — the self-improvement engine (LOCKED)
 
 **Reflection is the cybernetic loop's *meta* layer.** It's not "learn
-from user input" — it's "make the workflow skill better at being
+from user input" — it's "make the build-feature-workflow skill better at being
 useful." Day 0 the skill is imperfect; reflection is what makes day N
 better than day 0. Goal: save user time, increase accuracy/correctness,
-make the workflow user's leverage.
+make the build-feature-workflow user's leverage.
 
 **Always runs.** No gating, no minimum-overrides threshold. Even pure
 autonomous runs produce signal — agents got stuck, did back-and-forth,
@@ -1409,8 +1409,8 @@ caught. Reflection mines all of it.
 - `~/.claude/CLAUDE.md` (global rules)
 - `<repo>/CLAUDE.md` (project rules)
 - `<repo>/CONTEXT.md`, `<repo>/docs/adr/` (project domain docs)
-- The `/workflow` skill's `SKILL.md`
-- The `/workflow` skill's prompt templates (`prompts/phase*.md`)
+- The `/build-feature-workflow` skill's `SKILL.md`
+- The `/build-feature-workflow` skill's prompt templates (`prompts/phase*.md`)
 - The orchestrator script (`orchestrator.sh`)
 - Phase prompt amendments for dependency skills (e.g.,
   `/improve-codebase-architecture` SKILL.md, when reflection notices
@@ -1418,12 +1418,12 @@ caught. Reflection mines all of it.
 
 **Output files:**
 
-- `.workflow/reflection.md` — narrative observations + classification
+- `.build-feature-workflow/reflection.md` — narrative observations + classification
   per signal class above + summary recommendations
-- `.workflow/reflection.patch` — unified diff against the targets
+- `.build-feature-workflow/reflection.patch` — unified diff against the targets
   listed above. User reviews `reflection.md`, applies `reflection.patch`
-  with `git apply` if accepted. The workflow NEVER auto-applies.
-- `.workflow/reflection-watchlist.md` — observations not yet
+  with `git apply` if accepted. The build-feature-workflow NEVER auto-applies.
+- `.build-feature-workflow/reflection-watchlist.md` — observations not yet
   patchable (single observation; need pattern confirmation across
   multiple runs before proposing a change). Future runs' reflection
   reads this and either confirms (escalates to patch) or expires.
@@ -1432,7 +1432,7 @@ caught. Reflection mines all of it.
 least-validated phase (reasoning about its own behavior, meta-level).
 Auto-applying its conclusions creates a feedback loop with no human
 gate. Hard pass. Patches give the user a single review surface, easy
-git workflow to accept/reject.
+git build-feature-workflow to accept/reject.
 
 **Why not staged commit:** keeps the user's repo clean of "Claude-
 suggested-but-not-yet-accepted" state. The patch is a recommendation
@@ -1441,7 +1441,7 @@ file, not a pending change in git.
 **Tool whitelist:**
 
 ```bash
-claude -p "$(cat .workflow/prompts/phase11.md)" \
+claude -p "$(cat .build-feature-workflow/prompts/phase11.md)" \
   --dangerously-skip-permissions \
   --allowedTools "Read,Glob,Grep,Bash,Write" \
   --model sonnet
@@ -1456,28 +1456,28 @@ claude -p "$(cat .workflow/prompts/phase11.md)" \
 
 **Inputs:**
 
-- `.workflow/state.md` (final state — what closed, what escalated)
-- All `.workflow/iter-*/` (full run history)
-- `.workflow/user-overrides.log`
-- `.workflow/reflection-watchlist.md` (from prior runs, if exists)
+- `.build-feature-workflow/state.md` (final state — what closed, what escalated)
+- All `.build-feature-workflow/iter-*/` (full run history)
+- `.build-feature-workflow/user-overrides.log`
+- `.build-feature-workflow/reflection-watchlist.md` (from prior runs, if exists)
 - `~/.claude/CLAUDE.md`, `<repo>/CLAUDE.md`, `<repo>/CONTEXT.md`,
   `<repo>/docs/adr/`
-- The `/workflow` skill's own files (SKILL.md, prompts/, orchestrator)
+- The `/build-feature-workflow` skill's own files (SKILL.md, prompts/, orchestrator)
 - Dependency skill files (read-only; patches can propose changes)
 
 **No skip-eligible / loop-back.** Phase 11 is terminal. Its output
-doesn't trigger more workflow execution; it triggers the user's
+doesn't trigger more build-feature-workflow execution; it triggers the user's
 external review-and-apply step.
 
 **Trend tracking across runs.** `reflection-watchlist.md` persists
-across workflow runs (lives in the user's repo's `.workflow/`). Run N+1
+across build-feature-workflow runs (lives in the user's repo's `.build-feature-workflow/`). Run N+1
 reads Run N's watchlist; observations confirmed → patch; observations
 not reproduced → expire (drop after K runs without confirmation, K=3).
 
 **The leverage compounding mechanism:** every accepted patch makes the
 next run cheaper, more accurate, less interruptive. Over time, CLAUDE.md
 accumulates project wisdom, phase prompts converge on what works for
-this user's style, the workflow becomes a force multiplier rather than
+this user's style, the build-feature-workflow becomes a force multiplier rather than
 a chore.
 
 ### ~~Q5: Phase 9 Documentation — own phase or fold into Phase 4 Implement?~~ (LOCKED as own phase)
@@ -1517,8 +1517,8 @@ User reviews + `git apply` to accept. Never auto-applies.
 
 ### ~~Q-deploy: where does the skill ship from?~~ (LOCKED — see Q-deploy in Locked decisions)
 
-Resolved per kit convention. Skill at `.apm/skills/workflow/`, preset
-at `presets/workflow.yaml`. Same shape as `/feature-loop`.
+Resolved per kit convention. Skill at `.apm/skills/build-feature-workflow/`, preset
+at `presets/build-feature-workflow.yaml`. Same shape as `/feature-loop`.
 
 ---
 
@@ -1552,7 +1552,7 @@ proposed, not yet locked.
 6. **Orchestrator complexity.** "30 lines of bash" is dishonest.
    Realistic 150–250 lines with non-trivial control flow. Honest scope.
 
-7. **`.workflow/` directory in user's repo is noise.** Decision:
+7. **`.build-feature-workflow/` directory in user's repo is noise.** Decision:
    accept the noise — putting it elsewhere defeats inspectability /
    override-ability. User can `cd` and edit normally. Add to
    `.gitignore` template; user opts in to committing if desired.
@@ -1565,7 +1565,7 @@ proposed, not yet locked.
    Mitigation: every CLOSE must include "why I'm overruling Phase 1"
    line. Reflection (Phase 11) audits patterns over time.
 
-10. **Mode detection edge cases.** Skill examining `.workflow/` state
+10. **Mode detection edge cases.** Skill examining `.build-feature-workflow/` state
     must handle: corrupted state files, partial writes (orchestrator
     SIGKILL'd mid-phase), concurrent invocations, user edits that
     violate format. Recovery story: skill validates state on entry,
@@ -1604,7 +1604,7 @@ proposed, not yet locked.
   handoff bundled this with the skill build. Separate concern, separate
   session. Recorded for follow-up but not part of this deliverable.
 - **Replacing `/feature-loop`.** Both skills coexist. Simple work uses
-  `/feature-loop`, full architecture-aware work uses `/workflow`.
+  `/feature-loop`, full architecture-aware work uses `/build-feature-workflow`.
 - **Ralph Loop model-swap mechanic.** The cybernetic value is
   determinism and inspectability, not literal model-swapping mid-loop.
   Stateless subprocess design enables swap if ever wanted, but it's not
@@ -1626,41 +1626,41 @@ decision — one-line reason`.
 - 2026-05-28 — Q4 — DISSOLVED by Q3 reframe — no tier calibration needed
 - 2026-05-28 — Q-phase0 — Drop Phase 0 Parse; absorb into Phase 1 state-machine checkboxes — Phase 1 reads request anyway
 - 2026-05-28 — Q-plan-review — New Phase 2 Plan Review between planning and human ASK — fresh-context reviewer can close resolvable items, only escalate genuine ambiguity
-- 2026-05-28 — Q-resumption — Human resumption via files (canonical) + optional /workflow-resolve agent (ergonomic); orchestrator exits on open decisions, re-entry is just re-running the same script — cybernetic invariant preserved, human-friendly shell layered on top
+- 2026-05-28 — Q-resumption — Human resumption via files (canonical) + optional /build-feature-workflow-resolve agent (ergonomic); orchestrator exits on open decisions, re-entry is just re-running the same script — cybernetic invariant preserved, human-friendly shell layered on top
 - 2026-05-28 — Q-renumbering — Sequential 1–11, no halves — clarity over preserved "insertion" semantics
-- 2026-05-28 — Q-single-entrypoint — `/workflow` is mode-aware single entrypoint; no separate `/workflow-resolve`; skill detects state and dispatches (fresh / resume / resolve-decisions / abandon-or-finish) — eliminates fourth sub-agent type, keeps cybernetic invariant (files are canonical), adds humane conversational front-end
-- 2026-05-28 — Q-phase3 — Phase 3 is thin agent + swappable design skill; discovers installed design skill, follows its protocol inline; no Phase 4 Design Review (design judgment outsourced to invoked skill) — `/workflow` doesn't encode design opinions, design knowledge lives in other people's skills
+- 2026-05-28 — Q-single-entrypoint — `/build-feature-workflow` is mode-aware single entrypoint; no separate `/build-feature-workflow-resolve`; skill detects state and dispatches (fresh / resume / resolve-decisions / abandon-or-finish) — eliminates fourth sub-agent type, keeps cybernetic invariant (files are canonical), adds humane conversational front-end
+- 2026-05-28 — Q-phase3 — Phase 3 is thin agent + swappable design skill; discovers installed design skill, follows its protocol inline; no Phase 4 Design Review (design judgment outsourced to invoked skill) — `/build-feature-workflow` doesn't encode design opinions, design knowledge lives in other people's skills
 - 2026-05-28 — Q-phase3-deps — `ui-ux-pro-max` + `design-critique` are hard preset dependencies, not runtime-discovered; Phase 3 sub-agent invokes them via canonical Skill tool; launched via `claude -p --dangerously-skip-permissions --allowedTools "Read,Glob,Grep,Write,Skill"` — eliminates discovery complexity, uses canonical composition mechanism
 - 2026-05-28 — Q-phase4 — Phase 4 Implement: reads all earlier-phase artifacts, tool whitelist `Read,Glob,Grep,Edit,Write,Bash`, chunked when Phase 1 declares it, strict gap-escalation policy (no improvisation) — keeps implementer mechanical, gaps surface as Phase 1 quality signals
 - 2026-05-28 — Q-phase4-validate — Phase 4 chunks must achieve local functionality before completion (inner loop: implement → tsc/lint/tests → fix → re-validate, cap 5 iterations) — cleaner separation of correctness (Phase 4) vs quality (Phase 5), reduces wasted Phase 5 iterations
 - 2026-05-28 — Q-phase5-restructure — Validation extracted from Phase 4 into dedicated Phase 5 E2E Validate. Phase 4 emits status "Code Complete but Unverified" only. Phase 5 invokes /e2e-validate skill (multi-modal-friendly, own token budget). State enum drives orchestrator dispatch. Inner 4↔5 cap=3. Old Phase 8 Verify dissolved into Phase 5. — token economics + cleaner state-machine signaling + reusable validation skill
-- 2026-05-28 — Q-validate-skill — Extract /e2e-validate skill from feature-loop's inline Phase 6 recipes. Vendored at `.apm/skills/e2e-validate/SKILL.md`, declared as preset dep in workflow.yaml (and eventually feature-loop.yaml). Reusable by Phase 5 (correctness validation) and Phase 8 (design-related re-validation). — cross-skill recipe library, prevents drift
+- 2026-05-28 — Q-validate-skill — Extract /e2e-validate skill from feature-loop's inline Phase 6 recipes. Vendored at `.apm/skills/e2e-validate/SKILL.md`, declared as preset dep in build-feature-workflow.yaml (and eventually feature-loop.yaml). Reusable by Phase 5 (correctness validation) and Phase 8 (design-related re-validation). — cross-skill recipe library, prevents drift
 - 2026-05-28 — Q-phase5-dispatch — Per-status orchestrator dispatch (not uniform "non-passing → loop back"). "Unable to Validate" escalates to user (no harness to fix via re-implementation). Status enum extensibility dissolved: validation-report.md carries truth, enum is just routing.
-- 2026-05-28 — Q-no-caps — No count-based iteration caps anywhere in the loop. Agent self-bail discipline: each agent reads prior iterations' artifacts (`.workflow/iter-N/`), judges progress, appends DECISION + exits when stalled. Applies to inner 4↔5 loop AND outer 4→5→6→7 loop. — cybernetic over arbitrary counts; agents have context to judge, counters don't.
+- 2026-05-28 — Q-no-caps — No count-based iteration caps anywhere in the loop. Agent self-bail discipline: each agent reads prior iterations' artifacts (`.build-feature-workflow/iter-N/`), judges progress, appends DECISION + exits when stalled. Applies to inner 4↔5 loop AND outer 4→5→6→7 loop. — cybernetic over arbitrary counts; agents have context to judge, counters don't.
 - 2026-05-28 — Q-model-uniform — Sonnet 4.6 across all phases for MVP — simpler orchestrator, single price point, reflection signals will drive per-phase upgrades post-MVP
-- 2026-05-28 — Q-phase6 — Phase 6 = three parallel reviewers (architecture / DDD / general) dispatched by bash orchestrator with `&` + `wait`; each writes raw markdown findings to `.workflow/iter-N/review/`. No `/code-review` plugin (PR-required, wrong shape). No findings.jsonl, no confidence scoring — Phase 7 owns triage. Skills invoked as-is, not coerced into report-only mode (subprocess one-shot + Phase 7 reconciliation absorbs interactive-mode artifacts naturally).
+- 2026-05-28 — Q-phase6 — Phase 6 = three parallel reviewers (architecture / DDD / general) dispatched by bash orchestrator with `&` + `wait`; each writes raw markdown findings to `.build-feature-workflow/iter-N/review/`. No `/code-review` plugin (PR-required, wrong shape). No findings.jsonl, no confidence scoring — Phase 7 owns triage. Skills invoked as-is, not coerced into report-only mode (subprocess one-shot + Phase 7 reconciliation absorbs interactive-mode artifacts naturally).
 - 2026-05-28 — Q-ddd-skill — New `/improve-DDD-architecture` skill modeled on `/improve-codebase-architecture`: distilled DDD runbook as SKILL.md (ubiquitous language, bounded contexts, aggregates, ACLs, hex arch) + raw reference docs as sub-files (domain-driven-hexagon repo + .NET reference repo TBD). Build is separate work; declared as Phase 6 preset dependency.
 - 2026-05-28 — Q-escalation-discipline — Cross-cutting rule: before any phase escalates (REVIEW/HUMAN/DECISION/ASK/Unable-to-Validate), agent must check CLAUDE.md (global + project), CONTEXT.md, docs/adr/, docs/, and Phase 1 artifacts. Only escalate if answer genuinely absent. Each escalation entry includes "checked against: <docs>" audit line. Phase 11 reflection catches violations and proposes CLAUDE.md sharpenings or prompt-template tightenings.
 - 2026-05-28 — Q-phase7-rules — Phase 7 has NO separate `triage-rules.md` corpus. Mirrors Phase 2's pattern: prompt-template-embedded decision criteria + artifact-grounded reasoning (3 review files + Phase 1 artifacts + CLAUDE.md). Phase 11 reflection loops learning back through CLAUDE.md amendments, not a separate triage corpus. Dissolves Q6 handoff sub-questions on rule location, bootstrap, and rule template.
 - 2026-05-28 — Q-state-machine — FOUNDATIONAL: state file is a tagged work-item queue, not a phase-checkbox list. Script dispatches via tag table (to-plan→1, to-review-plan→2, to-design→3, to-implement→4, code-complete-needs-verification→5, to-code-review→6, to-triage→7, to-design-critique→8). Adding a phase = adding a tag + dispatch row, no script change. Supersedes "Phase N checkbox" framing in earlier Q-phase4/5/6 locks (substance unchanged, mechanism replaced).
 - 2026-05-28 — Q-pause-discipline — Only the script pauses; only when no actionable items remain AND at least one ASK/HUMAN/DECISION exists. Phase agents never pause — they emit items and exit. Implies best-effort-before-pause: mixed batches (e.g., Phase 7 with 3 auto + 2 ASK) process the 3 fully before pausing on the 2.
-- 2026-05-28 — Q-resolution-via-prompt — CORRECTION to earlier draft: user resolution is NOT written to open-decisions.md. User re-invokes `/workflow <free-text>`; skill forwards text as `--user-prompt` arg; script embeds in next phase's prompt. Phase re-processes pending items WITH user context. Free-text args logged to `.workflow/user-overrides.log` for Phase 11 reflection input. Hand-edit path still supported as power-user fallback.
+- 2026-05-28 — Q-resolution-via-prompt — CORRECTION to earlier draft: user resolution is NOT written to open-decisions.md. User re-invokes `/build-feature-workflow <free-text>`; skill forwards text as `--user-prompt` arg; script embeds in next phase's prompt. Phase re-processes pending items WITH user context. Free-text args logged to `.build-feature-workflow/user-overrides.log` for Phase 11 reflection input. Hand-edit path still supported as power-user fallback.
 - 2026-05-28 — Q-iter-n — Iteration counter bumps every time Phase 4 starts a NEW BATCH of to-implement items (Phase 1 batch = iter-1, Phase 5 retry = iter-2, Phase 7 AUTO_APPLY = iter-3, Phase 8 AUTO_APPLY = iter-4). Within a batch, all chunks share one iter-N/ directory. Skip-tagged items still bump iter-N (Phase 4 ran) but skip downstream phases. Prior iter-* directories preserve plan-attempt.md, status.md, validation-report.md, review/, triage.md for self-bail discipline (Q-no-caps).
-- 2026-05-28 — Q-incremental-review — Phase 6 reviewers diff against `<last-review-sha>` (recorded in `.workflow/iter-N/review/sha.txt`), not the whole branch. First iteration's last-review-sha = Phase 4-start sha. Skip-route items don't update last-review-sha; the next non-skipped Phase 6 picks up the unreviewed commits naturally.
+- 2026-05-28 — Q-incremental-review — Phase 6 reviewers diff against `<last-review-sha>` (recorded in `.build-feature-workflow/iter-N/review/sha.txt`), not the whole branch. First iteration's last-review-sha = Phase 4-start sha. Skip-route items don't update last-review-sha; the next non-skipped Phase 6 picks up the unreviewed commits naturally.
 - 2026-05-28 — Q-fast-route — CORRECTION to earlier draft: Phase 7/8 emit `skip-eligible` permission on AUTO_APPLY items (a HINT, not a verdict). Phase 4 implements, sees actual scope, then declares `no-verification-needed` / `no-review-needed` skip tags iff scope is genuinely small. Phase 1-emitted items NEVER get skip-eligible (full validation always). Script enforces: skip tags only valid on skip-eligible items, skip-eligible only valid from Phase 7/8.
 - 2026-05-28 — Q-phase7 — Phase 7 locked structurally: mirrors Phase 2, walks each finding across the 3 review files, emits AUTO_APPLY/AUTO_SKIP/ASK. AUTO_APPLY → new to-implement with skip-eligible. AUTO_SKIP → closed with justification. ASK → escalated with "checked against docs" audit line. Tool whitelist Read,Glob,Grep,Write only — no Edit (preserves no-narrative + inline-fix immunity). No count-based cap; self-bail via prior iter-*/triage.md.
 - 2026-05-28 — Q-phase8 — Phase 8 Design Critique = Phase 7's UI twin. Same trichotomy, same skip-eligible authority, same no-narrative input discipline. Tool whitelist Read,Glob,Grep,Write,Skill,Bash (Skill for /e2e-validate re-screenshots; Bash for validation commands). Output to iter-N/design-critique.md.
 - 2026-05-28 — Q5 — Phase 9 Documentation = own phase at end-of-queue, not folded into Phase 4 (docs reflect end-state, not intermediate) and not tag-emitted mid-loop (creates partial/inconsistent coverage). Reads architecture-impact.md diagram-delta + all Phase 4 commits + all artifacts. Mechanical sweep of ADRs, C4, DESIGN.md, READMEs. Tool whitelist `Read,Glob,Grep,Edit,Write,Bash`. Escalates ASK only on genuine ambiguity.
-- 2026-05-28 — Q-phase11 — Phase 11 Reflection is the self-improvement engine. Always runs (no gating). Mines six signal classes: stalls/oscillations, avoidable escalations, token waste, missing-context, user overrides, what's-working. Outputs `reflection.md` (narrative) + `reflection.patch` (multi-target unified diff: CLAUDE.md, /workflow skill files, dependency skills, project docs) + `reflection-watchlist.md` (cross-run pattern tracker, expires after K=3 unconfirmed runs). User reviews + `git apply` to accept; NEVER auto-applies (meta-level reasoning is least-validated, no auto-feedback loop without human gate). Tool whitelist Read,Glob,Grep,Bash,Write. Compounding mechanism: every accepted patch makes next run cheaper / more accurate / less interruptive — the workflow becomes user's leverage over time.
+- 2026-05-28 — Q-phase11 — Phase 11 Reflection is the self-improvement engine. Always runs (no gating). Mines six signal classes: stalls/oscillations, avoidable escalations, token waste, missing-context, user overrides, what's-working. Outputs `reflection.md` (narrative) + `reflection.patch` (multi-target unified diff: CLAUDE.md, /build-feature-workflow skill files, dependency skills, project docs) + `reflection-watchlist.md` (cross-run pattern tracker, expires after K=3 unconfirmed runs). User reviews + `git apply` to accept; NEVER auto-applies (meta-level reasoning is least-validated, no auto-feedback loop without human gate). Tool whitelist Read,Glob,Grep,Bash,Write. Compounding mechanism: every accepted patch makes next run cheaper / more accurate / less interruptive — the build-feature-workflow becomes user's leverage over time.
 - 2026-05-28 — Q-phase10 — Phase 10 Summary = light end-of-run human-readable artifact (request / built / iterations / findings breakdown / escalations / status). Reads state.md + all iter-*/. Mechanical. Tool whitelist Read,Glob,Grep,Bash,Write.
-- 2026-05-28 — Q-deploy — Kit convention: skill vendored at `.apm/skills/workflow/`, preset at `presets/workflow.yaml`. Coexists with `/feature-loop`. Workflow preset declares: workflow, e2e-validate, improve-codebase-architecture, improve-DDD-architecture, design-critique, diagnose, electron-visual-loop, web-visual-loop + plugins ui-ux-pro-max, frontend-design. code-review plugin NOT a workflow dependency (Q-phase6).
+- 2026-05-28 — Q-deploy — Kit convention: skill vendored at `.apm/skills/build-feature-workflow/`, preset at `presets/build-feature-workflow.yaml`. Coexists with `/feature-loop`. Workflow preset declares: build-feature-workflow, e2e-validate, improve-codebase-architecture, improve-DDD-architecture, design-critique, diagnose, electron-visual-loop, web-visual-loop + plugins ui-ux-pro-max, frontend-design. code-review plugin NOT a build-feature-workflow dependency (Q-phase6).
 - 2026-05-28 — Q-review-fix-A — Phase 6 parallel fan-out must be implemented in `orchestrator.sh::dispatch()`, not delegated to the hook. Branch on `$phase -eq 6` → three concurrent `claude -p` invocations (arch / ddd / general) via `&` + `wait`. Production hook is a single `claude` binary; the fan-out is the orchestrator's responsibility.
 - 2026-05-28 — Q-review-fix-B — STRENGTHENED Q-state-machine: only one phase runs at a time. Selection rule prepends **tag-priority ordering** (to-plan → to-review-plan → to-design → to-implement → code-complete-needs-verification → to-code-review → to-triage → to-design-critique), THEN emitted-by-phase, THEN item ID. A phase's tag must drain fully before lower-priority tags dispatch. Phase 6 is the sole intra-phase parallel case (three reviewers).
 - 2026-05-28 — Q-review-fix-B1 — Phase 4 is BULK: one Phase 4 dispatch implements ALL pending `to-implement` items and emits ONE `code-complete-needs-verification` covering the un-skipped items. Per-item skip declarations still allowed; if every item carries `no-verification-needed`, no Cc-Nv emission at all. Eliminates per-chunk validation overlap.
 - 2026-05-28 — Q-review-fix-C — Resume after escalation universally routes to `emitted-by-phase`. Drop hardcoded `HUMAN→2` / `DECISION→4` mappings. The phase that emitted the escalation is the phase that consumes the user's `--user-prompt` resolution. Crash recovery (hard kill mid-Phase 4) handled separately via invariant 5.11 — orchestrator reverts `in-progress → pending` on startup; no user prompt needed.
-- 2026-05-28 — Q-review-fix-D — DISSOLVE the iteration counter. Replace with `.workflow/<ISO-timestamp>/` batch directories (one per Phase 4 dispatch). `meta.iteration` field removed from schema. Self-bail agents read prior batches sorted by mtime. Simpler than (emitted-by-phase, parent) tuple counting; no inflation risk.
+- 2026-05-28 — Q-review-fix-D — DISSOLVE the iteration counter. Replace with `.build-feature-workflow/<ISO-timestamp>/` batch directories (one per Phase 4 dispatch). `meta.iteration` field removed from schema. Self-bail agents read prior batches sorted by mtime. Simpler than (emitted-by-phase, parent) tuple counting; no inflation risk.
 - 2026-05-28 — Q-review-fix-E — Phase 6 emits ONLY `to-triage`. Phase 7 emits `to-design-critique` on its FINAL run (zero AUTO_APPLY this dispatch) AND `ui_work=true`. Guarantees Phase 8 evaluates post-triage stable code, not pre-triage code that Phase 7-driven Phase 4 may rewrite.
-- 2026-05-28 — Q-review-fix-G — Lock file changed to atomic-mkdir directory at `.workflow/.lock/` (PID at `.lock/pid`). `mkdir` is atomic on POSIX; eliminates check-then-write TOCTOU race.
-- 2026-05-28 — Q-impl-dispatch-wrapper — Implementation gap found while filling prompts: orchestrator's default HOOK was bare `claude`, but it passes positional args (phase/item/state/promptfile/variant) that bare `claude` can't consume. Added `lib/dispatch-claude.sh` — maps phase (+ Phase 6 variant) → prompt template + `--allowedTools`, builds prompt + runtime-context footer, launches `claude -p ... --dangerously-skip-permissions --model sonnet`. Wired as the default HOOK; tests still override via WORKFLOW_TEST_DISPATCH_HOOK.
-- 2026-05-28 — Q-impl-overrides-log — Implementation gap: Q-resolution-via-prompt specified a `user-overrides.log` for Phase 11, but the orchestrator never wrote it. Added: each `--user-prompt` dispatch appends `<ISO-ts>\tphase=N\t<text>` to `.workflow/user-overrides.log`.
+- 2026-05-28 — Q-review-fix-G — Lock file changed to atomic-mkdir directory at `.build-feature-workflow/.lock/` (PID at `.lock/pid`). `mkdir` is atomic on POSIX; eliminates check-then-write TOCTOU race.
+- 2026-05-28 — Q-impl-dispatch-wrapper — Implementation gap found while filling prompts: orchestrator's default HOOK was bare `claude`, but it passes positional args (phase/item/state/promptfile/variant) that bare `claude` can't consume. Added `lib/dispatch-claude.sh` — maps phase (+ Phase 6 variant) → prompt template + `--allowedTools`, builds prompt + runtime-context footer, launches `claude -p ... --dangerously-skip-permissions --model sonnet`. Wired as the default HOOK; tests still override via BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK.
+- 2026-05-28 — Q-impl-overrides-log — Implementation gap: Q-resolution-via-prompt specified a `user-overrides.log` for Phase 11, but the orchestrator never wrote it. Added: each `--user-prompt` dispatch appends `<ISO-ts>\tphase=N\t<text>` to `.build-feature-workflow/user-overrides.log`.
 - 2026-05-28 — Q-impl-phase6-lead — Phase 6 bookkeeping clarified: the orchestrator fans out three reviewers but does NOT mutate state. The architecture reviewer (`phase6-arch.md`) is the LEAD — after writing its review it closes the `to-code-review` item and emits `to-triage`. The ddd + general reviewers are pure review-file writers (no state mutation), so only one process writes `state.md` (race-free).

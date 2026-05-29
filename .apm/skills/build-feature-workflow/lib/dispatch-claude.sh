@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Production dispatch hook for the `/workflow` orchestrator.
+# Production dispatch hook for the `/build-feature-workflow` orchestrator.
 #
 # The orchestrator calls the dispatch hook with positional args:
 #   $1 = phase number (1..11)
@@ -11,7 +11,7 @@
 # This wrapper maps the phase (and, for Phase 6, the variant) to its
 # prompt template + tool whitelist, then launches a fresh one-shot
 # `claude -p` subprocess. In test mode the orchestrator overrides the
-# hook via WORKFLOW_TEST_DISPATCH_HOOK, so this script is the PRODUCTION
+# hook via BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK, so this script is the PRODUCTION
 # path only.
 #
 # bash 3.2-compatible.
@@ -98,7 +98,7 @@ fi
 
 # --- Launch the phase subprocess ----------------------------------------
 
-CLAUDE_BIN="${WORKFLOW_CLAUDE_BIN:-claude}"
+CLAUDE_BIN="${BUILD_FEATURE_WORKFLOW_CLAUDE_BIN:-claude}"
 
 exec "$CLAUDE_BIN" -p "$FULL_PROMPT" \
   --dangerously-skip-permissions \

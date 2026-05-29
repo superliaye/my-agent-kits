@@ -4,9 +4,9 @@
 # picks up the next pre-recorded fixture response and applies it.
 #
 # Required env:
-#   WORKFLOW_FIXTURE_DIR   directory containing NNN.sh response scripts +
+#   BUILD_FEATURE_WORKFLOW_FIXTURE_DIR   directory containing NNN.sh response scripts +
 #                          a `.counter` file tracking dispatch index
-#   WORKFLOW_TRACE_FILE    line-buffered log of dispatches (for assertions)
+#   BUILD_FEATURE_WORKFLOW_TRACE_FILE    line-buffered log of dispatches (for assertions)
 #
 # Args (the orchestrator's dispatch contract):
 #   $1 = phase number (1..11)
@@ -34,8 +34,8 @@ if [ -z "$PHASE" ] || [ -z "$STATE_FILE" ]; then
   echo "fixture-runner: missing required args (phase=$PHASE state=$STATE_FILE)" >&2
   exit 2
 fi
-if [ -z "${WORKFLOW_FIXTURE_DIR:-}" ] || [ -z "${WORKFLOW_TRACE_FILE:-}" ]; then
-  echo "fixture-runner: WORKFLOW_FIXTURE_DIR or WORKFLOW_TRACE_FILE not set" >&2
+if [ -z "${BUILD_FEATURE_WORKFLOW_FIXTURE_DIR:-}" ] || [ -z "${BUILD_FEATURE_WORKFLOW_TRACE_FILE:-}" ]; then
+  echo "fixture-runner: BUILD_FEATURE_WORKFLOW_FIXTURE_DIR or BUILD_FEATURE_WORKFLOW_TRACE_FILE not set" >&2
   exit 2
 fi
 
@@ -49,7 +49,7 @@ if [ "$PHASE" = "6" ] && [ -n "$VARIANT" ] && [ "$VARIANT" != "arch" ]; then
   exit 0
 fi
 
-COUNTER_FILE="$WORKFLOW_FIXTURE_DIR/.counter"
+COUNTER_FILE="$BUILD_FEATURE_WORKFLOW_FIXTURE_DIR/.counter"
 N=$(cat "$COUNTER_FILE" 2>/dev/null || echo 0)
 N=$((N + 1))
 printf '%s\n' "$N" > "$COUNTER_FILE"
@@ -57,9 +57,9 @@ FIXTURE_INDEX="$N"
 
 # Trace the dispatch BEFORE running the response, so a crashing fixture
 # still leaves a trail.
-printf '%d phase=%s item=%s\n' "$N" "$PHASE" "$ITEM_ID" >> "$WORKFLOW_TRACE_FILE"
+printf '%d phase=%s item=%s\n' "$N" "$PHASE" "$ITEM_ID" >> "$BUILD_FEATURE_WORKFLOW_TRACE_FILE"
 
-RESPONSE="$WORKFLOW_FIXTURE_DIR/$(printf '%03d' "$N").sh"
+RESPONSE="$BUILD_FEATURE_WORKFLOW_FIXTURE_DIR/$(printf '%03d' "$N").sh"
 if [ ! -f "$RESPONSE" ]; then
   echo "fixture-runner: no response for dispatch $N (phase=$PHASE item=$ITEM_ID)" >&2
   echo "fixture-runner: expected $RESPONSE" >&2

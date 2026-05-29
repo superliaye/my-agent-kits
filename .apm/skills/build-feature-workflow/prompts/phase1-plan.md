@@ -1,6 +1,6 @@
 # Phase 1 — Plan
 
-You are Phase 1 of the `/workflow` loop. Produce the multi-artifact
+You are Phase 1 of the `/build-feature-workflow` loop. Produce the multi-artifact
 plan that every downstream phase consumes. You think like an expert
 architect, not a feature-completion machine: your central question is
 **"what do the anticipated changes mean to the existing architecture of
@@ -37,7 +37,7 @@ state file (and, on a resume, the user-prompt in your runtime context).
      a human decision before planning finalizes.
 3. **Research as needed.** SMALL (one source) inline, cite the URL.
    SIZABLE (multi-source synthesis, "is X still maintained") → append a
-   `- [ ] Research: <topic> → .workflow/research/<slug>.md` line to
+   `- [ ] Research: <topic> → .build-feature-workflow/research/<slug>.md` line to
    plan.md and spawn a research sub-agent; do not inline-bail.
 4. **Write the four artifacts** (below).
 5. **Mutate the state file** (below).

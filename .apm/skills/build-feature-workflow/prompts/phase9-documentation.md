@@ -1,6 +1,6 @@
 # Phase 9 — Documentation
 
-You are Phase 9 of the `/workflow` loop. The actionable queue is empty
+You are Phase 9 of the `/build-feature-workflow` loop. The actionable queue is empty
 and no escalations remain — the code is in its final shape. Update the
 docs to match the end-state architecture. Docs reflect the final state,
 not the intermediate iterations.

@@ -1,6 +1,6 @@
 # Phase 10 — Summary
 
-You are Phase 10 of the `/workflow` loop. Produce the human-readable
+You are Phase 10 of the `/build-feature-workflow` loop. Produce the human-readable
 run summary. Mechanical: gather facts from the state file and artifacts,
 write them down clearly. No new judgment, no state items.
 

@@ -1,0 +1,24 @@
+name: build-feature-workflow
+description: Cybernetic, self-improving feature-build loop. Bash orchestrator dispatches fresh Sonnet subprocesses per phase via a tagged work-item queue on disk. Adds architecture-aware planning, separate-context triage, and reflection-driven amendment proposals to the feature-loop pattern. Coexists with /feature-loop — use /feature-loop for simple work, /build-feature-workflow when architecture awareness or self-improvement matter.
+default_agents: [claude]
+
+primitives:
+  instructions:
+    - core
+  skills:
+    - build-feature-workflow
+    - e2e-validate
+    - improve-codebase-architecture
+    - improve-DDD-architecture
+    - design-critique
+    - diagnose
+    - electron-visual-loop
+    - web-visual-loop
+  plugins:
+    - ui-ux-pro-max
+    - frontend-design
+  mcp: []
+  hooks: []
+  bundles: []
+
+apm_dependencies: []

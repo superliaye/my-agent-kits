@@ -1,7 +1,7 @@
-# `/workflow` state machine — formal model
+# `/build-feature-workflow` state machine — formal model
 
 The contract the orchestrator implements and the test suite verifies.
-This document is the spec; [`workflow-skill.md`](workflow-skill.md) is
+This document is the spec; [`build-feature-workflow-skill.md`](build-feature-workflow-skill.md) is
 the design rationale and decision log; the orchestrator and tests are
 the executable artifacts.
 
@@ -62,7 +62,7 @@ A `pending` item carrying any of these tags is **dispatchable**.
 | `phase-11-done`  | `true` \| `false`                   |
 
 No iteration counter. Per-batch identity comes from timestamped artifact
-directories at `.workflow/<ISO-timestamp>/` (Phase 4 creates one per
+directories at `.build-feature-workflow/<ISO-timestamp>/` (Phase 4 creates one per
 dispatch). Agents reading prior batches sort directory entries by
 timestamp.
 
@@ -139,13 +139,13 @@ whitelist used at dispatch.
 | | |
 |---|---|
 | Incoming tag         | `to-plan` |
-| Mutations            | Close source item (`status=done`, `artifact=.workflow/plan.md`). Set `meta.ui_work`. Emit one `to-review-plan` item per `REVIEW:` marker in plan.md. Emit `to-design` item iff `ui_work=true`. Emit `to-implement` items per plan chunk. |
+| Mutations            | Close source item (`status=done`, `artifact=.build-feature-workflow/plan.md`). Set `meta.ui_work`. Emit one `to-review-plan` item per `REVIEW:` marker in plan.md. Emit `to-design` item iff `ui_work=true`. Emit `to-implement` items per plan chunk. |
 | Outgoing tags        | `to-review-plan`, `to-design`, `to-implement` |
 | Forbidden outgoing   | `code-complete-needs-verification`, `to-code-review`, `to-triage`, `to-design-critique` |
 | May emit ASK         | yes — pre-planning ASK on architecture branch (3). |
 | `skip-eligible` use  | forbidden on emitted items (per Q-fast-route lock). |
 | `iteration` mutation | sets `iteration = 1` on first `to-implement` emission. |
-| Tool whitelist       | `Read,Glob,Grep,Write,WebSearch,WebFetch` (no Edit on repo; Write to `.workflow/` only). |
+| Tool whitelist       | `Read,Glob,Grep,Write,WebSearch,WebFetch` (no Edit on repo; Write to `.build-feature-workflow/` only). |
 
 ### Phase 2 — Plan review
 
@@ -177,12 +177,12 @@ whitelist used at dispatch.
 | | |
 |---|---|
 | Incoming tag         | `to-implement` (dispatched against the FULL set of pending `to-implement` items — one Phase 4 dispatch implements ALL pending items as a batch, per the "one-phase-at-a-time" rule). |
-| Mutations            | Create `.workflow/<ISO-timestamp>/` batch directory. Set each implemented item's `status=in-progress` then `done`. Write per-item entries to `.workflow/<ISO-timestamp>/status.md`. Optionally attach per-item skip tags. On gap on ANY item: emit `DECISION` item; do NOT close source(s). |
+| Mutations            | Create `.build-feature-workflow/<ISO-timestamp>/` batch directory. Set each implemented item's `status=in-progress` then `done`. Write per-item entries to `.build-feature-workflow/<ISO-timestamp>/status.md`. Optionally attach per-item skip tags. On gap on ANY item: emit `DECISION` item; do NOT close source(s). |
 | Outgoing tags        | **`code-complete-needs-verification` (ONE item per Phase 4 dispatch)**, referencing the batch directory and covering all closed items that do NOT carry `no-verification-needed`. If ALL closed items carry `no-verification-needed`, no emission. |
 | Forbidden outgoing   | all other dispatchable tags. |
 | May emit DECISION    | yes (ambiguity or stall on any item). |
 | Skip-tag declaration | may set `skip` field on closed item with values in {`no-verification-needed`, `no-review-needed`} iff source item carried `skip-eligible`. Per-item decision; Phase 4 may declare on some items in the batch and not others. |
-| Batch directory      | new `.workflow/<ISO-timestamp>/` per dispatch. Used by subsequent phases (Phase 5 reads it; agents reading prior batches sort by timestamp). |
+| Batch directory      | new `.build-feature-workflow/<ISO-timestamp>/` per dispatch. Used by subsequent phases (Phase 5 reads it; agents reading prior batches sort by timestamp). |
 | Tool whitelist       | `Read,Glob,Grep,Edit,Write,Bash` |
 
 ### Phase 5 — E2E validate
@@ -210,7 +210,7 @@ Status outcomes:
 | | |
 |---|---|
 | Incoming tag         | `to-code-review` |
-| Mutations            | Close source item. Emit a single `to-triage` item referencing the batch directory at `.workflow/<timestamp>/review/`. |
+| Mutations            | Close source item. Emit a single `to-triage` item referencing the batch directory at `.build-feature-workflow/<timestamp>/review/`. |
 | Outgoing tags        | `to-triage` |
 | Forbidden outgoing   | all others (including `to-design-critique` — Phase 7 owns that emission). |
 | Fan-out              | bash orchestrator spawns 3 subprocess agents in parallel and `wait`s. The intra-phase parallelism is the only multi-agent dispatch in the loop. |
@@ -261,7 +261,7 @@ again) before its non-AUTO_APPLY final run emits `to-design-critique`.
 | | |
 |---|---|
 | Trigger              | `phase-9-done=true` + `phase-10-done=false`. |
-| Mutations            | Write `.workflow/summary.md`. Set `meta.phase-10-done=true`. |
+| Mutations            | Write `.build-feature-workflow/summary.md`. Set `meta.phase-10-done=true`. |
 | Outgoing tags        | none. |
 | Tool whitelist       | `Read,Glob,Grep,Bash,Write` |
 
@@ -270,7 +270,7 @@ again) before its non-AUTO_APPLY final run emits `to-design-critique`.
 | | |
 |---|---|
 | Trigger              | `phase-10-done=true` + `phase-11-done=false`. |
-| Mutations            | Write `.workflow/reflection.md` + `reflection.patch` + update `reflection-watchlist.md`. Set `meta.phase-11-done=true`. |
+| Mutations            | Write `.build-feature-workflow/reflection.md` + `reflection.patch` + update `reflection-watchlist.md`. Set `meta.phase-11-done=true`. |
 | Outgoing tags        | none. |
 | Tool whitelist       | `Read,Glob,Grep,Bash,Write` |
 
@@ -339,7 +339,7 @@ An item with `skip` field declaring `no-verification-needed` or
 
 ### 5.6 Batch directory uniqueness
 
-- Each Phase 4 dispatch creates a new `.workflow/<ISO-timestamp>/`
+- Each Phase 4 dispatch creates a new `.build-feature-workflow/<ISO-timestamp>/`
   directory. The timestamp is generated at dispatch entry; uniqueness
   comes from monotonic mtime + sub-second granularity in the filename.
 - All items implemented in a single Phase 4 dispatch share that
@@ -410,14 +410,14 @@ Same as 6.1 with `ui_work=false`: Phase 3 skipped, Phase 8 skipped.
 ### 6.3 Phase 2 HUMAN + resume
 
 Phase 1 emits 2 `to-review-plan` items. Phase 2 leaves one as `HUMAN`.
-Orchestrator pauses. User re-invokes `/workflow <text>`. Orchestrator
+Orchestrator pauses. User re-invokes `/build-feature-workflow <text>`. Orchestrator
 re-dispatches Phase 2 with `--user-prompt`. HUMAN closes. Continue.
 
 ### 6.4 Phase 5 failure → retry
 
 Phase 5 emits `Code Errors`. Orchestrator emits new `to-implement`.
 Phase 4 retries (creates new timestamp directory), Phase 5 passes,
-continue. Verify: at least two `.workflow/<timestamp>/` directories
+continue. Verify: at least two `.build-feature-workflow/<timestamp>/` directories
 exist, both preserved.
 
 ### 6.5 Phase 7 mixed batch (best-effort before pause)
@@ -475,7 +475,7 @@ untouched.
 
 ### 6.13 Concurrent invocation safety
 
-Two `/workflow` invocations race. The second detects the lock and
+Two `/build-feature-workflow` invocations race. The second detects the lock and
 refuses with a clear error. Verify the first proceeds unmolested.
 
 ### 6.14 Partial-write recovery
@@ -505,15 +505,15 @@ fixture queue depth), the loop reaches a terminal state: `done`,
 ## 7. Concurrency model
 
 - **One orchestrator process per repo at a time.** Enforced via
-  atomic-mkdir lock at `.workflow/.lock/` (directory, not file). The
-  PID lives in `.workflow/.lock/pid`. Stale-detect via process
+  atomic-mkdir lock at `.build-feature-workflow/.lock/` (directory, not file). The
+  PID lives in `.build-feature-workflow/.lock/pid`. Stale-detect via process
   existence check (`kill -0 <pid>`). `mkdir` is the atomic operation
   on POSIX; TOCTOU-safe.
 - **One phase active at a time.** The selection rule's tag-priority
   ordering guarantees only one phase's tag dispatches at any given
   tick. Phase 6 is the only intra-phase parallel case (its three
   reviewer sub-agents fan out via `&` + `wait`, each writing to a
-  distinct file in `.workflow/<timestamp>/review/`).
+  distinct file in `.build-feature-workflow/<timestamp>/review/`).
 - **Phase 4 implements all pending `to-implement` items in one
   dispatch.** This is the bulk-implement rule (Q-phase4 lock per
   decision log). The Phase 4 subprocess processes the queue
@@ -528,17 +528,17 @@ fixture queue depth), the loop reaches a terminal state: `done`,
 
 The orchestrator dispatches phase agents by calling a function that
 invokes `claude -p ...`. The function honors
-`${WORKFLOW_TEST_DISPATCH_HOOK:-claude}`. Tests set the hook to a
+`${BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK:-claude}`. Tests set the hook to a
 fixture script. Production leaves it unset.
 
 The fixture script reads:
 
 - `$1` — phase number (1–11)
 - `$2` — incoming item ID (or empty for completion phases)
-- env `WORKFLOW_FIXTURE_DIR` — directory of recorded responses
+- env `BUILD_FEATURE_WORKFLOW_FIXTURE_DIR` — directory of recorded responses
 
 It emits the predetermined state-file mutations and a transcript line
-(`PHASE=<n> ITEM=<id>`) to `$WORKFLOW_TRACE_FILE` for assertion.
+(`PHASE=<n> ITEM=<id>`) to `$BUILD_FEATURE_WORKFLOW_TRACE_FILE` for assertion.
 
 A fixture run is **deterministic**: each step picks the next response
 from a queue keyed by `(phase, dispatch_count)`. This decouples

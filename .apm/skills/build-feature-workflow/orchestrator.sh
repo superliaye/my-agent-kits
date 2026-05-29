@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# `/workflow` orchestrator — the dispatch loop.
+# `/build-feature-workflow` orchestrator — the dispatch loop.
 #
 # Reads `<workdir>/state.md` (canonical tagged work-item queue), picks the
 # next dispatchable item per the selection rule in
-# `docs/design/workflow-state-machine.md` §2.1, and invokes a phase agent
-# via `${WORKFLOW_TEST_DISPATCH_HOOK:-claude}`. Re-reads state after each
+# `docs/design/build-feature-workflow-state-machine.md` §2.1, and invokes a phase agent
+# via `${BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK:-claude}`. Re-reads state after each
 # dispatch, validates, continues until no actionable items remain. Then
 # runs the Phase 9 → 10 → 11 terminal sweep. Exits to pause when only
 # escalated items (ASK/HUMAN/DECISION) remain.
@@ -44,7 +44,7 @@ while [ $# -gt 0 ]; do
       cat <<USAGE
 usage: orchestrator.sh --workdir <path> [--user-request "<text>"] [--user-prompt "<text>"]
 
-  --workdir       Path to .workflow/ directory (required)
+  --workdir       Path to .build-feature-workflow/ directory (required)
   --user-request  Initial feature request (bootstrap only, when no state)
   --user-prompt   Free-text resolution for paused escalations
 USAGE
@@ -93,7 +93,7 @@ if [ ! -f "$STATE_FILE" ]; then
   fi
   title_safe="$(printf '%s' "$USER_REQUEST" | tr '\n\r' '  ' | cut -c1-120)"
   cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -135,8 +135,8 @@ fi
 
 # Production dispatch goes through lib/dispatch-claude.sh, which maps
 # phase + variant → prompt template + tool whitelist and launches a
-# one-shot `claude -p`. Tests override this via WORKFLOW_TEST_DISPATCH_HOOK.
-HOOK="${WORKFLOW_TEST_DISPATCH_HOOK:-$HERE/lib/dispatch-claude.sh}"
+# one-shot `claude -p`. Tests override this via BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK.
+HOOK="${BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK:-$HERE/lib/dispatch-claude.sh}"
 
 # pick_next prints "<id> <tag> <emitted-by-phase>" of the next dispatchable
 # item, or empty if none. Selection rule §2.1:

@@ -1,5 +1,5 @@
 ---
-description: Review code against domain-driven design and hexagonal architecture principles. Surfaces anemic models, infrastructure leaking into the domain, aggregate-boundary violations, ubiquitous-language drift, misplaced business logic, and missing anti-corruption layers. Use when the user wants a DDD review, asks whether code follows DDD/hexagonal/ports-and-adapters, or as the DDD reviewer in /workflow Phase 6.
+description: Review code against domain-driven design and hexagonal architecture principles. Surfaces anemic models, infrastructure leaking into the domain, aggregate-boundary violations, ubiquitous-language drift, misplaced business logic, and missing anti-corruption layers. Use when the user wants a DDD review, asks whether code follows DDD/hexagonal/ports-and-adapters, or as the DDD reviewer in /build-feature-workflow Phase 6.
 added_in: 0.14.0
 upstream: https://github.com/Sairyss/domain-driven-hexagon
 ---
@@ -124,15 +124,15 @@ prototype, full layering is over-engineering — say so rather than
 inventing violations. "Use as many layers as the domain needs; it's
 easier to refactor over-design than no design." Calibrate findings to
 the repo's actual complexity (and to `architecture-impact.md` when run
-inside `/workflow`).
+inside `/build-feature-workflow`).
 
 ## Output
 
 - **Standalone:** present findings grouped by severity, each with
   `file:line` and the principle, then a short "top issues" summary.
-- **Inside `/workflow` Phase 6:** write raw findings (no confidence
+- **Inside `/build-feature-workflow` Phase 6:** write raw findings (no confidence
   scores) to the review file the phase prompt specifies; Phase 7
-  triages. Do not mutate workflow state — the lead reviewer does the
+  triages. Do not mutate build-feature-workflow state — the lead reviewer does the
   bookkeeping.
 
 ## References

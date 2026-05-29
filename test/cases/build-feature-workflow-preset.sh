@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify the `workflow` preset deploys the orchestrator skill + all its
+# Verify the `build-feature-workflow` preset deploys the orchestrator skill + all its
 # supporting skills, and records the right plugin set in .agent-kit.yaml.
 #
 # AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude
@@ -16,15 +16,15 @@ cd "$WORK"
 git init -q .
 
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
-  --preset workflow --agents claude --scope repo \
-  || { fail "agent-kit init --preset workflow exited non-zero"; exit 1; }
+  --preset build-feature-workflow --agents claude --scope repo \
+  || { fail "agent-kit init --preset build-feature-workflow exited non-zero"; exit 1; }
 
 # Orchestrator skill landed
-assert_file_exists "$WORK/.claude/skills/workflow/SKILL.md" "workflow SKILL.md deployed"
-assert_file_exists "$WORK/.claude/skills/workflow/orchestrator.sh" "workflow orchestrator.sh deployed"
-assert_file_exists "$WORK/.claude/skills/workflow/state-template.md" "workflow state-template.md deployed"
-assert_file_exists "$WORK/.claude/skills/workflow/lib/state-ops.sh" "workflow lib/state-ops.sh deployed"
-assert_file_exists "$WORK/.claude/skills/workflow/lib/dispatch-claude.sh" "workflow lib/dispatch-claude.sh deployed"
+assert_file_exists "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "build-feature-workflow SKILL.md deployed"
+assert_file_exists "$WORK/.claude/skills/build-feature-workflow/orchestrator.sh" "build-feature-workflow orchestrator.sh deployed"
+assert_file_exists "$WORK/.claude/skills/build-feature-workflow/state-template.md" "build-feature-workflow state-template.md deployed"
+assert_file_exists "$WORK/.claude/skills/build-feature-workflow/lib/state-ops.sh" "build-feature-workflow lib/state-ops.sh deployed"
+assert_file_exists "$WORK/.claude/skills/build-feature-workflow/lib/dispatch-claude.sh" "build-feature-workflow lib/dispatch-claude.sh deployed"
 
 # All 13 phase prompt stubs present
 for stub in \
@@ -32,12 +32,12 @@ for stub in \
   phase5-validate phase6-arch phase6-ddd phase6-general \
   phase7-triage phase8-design-critique phase9-documentation \
   phase10-summary phase11-reflection; do
-  assert_file_exists "$WORK/.claude/skills/workflow/prompts/$stub.md" "workflow prompt stub: $stub"
+  assert_file_exists "$WORK/.claude/skills/build-feature-workflow/prompts/$stub.md" "build-feature-workflow prompt stub: $stub"
 done
 
-# SKILL.md describes /workflow as a tagged-queue cybernetic loop
-assert_content_contains "$WORK/.claude/skills/workflow/SKILL.md" "tagged work-item queue" "SKILL.md mentions tagged queue"
-assert_content_contains "$WORK/.claude/skills/workflow/SKILL.md" "orchestrator.sh" "SKILL.md references orchestrator"
+# SKILL.md describes /build-feature-workflow as a tagged-queue cybernetic loop
+assert_content_contains "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "tagged work-item queue" "SKILL.md mentions tagged queue"
+assert_content_contains "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "orchestrator.sh" "SKILL.md references orchestrator"
 
 # Supporting skills the preset includes (full recursive folder copy —
 # SKILL.md + every sub-file)
@@ -64,22 +64,22 @@ assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md generated"
 assert_content_contains "$WORK/CLAUDE.md" "Core Instructions" "core instruction in CLAUDE.md"
 
 # State recorded — preset + plugins
-assert_content_contains "$WORK/.agent-kit.yaml" "preset: workflow" "preset recorded"
-assert_content_contains "$WORK/.agent-kit.yaml" "workflow" "workflow skill in state"
+assert_content_contains "$WORK/.agent-kit.yaml" "preset: build-feature-workflow" "preset recorded"
+assert_content_contains "$WORK/.agent-kit.yaml" "build-feature-workflow" "build-feature-workflow skill in state"
 assert_content_contains "$WORK/.agent-kit.yaml" "ui-ux-pro-max" "ui-ux-pro-max plugin in state"
 assert_content_contains "$WORK/.agent-kit.yaml" "frontend-design" "frontend-design plugin in state"
 
-# Negative: code-review plugin NOT in workflow preset (per Q-phase6 — wrong shape)
+# Negative: code-review plugin NOT in build-feature-workflow preset (per Q-phase6 — wrong shape)
 if grep -q "code-review" "$WORK/.agent-kit.yaml"; then
-  fail "code-review should NOT be in workflow preset (per Q-phase6)"
+  fail "code-review should NOT be in build-feature-workflow preset (per Q-phase6)"
 else
-  ok "code-review correctly absent from workflow preset"
+  ok "code-review correctly absent from build-feature-workflow preset"
 fi
 
 # Bootstrap smoke: orchestrator writes initial state.md
-mkdir -p "$WORK/.workflow"
+mkdir -p "$WORK/.build-feature-workflow"
 # The installed orchestrator path under the test workspace
-INSTALLED_ORCH="$WORK/.claude/skills/workflow/orchestrator.sh"
+INSTALLED_ORCH="$WORK/.claude/skills/build-feature-workflow/orchestrator.sh"
 # The installed orchestrator expects a Claude CLI on PATH. Stub it
 # with a no-op fixture so bootstrap completes without invoking real
 # Claude.
@@ -90,7 +90,7 @@ cat > "$STUB_DIR/claude-stub.sh" <<'STUB'
 # returns quickly.
 STATE_FILE="$3"
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -105,7 +105,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: smoke bootstrap
@@ -114,8 +114,8 @@ EOF
 STUB
 chmod +x "$STUB_DIR/claude-stub.sh"
 
-WORKFLOW_TEST_DISPATCH_HOOK="$STUB_DIR/claude-stub.sh" \
-  bash "$INSTALLED_ORCH" --workdir "$WORK/.workflow" --user-request "smoke test" >/dev/null 2>&1
+BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK="$STUB_DIR/claude-stub.sh" \
+  bash "$INSTALLED_ORCH" --workdir "$WORK/.build-feature-workflow" --user-request "smoke test" >/dev/null 2>&1
 rc=$?
 
 if [ "$rc" -eq 0 ]; then
@@ -124,5 +124,5 @@ else
   fail "installed orchestrator bootstrap: rc=$rc"
 fi
 
-assert_file_exists "$WORK/.workflow/state.md" "smoke: state.md written by installed orchestrator"
-assert_content_contains "$WORK/.workflow/state.md" "schema-version: 1" "smoke: state.md valid schema"
+assert_file_exists "$WORK/.build-feature-workflow/state.md" "smoke: state.md written by installed orchestrator"
+assert_content_contains "$WORK/.build-feature-workflow/state.md" "schema-version: 1" "smoke: state.md valid schema"

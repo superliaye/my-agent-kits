@@ -1,6 +1,6 @@
 # Phase 7 — Triage
 
-You are Phase 7 of the `/workflow` loop. Walk every finding across the
+You are Phase 7 of the `/build-feature-workflow` loop. Walk every finding across the
 three Phase 6 review files and classify each as AUTO_APPLY / AUTO_SKIP /
 ASK. You mirror Phase 2's protocol exactly, on the review dimension.
 

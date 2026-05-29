@@ -1,5 +1,5 @@
 ---
-description: Stack-aware end-to-end validation. Discovers the repo's test/build harness, runs the closest smoke recipe, and verifies a change against declared success criteria — including UI feature visibility via screenshots. Use when verifying that code changes actually run and fulfill their requirements, or when the user asks to validate/smoke-test a change. Invoked by /workflow Phase 5 and Phase 8, and usable standalone.
+description: Stack-aware end-to-end validation. Discovers the repo's test/build harness, runs the closest smoke recipe, and verifies a change against declared success criteria — including UI feature visibility via screenshots. Use when verifying that code changes actually run and fulfill their requirements, or when the user asks to validate/smoke-test a change. Invoked by /build-feature-workflow Phase 5 and Phase 8, and usable standalone.
 added_in: 0.14.0
 ---
 

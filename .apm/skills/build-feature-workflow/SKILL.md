@@ -1,71 +1,71 @@
 ---
-description: Cybernetic, self-improving feature-build loop. Bash orchestrator dispatches fresh Sonnet subprocesses per phase via a tagged work-item queue on disk. Use when the user says "/workflow <text>", asks to start an architecture-aware build, or resumes a paused workflow with new resolution context. Coexists with /feature-loop — use /feature-loop for simple work, /workflow when architecture awareness or self-improvement matter.
+description: Cybernetic, self-improving feature-build loop. Bash orchestrator dispatches fresh Sonnet subprocesses per phase via a tagged work-item queue on disk. Use when the user says "/build-feature-workflow <text>", asks to start an architecture-aware build, or resumes a paused build-feature-workflow with new resolution context. Coexists with /feature-loop — use /feature-loop for simple work, /build-feature-workflow when architecture awareness or self-improvement matter.
 allowed-tools: Bash, Read, Write, Glob, Grep
 added_in: 0.14.0
 ---
 
-# /workflow
+# /build-feature-workflow
 
 Architecture-aware, self-improving feature-build loop. The user invokes
-`/workflow <free-text>` and the rest is the loop's job.
+`/build-feature-workflow <free-text>` and the rest is the loop's job.
 
 This skill is **structurally different** from `/feature-loop`:
 
 - The runtime is a bash orchestrator at
   [orchestrator.sh](orchestrator.sh), not Claude reading SKILL.md as
   protocol.
-- State lives on disk in `<repo>/.workflow/state.md` (see
+- State lives on disk in `<repo>/.build-feature-workflow/state.md` (see
   [state-template.md](state-template.md)).
 - Each phase is a fresh `claude -p` subprocess with a tight
   `--allowedTools` whitelist (see the per-phase prompts in
   [prompts/](prompts/)).
 - The formal contract is in
-  [docs/design/workflow-state-machine.md](../../../docs/design/workflow-state-machine.md);
+  [docs/design/build-feature-workflow-state-machine.md](../../../docs/design/build-feature-workflow-state-machine.md);
   the design rationale + decision log lives in
-  [docs/design/workflow-skill.md](../../../docs/design/workflow-skill.md).
+  [docs/design/build-feature-workflow-skill.md](../../../docs/design/build-feature-workflow-skill.md).
 
 ## How to invoke
 
 Single entrypoint. Detection is mode-aware:
 
 ```
-/workflow build a dark-mode toggle in settings
+/build-feature-workflow build a dark-mode toggle in settings
 ```
 
 | State on disk                                       | What happens                                                      |
 |-----------------------------------------------------|-------------------------------------------------------------------|
-| No `.workflow/state.md`                             | Bootstrap: write a `to-plan` item with the user's text; loop.    |
+| No `.build-feature-workflow/state.md`                             | Bootstrap: write a `to-plan` item with the user's text; loop.    |
 | Pending actionable items, no escalations            | Resume: dispatch the next item per the selection rule.           |
 | Only ASK / HUMAN / DECISION items                   | Resolution-resume: treat user text as `--user-prompt` for the owning phase. |
 | All `done` + Phase 9–11 completed                   | Print summary; refuse to re-run unless the user opts in.         |
 
 The orchestrator exits with:
 
-- `0` — workflow complete
-- `10` — paused on escalations; rerun `/workflow <resolution text>` to continue
+- `0` — build-feature-workflow complete
+- `10` — paused on escalations; rerun `/build-feature-workflow <resolution text>` to continue
 - `2/3/4/5` — refused (bad args, invalid state, lock held, dispatch error)
 
-## What the assistant does on `/workflow ...`
+## What the assistant does on `/build-feature-workflow ...`
 
 The slash command resolves to this skill. The assistant should:
 
 1. Confirm the working tree has no uncommitted user changes the loop
-   would overwrite (the loop writes to `.workflow/`, and Phase 4 will
+   would overwrite (the loop writes to `.build-feature-workflow/`, and Phase 4 will
    commit code changes — surprises here are user-visible).
 2. Decide whether this invocation is **fresh**, **resume**, or
-   **resolution-resume** by inspecting `.workflow/state.md` (or its
+   **resolution-resume** by inspecting `.build-feature-workflow/state.md` (or its
    absence).
 3. Invoke the orchestrator:
 
    ```bash
-   bash .apm/skills/workflow/orchestrator.sh \
-     --workdir .workflow \
+   bash .apm/skills/build-feature-workflow/orchestrator.sh \
+     --workdir .build-feature-workflow \
      [--user-request "$TEXT"] \
      [--user-prompt  "$TEXT"]
    ```
 
 4. After the orchestrator exits, surface the relevant artifact:
-   - exit 0 → `cat .workflow/summary.md`
+   - exit 0 → `cat .build-feature-workflow/summary.md`
    - exit 10 → list escalated items (`ASK` / `HUMAN` / `DECISION`)
      with the audit references the user must address.
    - exit 3 → print the validation error and the state path. Do not
@@ -86,7 +86,7 @@ here so the user can audit them in one place.
   calling artifact.
 - **SIZABLE** research (multi-source synthesis, "is X still
   maintained" with uncertain answer) is delegated: the phase agent
-  appends a `- [ ] Research: <topic> → .workflow/research/<slug>.md`
+  appends a `- [ ] Research: <topic> → .build-feature-workflow/research/<slug>.md`
   item to plan.md and spawns a research sub-agent. No inline bailout.
 
 ### Escalation discipline
@@ -99,7 +99,7 @@ check (in order):
 - `<repo>/CONTEXT.md` (domain glossary, if present)
 - `<repo>/docs/adr/` (architecture decision records, if present)
 - `<repo>/docs/` (DESIGN.md, ARCHITECTURE.md, etc.)
-- All prior Phase 1 artifacts in `.workflow/`
+- All prior Phase 1 artifacts in `.build-feature-workflow/`
 
 Every escalation must record a `checked against: <docs>; not found`
 audit line in the artifact the state item points to.
@@ -123,7 +123,7 @@ separate-context judgment.
 ## Files
 
 ```
-.apm/skills/workflow/
+.apm/skills/build-feature-workflow/
 ├── SKILL.md                ← this file
 ├── orchestrator.sh         ← bash dispatch loop
 ├── state-template.md       ← state file schema
@@ -145,21 +145,21 @@ separate-context judgment.
     └── phase11-reflection.md
 ```
 
-State per-run lives in the host repo at `<repo>/.workflow/`. Add
-`.workflow/` to `.gitignore` if you do not want loop artifacts in
+State per-run lives in the host repo at `<repo>/.build-feature-workflow/`. Add
+`.build-feature-workflow/` to `.gitignore` if you do not want loop artifacts in
 version control. Some teams commit it deliberately to audit
 reflection patches across runs — that is the user's call.
 
 ## Dependencies
 
-Shipped via [`presets/workflow.yaml`](../../../presets/workflow.yaml):
+Shipped via [`presets/build-feature-workflow.yaml`](../../../presets/build-feature-workflow.yaml):
 
 - Skills: `e2e-validate`, `improve-codebase-architecture`,
   `improve-DDD-architecture`, `design-critique`, `diagnose`,
   `electron-visual-loop`, `web-visual-loop`.
 - Plugins: `ui-ux-pro-max`, `frontend-design`.
 
-`code-review` plugin is NOT a `/workflow` dependency (it is PR-required;
+`code-review` plugin is NOT a `/build-feature-workflow` dependency (it is PR-required;
 Phase 6 runs mid-loop with no PR).
 
 ## Status
@@ -168,7 +168,7 @@ MVP, feature-complete. The orchestrator, state-machine model, test
 suite (15 cases / 183 asserts), all 13 phase prompts, the production
 dispatch wrapper ([lib/dispatch-claude.sh](lib/dispatch-claude.sh)),
 and both dependency skills (`e2e-validate`, `improve-DDD-architecture`)
-are in place. See [docs/design/workflow-skill.md](../../../docs/design/workflow-skill.md)
+are in place. See [docs/design/build-feature-workflow-skill.md](../../../docs/design/build-feature-workflow-skill.md)
 for the per-phase locked decisions the prompts implement.
 
 Outstanding: the loop has not yet been dogfooded on a real end-to-end

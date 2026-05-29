@@ -1,6 +1,6 @@
 # Phase 8 — Design critique
 
-You are Phase 8 of the `/workflow` loop. Phase 7's UI twin: same
+You are Phase 8 of the `/build-feature-workflow` loop. Phase 7's UI twin: same
 trichotomy (AUTO_APPLY / AUTO_SKIP / ASK), same separate-context
 discipline, but on the design dimension. You run only when
 `meta.ui_work=true`, and only after triage is stable (Phase 7 emitted

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Workflow orchestrator — state-machine test suite.
+# build-feature-workflow orchestrator — state-machine test suite.
 #
-# Drives `.apm/skills/workflow/orchestrator.sh` with mocked phase
-# agents (see test/lib/workflow-fixture-runner.sh). Each sub-test
+# Drives `.apm/skills/build-feature-workflow/orchestrator.sh` with mocked phase
+# agents (see test/lib/build-feature-workflow-fixture-runner.sh). Each sub-test
 # defines a queue of fixture responses, runs the orchestrator, then
 # asserts on the resulting trace + state file.
 #
 # Covers the state-machine invariants and liveness scenarios in
-# docs/design/workflow-state-machine.md §5–§6. Coverage is selective
+# docs/design/build-feature-workflow-state-machine.md §5–§6. Coverage is selective
 # (not exhaustive over every combinatorial path) but exercises every
 # locked invariant and the highest-risk liveness paths.
 
@@ -15,10 +15,10 @@ set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 . "$HERE/../lib/assertions.sh"
-. "$KIT_ROOT/.apm/skills/workflow/lib/state-ops.sh"
+. "$KIT_ROOT/.apm/skills/build-feature-workflow/lib/state-ops.sh"
 
-ORCH="$KIT_ROOT/.apm/skills/workflow/orchestrator.sh"
-RUNNER="$KIT_ROOT/test/lib/workflow-fixture-runner.sh"
+ORCH="$KIT_ROOT/.apm/skills/build-feature-workflow/orchestrator.sh"
+RUNNER="$KIT_ROOT/test/lib/build-feature-workflow-fixture-runner.sh"
 
 # Guard: surface the missing-orchestrator failure clearly rather than
 # crashing every sub-test with the same exec error.
@@ -26,7 +26,7 @@ if [ ! -x "$ORCH" ] && [ ! -f "$ORCH" ]; then
   fail "orchestrator.sh not present at $ORCH — every state-machine case will fail until it is built"
 fi
 if [ ! -f "$RUNNER" ]; then
-  fail "workflow-fixture-runner.sh missing at $RUNNER"
+  fail "build-feature-workflow-fixture-runner.sh missing at $RUNNER"
 fi
 
 # ----------------------------------------------------------------------
@@ -35,7 +35,7 @@ fi
 
 # wf_init <test-name>
 # Creates an isolated workspace under $WORK_BASE/<name>/ with:
-#   .workflow/        (consumed by orchestrator)
+#   .build-feature-workflow/        (consumed by orchestrator)
 #   fixtures/         (response scripts, NNN.sh)
 #   trace.log         (dispatch log)
 # Exports state needed by the runner.
@@ -45,23 +45,23 @@ trap "rm -rf '$WORK_BASE'" EXIT
 wf_init() {
   TEST_NAME="$1"
   TEST_WORK="$WORK_BASE/$TEST_NAME"
-  mkdir -p "$TEST_WORK/.workflow" "$TEST_WORK/fixtures"
+  mkdir -p "$TEST_WORK/.build-feature-workflow" "$TEST_WORK/fixtures"
   : > "$TEST_WORK/trace.log"
   printf '0\n' > "$TEST_WORK/fixtures/.counter"
-  export WORKFLOW_FIXTURE_DIR="$TEST_WORK/fixtures"
-  export WORKFLOW_TRACE_FILE="$TEST_WORK/trace.log"
-  export WORKFLOW_TEST_DISPATCH_HOOK="$RUNNER"
-  STATE_FILE_PATH="$TEST_WORK/.workflow/state.md"
+  export BUILD_FEATURE_WORKFLOW_FIXTURE_DIR="$TEST_WORK/fixtures"
+  export BUILD_FEATURE_WORKFLOW_TRACE_FILE="$TEST_WORK/trace.log"
+  export BUILD_FEATURE_WORKFLOW_TEST_DISPATCH_HOOK="$RUNNER"
+  STATE_FILE_PATH="$TEST_WORK/.build-feature-workflow/state.md"
 }
 
 # wf_enqueue
 # Appends the heredoc on stdin as the next fixture response. Auto-numbered.
 wf_enqueue() {
   local n
-  n=$(ls "$WORKFLOW_FIXTURE_DIR"/[0-9]*.sh 2>/dev/null | wc -l | tr -d ' ')
+  n=$(ls "$BUILD_FEATURE_WORKFLOW_FIXTURE_DIR"/[0-9]*.sh 2>/dev/null | wc -l | tr -d ' ')
   n=$((n + 1))
   local f
-  f="$WORKFLOW_FIXTURE_DIR/$(printf '%03d' "$n").sh"
+  f="$BUILD_FEATURE_WORKFLOW_FIXTURE_DIR/$(printf '%03d' "$n").sh"
   cat > "$f"
   chmod +x "$f"
 }
@@ -70,15 +70,15 @@ wf_run_fresh() {
   local req="$1"
   # On a fresh invocation, the orchestrator bootstraps state.md from
   # --user-request.
-  bash "$ORCH" --workdir "$TEST_WORK/.workflow" --user-request "$req"
+  bash "$ORCH" --workdir "$TEST_WORK/.build-feature-workflow" --user-request "$req"
 }
 
 wf_run_resume() {
   local prompt="${1:-}"
   if [ -n "$prompt" ]; then
-    bash "$ORCH" --workdir "$TEST_WORK/.workflow" --user-prompt "$prompt"
+    bash "$ORCH" --workdir "$TEST_WORK/.build-feature-workflow" --user-prompt "$prompt"
   else
-    bash "$ORCH" --workdir "$TEST_WORK/.workflow"
+    bash "$ORCH" --workdir "$TEST_WORK/.build-feature-workflow"
   fi
 }
 
@@ -89,12 +89,12 @@ wf_seed_state() {
 }
 
 wf_trace() {
-  cat "$WORKFLOW_TRACE_FILE"
+  cat "$BUILD_FEATURE_WORKFLOW_TRACE_FILE"
 }
 
 # wf_trace_phases -> "1 2 4 5 6 7 9 10 11" style summary
 wf_trace_phases() {
-  awk '{ for(i=1;i<=NF;i++){ if ($i ~ /^phase=/){ sub(/^phase=/,"",$i); printf "%s%s", (n++?" ":""), $i } } }' "$WORKFLOW_TRACE_FILE"
+  awk '{ for(i=1;i<=NF;i++){ if ($i ~ /^phase=/){ sub(/^phase=/,"",$i); printf "%s%s", (n++?" ":""), $i } } }' "$BUILD_FEATURE_WORKFLOW_TRACE_FILE"
   echo
 }
 
@@ -108,7 +108,7 @@ wf_trace_phases() {
 
 emit_state_phase1_done_non_ui() {
   cat <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -122,7 +122,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan for: test request
@@ -140,7 +140,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4: implement step 1
@@ -150,7 +150,7 @@ STATE
 
 emit_state_phase2_done_no_humans() {
   cat <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -164,7 +164,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan for: test request
@@ -173,7 +173,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm approach
@@ -182,7 +182,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4: implement step 1
@@ -202,7 +202,7 @@ case_bootstrap() {
   wf_enqueue <<'RESP'
 # Phase 1 fixture — terminate the loop by leaving state acceptable.
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -216,7 +216,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: bootstrap-terminate
@@ -239,7 +239,7 @@ case_happy_path_non_ui() {
   # Dispatch 1: Phase 1 emits: review item + implement item
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -253,7 +253,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -271,7 +271,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -282,7 +282,7 @@ RESP
   # Dispatch 2: Phase 2 closes review item (no HUMAN)
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -296,7 +296,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -305,7 +305,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -314,7 +314,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -325,7 +325,7 @@ RESP
   # Dispatch 3: Phase 4 closes implement + emits to-verify
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -339,7 +339,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -348,7 +348,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -357,7 +357,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -366,7 +366,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: pending
 emitted-by-phase: 4
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-010
 title: verify step 1
@@ -377,7 +377,7 @@ RESP
   # Dispatch 4: Phase 5 passes → emits to-code-review
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -391,7 +391,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -400,7 +400,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -409,7 +409,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -418,7 +418,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify step 1
@@ -427,7 +427,7 @@ id: item-030
 tag: to-code-review
 status: pending
 emitted-by-phase: 5
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-020
 title: review iter-1
@@ -438,7 +438,7 @@ RESP
   # Dispatch 5: Phase 6 closes review + emits to-triage
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -452,7 +452,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -461,7 +461,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -470,7 +470,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -479,7 +479,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify step 1
@@ -488,7 +488,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review iter-1
@@ -497,7 +497,7 @@ id: item-040
 tag: to-triage
 status: pending
 emitted-by-phase: 6
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-030
 title: triage iter-1 findings
@@ -508,7 +508,7 @@ RESP
   # Dispatch 6: Phase 7 all AUTO_SKIP → no new items
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -522,7 +522,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -531,7 +531,7 @@ id: item-002
 tag: to-review-plan
 status: done
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -540,7 +540,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -549,7 +549,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify step 1
@@ -558,7 +558,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review iter-1
@@ -567,7 +567,7 @@ id: item-040
 tag: to-triage
 status: done
 emitted-by-phase: 6
-artifact: .workflow/iter-1/triage.md
+artifact: .build-feature-workflow/iter-1/triage.md
 permissions:
 parent: item-030
 title: triage iter-1 findings
@@ -617,7 +617,7 @@ case_phase2_human_pause_and_resume() {
   wf_enqueue <<'RESP'
 emit_state_phase1_done_non_ui_local() {
 cat <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -631,7 +631,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -649,7 +649,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -662,7 +662,7 @@ RESP
   # Dispatch 2: Phase 2 leaves item-002 as HUMAN
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -676,7 +676,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -685,7 +685,7 @@ id: item-002
 tag: to-review-plan
 status: HUMAN
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -694,7 +694,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -708,7 +708,7 @@ RESP
   # item-010 cleanly with skip tags (terminate this run quickly).
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -722,7 +722,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -731,7 +731,7 @@ id: item-002
 tag: to-review-plan
 status: HUMAN
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -740,7 +740,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -749,7 +749,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: pending
 emitted-by-phase: 4
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-010
 title: verify
@@ -760,7 +760,7 @@ RESP
   # Dispatch 4: Phase 5 closes verify, emits to-code-review
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -774,7 +774,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -783,7 +783,7 @@ id: item-002
 tag: to-review-plan
 status: HUMAN
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -792,7 +792,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -801,7 +801,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -810,7 +810,7 @@ id: item-030
 tag: to-code-review
 status: pending
 emitted-by-phase: 5
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-020
 title: review iter-1
@@ -821,7 +821,7 @@ RESP
   # Dispatch 5: Phase 6 closes review, emits to-triage
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -835,7 +835,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -844,7 +844,7 @@ id: item-002
 tag: to-review-plan
 status: HUMAN
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -853,7 +853,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -862,7 +862,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -871,7 +871,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review iter-1
@@ -880,7 +880,7 @@ id: item-040
 tag: to-triage
 status: pending
 emitted-by-phase: 6
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-030
 title: triage
@@ -892,7 +892,7 @@ RESP
   # should now pause (no actionable + 1 HUMAN).
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -906,7 +906,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -915,7 +915,7 @@ id: item-002
 tag: to-review-plan
 status: HUMAN
 emitted-by-phase: 1
-artifact: .workflow/plan.md#review-1
+artifact: .build-feature-workflow/plan.md#review-1
 permissions:
 parent: item-001
 title: REVIEW: confirm
@@ -924,7 +924,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: Phase 4 step 1
@@ -933,7 +933,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -942,7 +942,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review iter-1
@@ -951,7 +951,7 @@ id: item-040
 tag: to-triage
 status: done
 emitted-by-phase: 6
-artifact: .workflow/iter-1/triage.md
+artifact: .build-feature-workflow/iter-1/triage.md
 permissions:
 parent: item-030
 title: triage
@@ -1017,7 +1017,7 @@ case_phase7_mixed_batch_drains() {
 
   # Seed: state already past Phase 6, ready for Phase 7 dispatch.
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1031,7 +1031,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1040,7 +1040,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: step 1
@@ -1049,7 +1049,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -1058,7 +1058,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review
@@ -1067,7 +1067,7 @@ id: item-040
 tag: to-triage
 status: pending
 emitted-by-phase: 6
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-030
 title: triage
@@ -1078,7 +1078,7 @@ STATE
   # 1 ASK. The ASK has audit artifact.
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1092,7 +1092,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1101,7 +1101,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: step 1
@@ -1110,7 +1110,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -1119,7 +1119,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review
@@ -1128,7 +1128,7 @@ id: item-040
 tag: to-triage
 status: done
 emitted-by-phase: 6
-artifact: .workflow/iter-1/triage.md
+artifact: .build-feature-workflow/iter-1/triage.md
 permissions:
 parent: item-030
 title: triage
@@ -1137,7 +1137,7 @@ id: item-050
 tag: to-implement
 status: pending
 emitted-by-phase: 7
-artifact: .workflow/iter-1/triage.md#finding-1
+artifact: .build-feature-workflow/iter-1/triage.md#finding-1
 permissions: skip-eligible
 parent: item-040
 title: AUTO_APPLY finding 1
@@ -1146,7 +1146,7 @@ id: item-051
 tag:
 status: ASK
 emitted-by-phase: 7
-artifact: .workflow/iter-1/triage.md#finding-2
+artifact: .build-feature-workflow/iter-1/triage.md#finding-2
 permissions:
 parent: item-040
 title: ASK finding 2
@@ -1158,7 +1158,7 @@ RESP
   # both skip tags → no Phase 5/6 dispatch follows.
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1172,7 +1172,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1181,7 +1181,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: step 1
@@ -1190,7 +1190,7 @@ id: item-020
 tag: code-complete-needs-verification
 status: done
 emitted-by-phase: 4
-artifact: .workflow/iter-1/validation-report.md
+artifact: .build-feature-workflow/iter-1/validation-report.md
 permissions:
 parent: item-010
 title: verify
@@ -1199,7 +1199,7 @@ id: item-030
 tag: to-code-review
 status: done
 emitted-by-phase: 5
-artifact: .workflow/iter-1/review/
+artifact: .build-feature-workflow/iter-1/review/
 permissions:
 parent: item-020
 title: review
@@ -1208,7 +1208,7 @@ id: item-040
 tag: to-triage
 status: done
 emitted-by-phase: 6
-artifact: .workflow/iter-1/triage.md
+artifact: .build-feature-workflow/iter-1/triage.md
 permissions:
 parent: item-030
 title: triage
@@ -1217,7 +1217,7 @@ id: item-050
 tag: to-implement
 status: done
 emitted-by-phase: 7
-artifact: .workflow/iter-2/status.md
+artifact: .build-feature-workflow/iter-2/status.md
 permissions: skip-eligible
 parent: item-040
 title: AUTO_APPLY finding 1
@@ -1227,7 +1227,7 @@ id: item-051
 tag:
 status: ASK
 emitted-by-phase: 7
-artifact: .workflow/iter-1/triage.md#finding-2
+artifact: .build-feature-workflow/iter-1/triage.md#finding-2
 permissions:
 parent: item-040
 title: ASK finding 2
@@ -1263,7 +1263,7 @@ case_invariant_skip_eligible_authority() {
 
   # Seed a state with an illegal skip-eligible from phase 1
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1277,7 +1277,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1286,7 +1286,7 @@ id: item-010
 tag: to-implement
 status: pending
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions: skip-eligible
 parent: item-001
 title: illegal skip-eligible from phase 1
@@ -1302,7 +1302,7 @@ STATE
   fi
 
   # No fixture should have been consumed
-  if ! grep -q 'phase=' "$WORKFLOW_TRACE_FILE" 2>/dev/null; then
+  if ! grep -q 'phase=' "$BUILD_FEATURE_WORKFLOW_TRACE_FILE" 2>/dev/null; then
     ok "skip-eligible authority: no phase dispatched"
   else
     fail "skip-eligible authority: dispatched despite refusal"
@@ -1316,7 +1316,7 @@ case_invariant_skip_tag_authority() {
   wf_init inv_skip_tag
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1330,7 +1330,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1339,7 +1339,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: declares skip without permission
@@ -1363,7 +1363,7 @@ case_invariant_source_phase_audit() {
   wf_init inv_source_phase
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1400,7 +1400,7 @@ case_invariant_schema_gate() {
   wf_init inv_schema
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 99
@@ -1437,7 +1437,7 @@ case_idempotent_terminal() {
   wf_init idempotent_terminal
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1451,7 +1451,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: done
@@ -1462,7 +1462,7 @@ STATE
   local rc=$?
   if [ "$rc" -eq 0 ]; then ok "idempotent terminal: rc=0"; else fail "idempotent terminal: rc=$rc"; fi
 
-  if ! grep -q 'phase=' "$WORKFLOW_TRACE_FILE" 2>/dev/null; then
+  if ! grep -q 'phase=' "$BUILD_FEATURE_WORKFLOW_TRACE_FILE" 2>/dev/null; then
     ok "idempotent terminal: no dispatch performed"
   else
     fail "idempotent terminal: dispatched at terminal"
@@ -1476,7 +1476,7 @@ case_crash_recovery_in_progress() {
   wf_init crash_recovery
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1490,7 +1490,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1499,7 +1499,7 @@ id: item-010
 tag: to-implement
 status: in-progress
 emitted-by-phase: 1
-artifact: .workflow/plan.md#step-1
+artifact: .build-feature-workflow/plan.md#step-1
 permissions:
 parent: item-001
 title: stale in-progress
@@ -1509,7 +1509,7 @@ STATE
   # Dispatch 1: Phase 4 closes it cleanly (terminal-friendly)
   wf_enqueue <<'RESP'
 cat > "$STATE_FILE" <<EOF
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1523,7 +1523,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1532,7 +1532,7 @@ id: item-010
 tag: to-implement
 status: done
 emitted-by-phase: 1
-artifact: .workflow/iter-1/status.md
+artifact: .build-feature-workflow/iter-1/status.md
 permissions:
 parent: item-001
 title: stale in-progress
@@ -1561,11 +1561,11 @@ case_concurrent_lock() {
 
   # Pre-create a lock DIRECTORY (mkdir is atomic, Q-review-fix-G) with
   # a live PID (current shell PID) inside it.
-  mkdir -p "$TEST_WORK/.workflow/.lock"
-  printf '%s\n' "$$" > "$TEST_WORK/.workflow/.lock/pid"
+  mkdir -p "$TEST_WORK/.build-feature-workflow/.lock"
+  printf '%s\n' "$$" > "$TEST_WORK/.build-feature-workflow/.lock/pid"
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1594,14 +1594,14 @@ STATE
     fail "concurrent lock: expected rc=4, got rc=$rc"
   fi
 
-  if ! grep -q 'phase=' "$WORKFLOW_TRACE_FILE" 2>/dev/null; then
+  if ! grep -q 'phase=' "$BUILD_FEATURE_WORKFLOW_TRACE_FILE" 2>/dev/null; then
     ok "concurrent lock: no dispatch"
   else
     fail "concurrent lock: dispatched despite lock"
   fi
 
   # Cleanup so trap doesn't leak the live PID file
-  rm -rf "$TEST_WORK/.workflow/.lock"
+  rm -rf "$TEST_WORK/.build-feature-workflow/.lock"
 }
 
 # ======================================================================
@@ -1611,7 +1611,7 @@ case_paused_without_prompt_is_noop() {
   wf_init paused_noop
 
   wf_seed_state <<'STATE'
-# workflow state
+# build-feature-workflow state
 
 meta:
   schema-version: 1
@@ -1625,7 +1625,7 @@ id: item-001
 tag: to-plan
 status: done
 emitted-by-phase: 0
-artifact: .workflow/plan.md
+artifact: .build-feature-workflow/plan.md
 permissions:
 parent:
 title: Plan
@@ -1634,7 +1634,7 @@ id: item-002
 tag:
 status: ASK
 emitted-by-phase: 1
-artifact: .workflow/plan.md#ask-1
+artifact: .build-feature-workflow/plan.md#ask-1
 permissions:
 parent: item-001
 title: pending question
@@ -1645,7 +1645,7 @@ STATE
   local rc=$?
   if [ "$rc" -eq 10 ]; then ok "paused no-op: rc=10 (pause)"; else fail "paused no-op: rc=$rc"; fi
 
-  if ! grep -q 'phase=' "$WORKFLOW_TRACE_FILE" 2>/dev/null; then
+  if ! grep -q 'phase=' "$BUILD_FEATURE_WORKFLOW_TRACE_FILE" 2>/dev/null; then
     ok "paused no-op: no dispatch without prompt"
   else
     fail "paused no-op: dispatched without prompt"

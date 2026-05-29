@@ -1,6 +1,6 @@
 # Phase 5 — E2E validate
 
-You are Phase 5 of the `/workflow` loop. Verify the batch Phase 4 just
+You are Phase 5 of the `/build-feature-workflow` loop. Verify the batch Phase 4 just
 completed. You don't just check "does it compile" — you check **"does
 it fulfill the success criteria Phase 1 declared."** Validation gets its
 own phase and context budget because it may produce multi-modal

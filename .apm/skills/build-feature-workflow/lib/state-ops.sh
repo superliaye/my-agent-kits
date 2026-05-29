@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Bash 3.2-compatible helpers for parsing `.workflow/state.md`.
+# Bash 3.2-compatible helpers for parsing `.build-feature-workflow/state.md`.
 #
-# Layout reference: `.apm/skills/workflow/state-template.md`.
+# Layout reference: `.apm/skills/build-feature-workflow/state-template.md`.
 # Invariants enforced by wfs_validate:
 #   5.4 skip-eligible only from phases 7/8
 #   5.5 skip tags only on skip-eligible items
@@ -11,8 +11,8 @@
 #   5.12 schema-version == 1
 #
 # This file is sourced by:
-#   - .apm/skills/workflow/orchestrator.sh
-#   - test/cases/workflow-state-machine.sh
+#   - .apm/skills/build-feature-workflow/orchestrator.sh
+#   - test/cases/build-feature-workflow-state-machine.sh
 # All read functions accept the state file path as $1, write to stdout.
 
 # --- Meta ----------------------------------------------------------------
