@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
-# Verify the `workflow` preset deploys the orchestrator skill + its
-# supporting skills (those that exist in the kit at this point), and
-# records the right plugin set in .agent-kit.yaml.
-#
-# The two dependency skills not yet built (e2e-validate,
-# improve-DDD-architecture) are silently skipped by lib/deploy.js
-# (line 153: `if (!existsSync(srcDir)) continue;`). PR 04 + PR 05
-# will land them.
+# Verify the `workflow` preset deploys the orchestrator skill + all its
+# supporting skills, and records the right plugin set in .agent-kit.yaml.
 #
 # AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude
 # Code plugin set.
@@ -30,6 +24,7 @@ assert_file_exists "$WORK/.claude/skills/workflow/SKILL.md" "workflow SKILL.md d
 assert_file_exists "$WORK/.claude/skills/workflow/orchestrator.sh" "workflow orchestrator.sh deployed"
 assert_file_exists "$WORK/.claude/skills/workflow/state-template.md" "workflow state-template.md deployed"
 assert_file_exists "$WORK/.claude/skills/workflow/lib/state-ops.sh" "workflow lib/state-ops.sh deployed"
+assert_file_exists "$WORK/.claude/skills/workflow/lib/dispatch-claude.sh" "workflow lib/dispatch-claude.sh deployed"
 
 # All 13 phase prompt stubs present
 for stub in \
@@ -44,12 +39,25 @@ done
 assert_content_contains "$WORK/.claude/skills/workflow/SKILL.md" "tagged work-item queue" "SKILL.md mentions tagged queue"
 assert_content_contains "$WORK/.claude/skills/workflow/SKILL.md" "orchestrator.sh" "SKILL.md references orchestrator"
 
-# Supporting skills the preset DOES include (those that exist today)
+# Supporting skills the preset includes (full recursive folder copy —
+# SKILL.md + every sub-file)
+assert_file_exists "$WORK/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
+assert_file_exists "$WORK/.claude/skills/e2e-validate/recipes/ts-node.md" "e2e-validate recipes deployed"
+assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "improve-DDD-architecture deployed"
+assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/references/domain-driven-hexagon/concepts.md" "DDD TS reference deployed"
+assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/references/dotnet/concepts.md" "DDD .NET reference deployed"
 assert_file_exists "$WORK/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"
 assert_file_exists "$WORK/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
 assert_file_exists "$WORK/.claude/skills/design-critique/SKILL.md" "design-critique deployed"
 assert_file_exists "$WORK/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
 assert_file_exists "$WORK/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
+
+# New skills carry valid frontmatter (description + added_in) so the kit's
+# primitive catalog discovers them exactly like every other skill.
+assert_content_contains "$WORK/.claude/skills/e2e-validate/SKILL.md" "added_in:" "e2e-validate frontmatter has added_in"
+assert_content_contains "$WORK/.claude/skills/e2e-validate/SKILL.md" "description:" "e2e-validate frontmatter has description"
+assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "added_in:" "improve-DDD-architecture frontmatter has added_in"
+assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "description:" "improve-DDD-architecture frontmatter has description"
 
 # Core instruction concatenated
 assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md generated"

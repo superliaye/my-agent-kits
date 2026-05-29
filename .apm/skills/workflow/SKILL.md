@@ -164,7 +164,13 @@ Phase 6 runs mid-loop with no PR).
 
 ## Status
 
-MVP. The orchestrator skeleton, state-machine model, and test suite
-are stable. Phase prompt content is stubbed and will be filled in
-follow-up work; see [docs/design/workflow-skill.md](../../../docs/design/workflow-skill.md)
-for the per-phase locked decisions that constrain prompt content.
+MVP, feature-complete. The orchestrator, state-machine model, test
+suite (15 cases / 183 asserts), all 13 phase prompts, the production
+dispatch wrapper ([lib/dispatch-claude.sh](lib/dispatch-claude.sh)),
+and both dependency skills (`e2e-validate`, `improve-DDD-architecture`)
+are in place. See [docs/design/workflow-skill.md](../../../docs/design/workflow-skill.md)
+for the per-phase locked decisions the prompts implement.
+
+Outstanding: the loop has not yet been dogfooded on a real end-to-end
+build against live `claude -p` subprocesses — that is the natural next
+validation step.

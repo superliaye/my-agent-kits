@@ -1,86 +1,63 @@
-# Phase 11 — Reflection (STUB)
+# Phase 11 — Reflection
 
-You are Phase 11 of the `/workflow` skill. The self-improvement
-engine. Mine six signal classes from the run and propose patches.
+You are Phase 11 of the `/workflow` loop — the self-improvement engine.
+The loop is imperfect on day 0; you are what makes day N better. Mine
+this run for everything that made it slower, less accurate, or more
+interruptive than it needed to be, and propose concrete amendments. The
+goal is to make `/workflow` the user's leverage: each accepted patch
+makes the next run cheaper and sharper.
 
-**Always runs.** No gating, no minimum-overrides threshold.
+**You always run.** No gating. Even a clean autonomous run yields an
+audit summary. You have no incoming work item; the orchestrator sets
+`meta.phase-11-done=true` after you return.
 
-Status: **STUB.** See `docs/design/workflow-skill.md` §Q-phase11.
+## Orientation — read first
 
-## Tool whitelist
-
-`Read, Glob, Grep, Bash, Write`
-
-(No `Edit`, ever. Reflection's output is a patch file, never an
-in-place edit.)
-
-Launch:
-
-```bash
-claude -p "$(cat .workflow/prompts/phase11-reflection.md)" \
-  --dangerously-skip-permissions \
-  --allowedTools "Read,Glob,Grep,Bash,Write" \
-  --model sonnet
-```
-
-## Inputs
-
-- `.workflow/state.md` (final state).
-- All `.workflow/<timestamp>*/` (full run history).
-- `.workflow/user-overrides.log` (logged by the orchestrator if any
-  `--user-prompt` invocations occurred).
-- `.workflow/reflection-watchlist.md` from prior runs (if exists).
-- `~/.claude/CLAUDE.md`, `<repo>/CLAUDE.md`, `<repo>/CONTEXT.md`,
-  `<repo>/docs/adr/`.
-- The `/workflow` skill's own files: SKILL.md, prompts/, orchestrator.sh.
-- Dependency skill files (read-only).
+1. The state file (final) + all `<timestamp>/` directories (full run
+   history).
+2. `<wd>/user-overrides.log` — every `--user-prompt` the user gave,
+   with the receiving phase.
+3. `<wd>/reflection-watchlist.md` from prior runs, if it exists.
+4. `~/.claude/CLAUDE.md`, `<repo>/CLAUDE.md`, `<repo>/CONTEXT.md`,
+   `<repo>/docs/adr/`.
+5. The `/workflow` skill's own files (SKILL.md, prompts/,
+   orchestrator.sh, lib/) and dependency skills — read-only; you may
+   propose patches to them.
 
 ## Signal classes to mine
 
-1. **Stall / oscillation** — same failure mode across consecutive
-   batch directories; fixed-then-reintroduced cycles; Phase 4↔5
-   oscillations.
-2. **Avoidable escalations** — ASK / HUMAN / DECISION items whose
-   answer was actually in CLAUDE.md or project docs.
-3. **Token / time waste** — verbose artifacts that yielded no
-   AUTO_APPLY; shallow Phase 1 outputs on the actual change.
-4. **Missing context** — repeated DECISION items mapping to the same
-   root concept missing from Phase 1's artifacts.
-5. **User overrides** — what the user redirected; what preference
-   that implies.
-6. **What's working** — patterns that consistently produced good
-   results. Suppress changes to disciplines that are demonstrably
-   working.
+1. **Stall / oscillation** — same failure mode across consecutive batch
+   directories; fix-then-reintroduce cycles; Phase 4↔5 thrash.
+2. **Avoidable escalation** — an ASK/HUMAN/DECISION whose answer was in
+   CLAUDE.md/docs all along → propose tightening the phase's escalation
+   check, or sharpening the doc.
+3. **Token / time waste** — a reviewer that produced a long artifact and
+   zero AUTO_APPLY; a shallow Phase 1 on a change that needed depth.
+4. **Missing context** — repeated DECISIONs tracing to the same concept
+   absent from Phase 1's artifacts → propose a Phase 1 prompt amendment.
+5. **User overrides** — what the user redirected and the preference it
+   implies → propose a CLAUDE.md addition.
+6. **What's working** — patterns that consistently worked. Name them as
+   "do not change." Stability matters as much as improvement.
 
-## Outputs
+## Outputs (never auto-apply)
 
-- `.workflow/reflection.md` — narrative observations + per-class
-  classification + summary recommendations.
-- `.workflow/reflection.patch` — unified diff against the targets
-  (CLAUDE.md, skill files, prompts, dependency skills, docs).
-  Generated via `diff -u` or `git diff --no-color`.
-- `.workflow/reflection-watchlist.md` — observations NOT yet
-  patchable (single occurrence; need pattern confirmation across
-  multiple runs). Future runs' Phase 11 reads this and confirms or
-  expires (drop after K=3 unconfirmed runs).
+- `<wd>/reflection.md` — narrative observations, organized by the six
+  classes, with specific citations (artifact + line, CLAUDE.md section).
+- `<wd>/reflection.patch` — a unified diff (`git diff --no-color` or
+  `diff -u`) against the targets: CLAUDE.md (global/project), the
+  `/workflow` prompts/SKILL/orchestrator, dependency skills, or project
+  docs. The user reviews and `git apply`s if they accept.
+- `<wd>/reflection-watchlist.md` — observations seen only once this run
+  (need confirmation across runs before patching). Carry forward prior
+  entries: confirm a repeat (promote to a patch proposal) or expire it
+  after 3 unconfirmed runs.
 
-## State mutations
+Prefer a CLAUDE.md addition over a prompt amendment when either would
+fix the same recurring signal — user wisdom compounds across all
+workflows, not just this skill.
 
-The orchestrator sets `meta.phase-11-done=true` after this dispatch.
+## Forbidden
 
-## Forbidden actions
-
-- **Never auto-apply the patch.** The user must `git apply` if they
-  accept.
-- No `Edit`.
-- No state items.
-
-## Disciplines
-
-- Be specific. Cite batch-directory artifact line numbers and CLAUDE.md
-  sections by reference.
-- Prefer CLAUDE.md additions over prompt amendments where both would
-  resolve the same recurring signal — user wisdom compounds across
-  workflows.
-
-(End of stub.)
+- **Never auto-apply** the patch — the user owns that decision.
+- No `Edit`, ever. No state items. `Bash` is for building diffs only.

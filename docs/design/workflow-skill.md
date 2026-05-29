@@ -963,7 +963,7 @@ etc. for trends.
 `improve-DDD-architecture` declared in `workflow.yaml`. The DDD skill is
 a build-it dependency (see Q-ddd-skill).
 
-### Q-ddd-skill: `improve-DDD-architecture` skill — new dependency (LOCKED scope, BUILD pending)
+### Q-ddd-skill: `improve-DDD-architecture` skill — new dependency (LOCKED, BUILT)
 
 A new skill modeled structurally on `improve-codebase-architecture` but
 DDD-focused. Built as a separate task; declared as a Phase 6 dependency.
@@ -999,9 +999,11 @@ DDD-focused. Built as a separate task; declared as a Phase 6 dependency.
   emitted but ignored by Phase 6 — Phase 7 picks up the findings
   content.
 
-**Build is separate work.** Scope captured here so Phase 6 references
-something concrete. Skill creation via `/write-a-skill` or
-`/skill-creator` in a follow-up session.
+**Built** at `.apm/skills/improve-DDD-architecture/` — distilled
+runbook SKILL.md + `references/domain-driven-hexagon/concepts.md`
+(TypeScript, from Sairyss/domain-driven-hexagon) +
+`references/dotnet/concepts.md` (C#/.NET, from
+kgrzybek/modular-monolith-with-ddd).
 
 ### Q-model-uniform: Single model across all phases for MVP (LOCKED)
 
@@ -1659,3 +1661,6 @@ decision — one-line reason`.
 - 2026-05-28 — Q-review-fix-D — DISSOLVE the iteration counter. Replace with `.workflow/<ISO-timestamp>/` batch directories (one per Phase 4 dispatch). `meta.iteration` field removed from schema. Self-bail agents read prior batches sorted by mtime. Simpler than (emitted-by-phase, parent) tuple counting; no inflation risk.
 - 2026-05-28 — Q-review-fix-E — Phase 6 emits ONLY `to-triage`. Phase 7 emits `to-design-critique` on its FINAL run (zero AUTO_APPLY this dispatch) AND `ui_work=true`. Guarantees Phase 8 evaluates post-triage stable code, not pre-triage code that Phase 7-driven Phase 4 may rewrite.
 - 2026-05-28 — Q-review-fix-G — Lock file changed to atomic-mkdir directory at `.workflow/.lock/` (PID at `.lock/pid`). `mkdir` is atomic on POSIX; eliminates check-then-write TOCTOU race.
+- 2026-05-28 — Q-impl-dispatch-wrapper — Implementation gap found while filling prompts: orchestrator's default HOOK was bare `claude`, but it passes positional args (phase/item/state/promptfile/variant) that bare `claude` can't consume. Added `lib/dispatch-claude.sh` — maps phase (+ Phase 6 variant) → prompt template + `--allowedTools`, builds prompt + runtime-context footer, launches `claude -p ... --dangerously-skip-permissions --model sonnet`. Wired as the default HOOK; tests still override via WORKFLOW_TEST_DISPATCH_HOOK.
+- 2026-05-28 — Q-impl-overrides-log — Implementation gap: Q-resolution-via-prompt specified a `user-overrides.log` for Phase 11, but the orchestrator never wrote it. Added: each `--user-prompt` dispatch appends `<ISO-ts>\tphase=N\t<text>` to `.workflow/user-overrides.log`.
+- 2026-05-28 — Q-impl-phase6-lead — Phase 6 bookkeeping clarified: the orchestrator fans out three reviewers but does NOT mutate state. The architecture reviewer (`phase6-arch.md`) is the LEAD — after writing its review it closes the `to-code-review` item and emits `to-triage`. The ddd + general reviewers are pure review-file writers (no state mutation), so only one process writes `state.md` (race-free).

@@ -1,49 +1,39 @@
-# Phase 10 — Summary (STUB)
+# Phase 10 — Summary
 
-You are Phase 10 of the `/workflow` skill. Mechanical sweep that
-produces the human-readable run summary.
+You are Phase 10 of the `/workflow` loop. Produce the human-readable
+run summary. Mechanical: gather facts from the state file and artifacts,
+write them down clearly. No new judgment, no state items.
 
-Status: **STUB.** See `docs/design/workflow-skill.md` §Q-phase10.
+You have no incoming work item. The orchestrator sets
+`meta.phase-10-done=true` after you return.
 
-## Tool whitelist
+## Orientation — read first
 
-`Read, Glob, Grep, Bash, Write`
+1. The state file — final status of every item (done / ASK / HUMAN /
+   DECISION).
+2. All `<timestamp>/` directories — status, validation-report, review,
+   triage, design-critique artifacts.
+3. `plan.md`, `architecture-impact.md` — the goal and its scope.
+4. `git log --oneline <start>..HEAD` — the commits this run produced.
 
-Launch:
+## Output
 
-```bash
-claude -p "$(cat .workflow/prompts/phase10-summary.md)" \
-  --dangerously-skip-permissions \
-  --allowedTools "Read,Glob,Grep,Bash,Write" \
-  --model sonnet
-```
+Write `<wd>/summary.md` with these sections, in order:
 
-## Inputs
+- **Requested** — Phase 1's parsed goal (one or two sentences).
+- **Built** — the Phase 4 commits + final diff stats (files changed,
+  insertions/deletions).
+- **Iterations** — how many batch directories exist and why each new
+  batch happened (Phase 5 retry / Phase 7 fix / Phase 8 fix).
+- **Findings** — totals per reviewer (architecture / DDD / general) and
+  the AUTO_APPLY / AUTO_SKIP / ASK breakdown from the triage files.
+- **Escalations** — every ASK / HUMAN / DECISION raised this run and how
+  it resolved, or that it is still open.
+- **Status** — `complete`, or `partially complete` with the specific
+  caveats (open escalations, skipped phases, no-harness gaps).
 
-- `.workflow/state.md` (final state — what closed, what escalated).
-- All `.workflow/<timestamp>*/` directories.
-- `.workflow/plan.md`, `.workflow/architecture-impact.md`.
-- Git log of the Phase 4 commits (`git log --oneline <start>..HEAD`).
+Be concise and factual. This is the artifact the user reads first.
 
-## Outputs
+## Forbidden
 
-- `.workflow/summary.md` — sections, in order:
-  - **Requested** — Phase 1's parsed goal.
-  - **Built** — Phase 4 commits + final diff stats.
-  - **Iterations** — how many, why each happened.
-  - **Findings** — total per-reviewer, AUTO_APPLY / AUTO_SKIP / ASK
-    breakdown.
-  - **Escalations** — every ASK / HUMAN / DECISION and how it
-    resolved (or that it's still open).
-  - **Status** — complete / partially complete with caveats.
-
-## State mutations
-
-The orchestrator sets `meta.phase-10-done=true` after this dispatch.
-
-## Forbidden emissions
-
-- No state items.
-- No `Skill`.
-
-(End of stub.)
+- No state items. No `Skill`. No `Edit` of repo code.

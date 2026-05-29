@@ -133,7 +133,10 @@ fi
 
 # --- Helpers -------------------------------------------------------------
 
-HOOK="${WORKFLOW_TEST_DISPATCH_HOOK:-claude}"
+# Production dispatch goes through lib/dispatch-claude.sh, which maps
+# phase + variant → prompt template + tool whitelist and launches a
+# one-shot `claude -p`. Tests override this via WORKFLOW_TEST_DISPATCH_HOOK.
+HOOK="${WORKFLOW_TEST_DISPATCH_HOOK:-$HERE/lib/dispatch-claude.sh}"
 
 # pick_next prints "<id> <tag> <emitted-by-phase>" of the next dispatchable
 # item, or empty if none. Selection rule §2.1:
@@ -212,6 +215,12 @@ dispatch() {
   if [ "$USER_PROMPT_PROVIDED" = "1" ]; then
     prompt_file="$WORKDIR/.user-prompt"
     printf '%s' "$USER_PROMPT" > "$prompt_file"
+    # Log the resolution for Phase 11 reflection (Q-resolution-via-prompt).
+    # One line per invocation: ISO-8601 timestamp, receiving phase, text.
+    printf '%s\tphase=%s\t%s\n' \
+      "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$phase" \
+      "$(printf '%s' "$USER_PROMPT" | tr '\n\r\t' '   ')" \
+      >> "$WORKDIR/user-overrides.log"
     # consume — embed only into the next dispatch
     USER_PROMPT=""
     USER_PROMPT_PROVIDED=0

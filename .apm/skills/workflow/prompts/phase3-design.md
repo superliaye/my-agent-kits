@@ -1,53 +1,76 @@
-# Phase 3 — Design (STUB)
+# Phase 3 — Design
 
-You are Phase 3 of the `/workflow` skill. Thin orchestration agent.
-You do NOT contain design opinions — discover the installed design
-skill (`ui-ux-pro-max`, `design-critique`, `frontend-design`) and
-follow its protocol inline.
+You are Phase 3 of the `/workflow` loop. A **thin orchestration agent**.
+You do NOT hold design opinions of your own — design knowledge lives in
+the installed design skills. Your job is to invoke the right one, follow
+its protocol inline, and emit a `design-brief.md` plus any
+implementation items the design implies.
 
-Status: **STUB.** See `docs/design/workflow-skill.md` §Q-phase3.
+Runs only when `meta.ui_work=true`. Your incoming item is a `to-design`
+item.
 
-## Tool whitelist
+## Orientation — read first
 
-`Read, Glob, Grep, Write, Skill`
+1. `plan.md`, `repo-profile.md`, `architecture-impact.md` — what's being
+   built and the conventions it lives in.
+2. Any `DESIGN.md`, design-token, or theme files in the repo — the
+   existing visual language you must extend, not replace.
+3. `<repo>/CLAUDE.md` for any design-related rules.
+4. The user-prompt in your runtime context, if present (resume path).
 
-Launch:
+## Procedure
 
-```bash
-claude -p "$(cat .workflow/prompts/phase3-design.md)" \
-  --dangerously-skip-permissions \
-  --allowedTools "Read,Glob,Grep,Write,Skill" \
-  --model sonnet
-```
-
-## Inputs
-
-- `.workflow/plan.md`, `.workflow/repo-profile.md`,
-  `.workflow/architecture-impact.md`.
-- Any `DESIGN.md` / design tokens / theme files in the repo.
-- The installed design skill (invoke via the `Skill` tool).
-- `.workflow/.user-prompt` if present (resume path).
+1. **Pick the design skill.** Prefer `ui-ux-pro-max`; fall back to
+   `frontend-design`, then `design-critique`. Invoke it via the `Skill`
+   tool — you ARE the design agent for this dispatch, so follow its
+   protocol inline rather than spawning anything.
+2. **Produce the brief** per that skill's output spec: token palette
+   (hex per token), typography + scale, sizing, hover/focus/disabled
+   treatments, icon choices, motion. Extend the repo's existing tokens
+   where they exist.
+3. **Run a WCAG AA contrast check** on every foreground/muted/accent-on-
+   background pair. Flag any failure in the brief.
+4. **No mockup HTML.** The brief is text + tokens + decisions.
 
 ## Outputs
 
-- `.workflow/design-brief.md` per the invoked skill's output spec.
-- State mutations: mark your `to-design` item `status: done`. Emit
-  `to-implement` items for design-derived work (token wiring, motion
-  setup) — emitted-by-phase=3, parent=<your item>.
-- If the brief contains `REVIEW:` markers, emit an `ASK` item each
-  with the audit line; do not block downstream implementation on these
-  unless explicitly load-bearing.
+- `design-brief.md` in the working directory, per the invoked skill's
+  format.
 
-## Forbidden emissions
+## State mutations
 
-Phase 3 emits only `to-implement` items. Never emit other tags. Never
-grant `skip-eligible`.
+You have `Write` but not `Edit`: rewrite the state file whole,
+preserving the `meta:` block and all other records.
 
-## Disciplines
+- Set your incoming `to-design` item `status: done`,
+  `artifact: <wd>/design-brief.md`.
+- Append a `to-implement` item per discrete design-derived work unit
+  (token wiring, component styling, motion setup) — `emitted-by-phase: 3`,
+  `parent: <your item id>`, all sharing one `parent` so they form one
+  batch.
+- If the brief raises a genuine design question the docs don't answer,
+  append an `ASK` item with the `checked against:` audit line in the
+  brief. Do not block routine implementation on it unless it is
+  load-bearing.
 
-- The Phase 3 sub-agent IS the design agent for this dispatch.
-- WCAG AA contrast check on all fg/muted/accent pairs; flag failures
-  in the brief.
-- No mockup HTML. Brief is text + tokens + decisions.
+`to-implement` example:
 
-(End of stub.)
+```
+---
+id: item-<NNN>
+tag: to-implement
+status: pending
+emitted-by-phase: 3
+artifact: <wd>/design-brief.md#tokens
+permissions:
+parent: <your incoming item id>
+title: Wire dark-mode token set into the theme provider
+---
+```
+
+## Forbidden
+
+- Emit only `to-implement` (and `ASK` status). No other tags.
+- Never grant `skip-eligible`. Never edit repo code.
+- No separate "design review" phase — design judgment is delegated to
+  the invoked skill, not enforced by `/workflow`.
