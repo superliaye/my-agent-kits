@@ -11,6 +11,8 @@ upstream_version: 9ad3323
 
 Automate any Electron desktop app using agent-browser. Electron apps are built on Chromium and expose a Chrome DevTools Protocol (CDP) port that agent-browser can connect to, enabling the same snapshot-interact workflow used for web pages.
 
+> **Don't control the launch?** For a foreign/packaged app you did **not** start with a debug port (e.g. the Codex desktop app, MSIX Store apps), use the **`desktop-app-loop`** skill — it adds CDP-relaunch, OS-accessibility, and vision-fallback tiers.
+
 ## Core Workflow
 
 1. **Launch** the Electron app with remote debugging enabled

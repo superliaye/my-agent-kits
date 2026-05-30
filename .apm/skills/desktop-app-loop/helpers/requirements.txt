@@ -1,0 +1,19 @@
+# Tier-2 accessibility read-back dependencies for desktop-app-loop.
+#
+# Environment markers mean `python -m pip install -r requirements.txt` installs
+# ONLY the package(s) for the current OS — pywinauto on Windows, the minimal
+# PyObjC AX subset on macOS. Idempotent: pip no-ops if already present.
+
+# Windows: UI Automation client (pywinauto). comtypes = its COM bridge; pywin32
+# provides win32gui/win32process used by the renderer-accessibility activation.
+# (pywinauto pulls both transitively; pinned explicitly since the helper imports
+# them directly.)
+pywinauto>=0.6.9 ; platform_system == "Windows"
+comtypes>=1.2.0  ; platform_system == "Windows"
+pywin32>=306     ; platform_system == "Windows"
+
+# macOS: ApplicationServices carries AXUIElement* (Tier-2 read-back); Quartz
+# carries CGEvent* (Tier-3 input synthesis). Minimal subset — NOT the full
+# pyobjc metapackage.
+pyobjc-framework-ApplicationServices>=10.0 ; platform_system == "Darwin"
+pyobjc-framework-Quartz>=10.0              ; platform_system == "Darwin"

@@ -149,5 +149,6 @@ AGENT_BROWSER_COLOR_SCHEME=dark agent-browser connect 9222
 ## Relationship to other skills
 
 - **`electron-visual-loop`** — same transport (agent-browser CDP), different target (an Electron app launched with `--remote-debugging-port` vs. a Chromium instance loading a local URL). Use one or the other depending on the project type.
+- **`desktop-app-loop`** — for a *foreign* desktop app you did **not** launch (no debug port); tiered CDP-relaunch / OS-accessibility / vision automation.
 - **`design-critique`** — consumes the screenshots this skill produces; runs the qualitative judgment pass.
 - **`feature-loop`** — Phase 5a invokes this skill for web stacks to capture screenshots of the just-implemented UI.

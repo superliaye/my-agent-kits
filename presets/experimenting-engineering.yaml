@@ -5,7 +5,8 @@ extends: engineering
 
 primitives:
   instructions: []
-  skills: []
+  skills:
+    - desktop-app-loop
   plugins:
     - superpowers
   mcp: []

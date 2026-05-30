@@ -27,6 +27,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 - Added a new section **"In-development Electron apps (electron-vite, etc.)"** documenting the `--remote-debugging-port=9333` pattern from juri.dev — bakes the flag into `package.json` dev script so CDP is always available during development.
 - Added Windows-friendly note in the troubleshooting section (`netstat -ano | findstr :9222` alongside `lsof`).
 - Added a **"Runtime requirement"** section noting `agent-browser` must be on PATH (or invoked via `npx agent-browser`). The kit does not auto-install it.
+- Added a one-line cross-reference to the sibling `desktop-app-loop` skill (foreign/non-debug app automation) after the intro paragraph.
 
 ## Notes
 

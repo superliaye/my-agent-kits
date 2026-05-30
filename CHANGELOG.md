@@ -4,6 +4,18 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.14.0] - 2026-05-29
+
+### Added
+
+- **`desktop-app-loop` skill** ([.apm/skills/desktop-app-loop/](.apm/skills/desktop-app-loop/)) — automate and visually verify an **arbitrary foreign desktop app you did NOT build and did NOT launch in debug mode** (e.g. the OpenAI Codex desktop app). Where `electron-visual-loop` works only because you control the launch, this skill recovers control via a tiered, best-fidelity-first decision flow with explicit fall-through, all OS-agnostic (Windows + macOS) and model-agnostic:
+  - **Tier 1 — CDP relaunch**: discover the executable, quit, relaunch with `--remote-debugging-port`, drive via `agent-browser`. Handles **MSIX/Store apps** (which can't take shell flags) by relaunching inside the package container with `Invoke-CommandInDesktopPackage`.
+  - **Tier 2 — OS-native accessibility read-back** (no debug port): pywinauto/UIA on Windows, PyObjC/AX on macOS, via the bundled cross-platform helper `helpers/a11y_readback.py` (self-activates the lazy Chromium renderer tree and restores the system screen-reader flag).
+  - **Tier 3 — vision computer-use** (universal fallback): bundled executor (`helpers/capture_window.ps1` screenshot + `helpers/input_synth.py` Win32 `SendInput` / macOS `CGEvent`); the grounding model is a pluggable slot (the agent itself, or UI-TARS-desktop). No vendor lock-in.
+  - Deps ride **with the skill** (`helpers/requirements.txt`, env-marker pinned) and install idempotently on first Tier-2 use — no preset-level bundle, no deploy-time network.
+  - **Validated end-to-end against the Codex desktop app (MSIX, Chromium 148, Windows):** all three tiers confirmed working. One relaunch with `--remote-debugging-port` + `--force-renderer-accessibility` arms Tiers 1 and 2 together; Tier 3 dismissed Codex's onboarding modal via screenshot → click → re-screenshot.
+  - Registered in the **`experimenting-engineering`** preset ([presets/experimenting-engineering.yaml](presets/experimenting-engineering.yaml)). Cross-referenced from `electron-visual-loop` and `web-visual-loop`.
+
 ## [0.13.1] - 2026-05-22
 
 ### Added
