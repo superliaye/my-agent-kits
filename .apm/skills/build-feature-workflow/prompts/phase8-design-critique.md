@@ -44,7 +44,9 @@ whole (you have Write), preserving `meta:` and all records:
   `permissions: skip-eligible`, `emitted-by-phase: 8`, parent → your
   item, artifact → the critique section.
 - Per AUTO_SKIP → record with justification; no item.
-- Per ASK → append an `ASK` item with the `checked against:` audit line.
+- Per ASK → append an item with `status: ASK` and an **empty `tag`** (an
+  escalation lives in `status`, never in `tag`; a `tag: ASK` item is
+  silently dropped), carrying the `checked against:` audit line.
 
 AUTO_APPLY example:
 
@@ -65,7 +67,8 @@ title: Fix: toggle focus ring fails AA contrast on dark bg
 
 Same as Phase 7. Before any ASK, check the brief, CLAUDE.md, DESIGN.md;
 record the audit line. If the same critique recurs across batches
-without sticking, emit a DECISION instead of another AUTO_APPLY round.
+without sticking, emit an item with `status: DECISION` (empty `tag`)
+instead of another AUTO_APPLY round.
 
 ## Forbidden
 

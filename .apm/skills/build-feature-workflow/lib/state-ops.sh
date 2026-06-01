@@ -45,11 +45,11 @@ wfs__records() {
   awk '
     BEGIN { rec=""; in_rec=0 }
     /^---[ \t]*$/ {
-      if (in_rec && rec != "") { printf "%s%c", rec, 0 }
+      if (in_rec && rec ~ /[^ \t\n]/) { printf "%s%c", rec, 0 }
       rec=""; in_rec=1; next
     }
     in_rec { rec = rec $0 "\n" }
-    END { if (in_rec && rec != "") printf "%s%c", rec, 0 }
+    END { if (in_rec && rec ~ /[^ \t\n]/) printf "%s%c", rec, 0 }
   ' "$file"
 }
 
@@ -221,6 +221,21 @@ wfs_validate() {
           echo "wfs_validate: escalated item $id ($status) has no artifact audit reference" >&2
           rc=1; break
         fi
+        ;;
+    esac
+
+    # 5.11 escalation keyword in tag but non-escalation status = misencoded
+    # escalation (escalations live in status, not tag; otherwise the item
+    # matches neither the dispatch nor the escalation set and is dropped)
+    case "$tag" in
+      ASK|HUMAN|DECISION)
+        case "$status" in
+          ASK|HUMAN|DECISION) : ;;
+          *)
+            echo "wfs_validate: item $id has escalation keyword '$tag' in tag but status '$status' (escalations live in status, not tag)" >&2
+            rc=1; break
+            ;;
+        esac
         ;;
     esac
   done < <(wfs__records "$file")

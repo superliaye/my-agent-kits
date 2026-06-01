@@ -99,8 +99,11 @@ fi
 # --- Launch the phase subprocess ----------------------------------------
 
 CLAUDE_BIN="${BUILD_FEATURE_WORKFLOW_CLAUDE_BIN:-claude}"
+WF_MODEL="${WF_MODEL:-opus}"
+WF_EFFORT="${WF_EFFORT:-max}"
 
 exec "$CLAUDE_BIN" -p "$FULL_PROMPT" \
   --dangerously-skip-permissions \
   --allowedTools "$tools" \
-  --model sonnet
+  --model "$WF_MODEL" \
+  --effort "$WF_EFFORT"

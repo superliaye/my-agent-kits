@@ -30,6 +30,9 @@ file and process every `pending` `to-implement` item as one batch.
    `wf <timestamp> chunk: <title>`. Use `Bash` for git only — not for
    validation (that's Phase 5).
 4. **Write `<timestamp>/status.md`** describing what changed per item.
+   Report only what you observed — never assert a checker/gate verdict
+   you did not run. Validation is Phase 5's job; defer to it ("Phase 5 to
+   confirm: biome 5 errors → 0"), do not claim "biome check stays clean."
 5. **Mutate state** (below).
 
 ## Skip-tag declaration (only when permitted)
@@ -51,10 +54,13 @@ skip tags (the orchestrator rejects the state file otherwise).
 ## Gap-handling (no improvisation)
 
 If any item is not unambiguously executable, do not guess. Leave that
-item's source unclosed and append a `DECISION` item with the specific
-question and a `checked against:` audit line confirming the answer
-isn't in plan.md / CLAUDE.md / docs. Implement the items you can; the
-DECISION pauses the loop after the actionable queue drains.
+item's source unclosed and append an item with `status: DECISION` and an
+**empty `tag`** (escalations live in `status`, never in `tag` — a
+`tag: DECISION` item matches neither the dispatch nor the escalation set
+and is silently dropped), carrying the specific question and a
+`checked against:` audit line confirming the answer isn't in
+plan.md / CLAUDE.md / docs. Implement the items you can; the DECISION
+pauses the loop after the actionable queue drains.
 
 ## Self-bail
 

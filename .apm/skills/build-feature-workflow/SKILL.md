@@ -55,13 +55,18 @@ The slash command resolves to this skill. The assistant should:
 2. Decide whether this invocation is **fresh**, **resume**, or
    **resolution-resume** by inspecting `.build-feature-workflow/state.md` (or its
    absence).
-3. Invoke the orchestrator:
+3. Invoke the orchestrator, capturing and propagating its real exit
+   code. Step 4 branches on it (0 / 10 / 3), so never append a trailing
+   `echo` (or any other command) after the run — that makes the harness
+   report the trailing command's exit code, not the orchestrator's, and
+   an actual exit 3 reads as exit 0:
 
    ```bash
    bash .apm/skills/build-feature-workflow/orchestrator.sh \
      --workdir .build-feature-workflow \
      [--user-request "$TEXT"] \
-     [--user-prompt  "$TEXT"]
+     [--user-prompt  "$TEXT"] > run.log 2>&1
+   rc=$?; exit $rc
    ```
 
 4. After the orchestrator exits, surface the relevant artifact:
@@ -164,13 +169,15 @@ Phase 6 runs mid-loop with no PR).
 
 ## Status
 
-MVP, feature-complete. The orchestrator, state-machine model, test
-suite (15 cases / 183 asserts), all 13 phase prompts, the production
-dispatch wrapper ([lib/dispatch-claude.sh](lib/dispatch-claude.sh)),
+MVP, feature-complete and dogfooded. The orchestrator, state-machine
+model, test suite (15 cases / 183 asserts), all 13 phase prompts, the
+production dispatch wrapper ([lib/dispatch-claude.sh](lib/dispatch-claude.sh)),
 and both dependency skills (`e2e-validate`, `improve-DDD-architecture`)
 are in place. See [docs/design/build-feature-workflow-skill.md](../../../docs/design/build-feature-workflow-skill.md)
 for the per-phase locked decisions the prompts implement.
 
-Outstanding: the loop has not yet been dogfooded on a real end-to-end
-build against live `claude -p` subprocesses — that is the natural next
-validation step.
+First end-to-end dogfood (autonomous UI build, 11 phases / 10 commits /
+466 tests green) completed and fed two harness fixes plus prompt
+hardening back upstream. Open follow-up: escalation hardening — a
+`status: DECISION` "confirm-under-safe-default" channel that surfaces in
+Phase 10 without pausing the loop the way `status: ASK` does.

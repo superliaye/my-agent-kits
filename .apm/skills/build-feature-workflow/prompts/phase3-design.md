@@ -49,8 +49,12 @@ preserving the `meta:` block and all other records.
   `parent: <your item id>`, all sharing one `parent` so they form one
   batch.
 - If the brief raises a genuine design question the docs don't answer,
-  append an `ASK` item with the `checked against:` audit line in the
-  brief. Do not block routine implementation on it unless it is
+  append an escalation item with `status: ASK` and an **empty `tag`**,
+  carrying the `checked against:` audit line in the brief. Escalations
+  live in `status`, never in `tag`: an item with `tag: ASK` matches
+  neither the dispatch set (keyed on `tag`) nor the escalation set (keyed
+  on `status`), so it is silently dropped — never built, never paused on.
+  Do not block routine implementation on the ASK unless it is
   load-bearing.
 
 `to-implement` example:
@@ -65,6 +69,20 @@ artifact: <wd>/design-brief.md#tokens
 permissions:
 parent: <your incoming item id>
 title: Wire dark-mode token set into the theme provider
+---
+```
+
+`ASK` example (note: `status: ASK`, `tag` empty):
+
+```
+---
+id: item-<NNN>
+tag:
+status: ASK
+emitted-by-phase: 3
+artifact: <wd>/design-brief.md#open-questions
+parent: <your incoming item id>
+title: Confirm accent hue — brand guide and DESIGN.md disagree
 ---
 ```
 
