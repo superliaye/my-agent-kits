@@ -4,6 +4,20 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.0] - 2026-06-02
+
+### Added
+
+- **`loop-full-swe` skill set** ([.apm/skills/loop-full-swe/](.apm/skills/loop-full-swe/)) — an autonomous, architecture-aware SWE loop built on Claude Code's native **dynamic-workflow** runtime, shipped as 4 skills over **one shared engine** ([loop-swe.js](.apm/skills/loop-full-swe/loop-swe.js)):
+  - **`/loop-full-swe`** — the uber loop: scope-gate → survey/plan → implement + multi-perspective review → summary/retro in one run. **Autonomous by default** — a self-digest agent classifies every open question into auto-resolved vs needs-human, and the run only pauses (returns a `gate`) when something genuinely needs you. The main agent brokers the gate and resumes via `resumeFromRunId` with the answers; cached phases replay instantly.
+  - **`/loop-research-plan`**, **`/loop-build`**, **`/loop-retro`** — the same engine's stages run standalone (`stopAfter` / `startFrom` args).
+  - **Leaf-only orchestration** — all fan-out lives in the workflow script (a root); every spawned agent is a leaf that never spawns, respecting Claude Code's `depth=1` subagent constraint ([docs](https://code.claude.com/docs/en/sub-agents)). Findings are schema-validated (no regex parsing), adversarially verified before they cost an implement round, and the loop is budget-scaled and resumable.
+  - The shared engine lives once in the uber skill's folder; the three stage skills reference it by sibling path (no duplication). All four are slash-only (`disable-model-invocation: true`). Wired into the new **`loop-full-swe`** preset ([presets/loop-full-swe.yaml](presets/loop-full-swe.yaml)) alongside `to-issues` and the same review/validate dependencies as the build-feature presets.
+
+### Removed
+
+- **`build-feature-dynamic-workflow` skill + preset** — removed in favor of `loop-full-swe`. It predated the verified Workflow API and was built against a guessed, untested `agent()`/`Promise.all`/`.result` shape (its own reference seed was labeled "UNVERIFIED API") and was never dogfooded end-to-end. `loop-full-swe` supersedes it with the real dynamic-workflow runtime, schema-validated handoffs, conditional human gates, and leaf-only orchestration. The durable bash **`build-feature-workflow`** is unaffected.
+
 ## [0.16.0] - 2026-06-02
 
 ### Added
