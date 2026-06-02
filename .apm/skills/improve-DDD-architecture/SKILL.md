@@ -31,17 +31,30 @@ team's own consistent usage) is itself a finding: **language drift**.
 | **Domain** | Entities, Aggregates, Value Objects, Domain Services, Domain Events, Domain Errors | Frameworks, ORM/HTTP/SQL types, I/O, external libraries |
 | **Application** | Application Services (one per use case), Commands, Queries, Ports (interfaces) | Domain business rules; direct infrastructure access |
 | **Adapters (interface)** | Controllers (HTTP/CLI/GraphQL), Request/Response DTOs, boundary validation | Business logic |
-| **Infrastructure** | Repository impls, persistence models + mappers, external adapters, ACLs | Domain rules |
+| **Infrastructure** | Repository impls, persistence models + mappers, external adapters, config adapters (behind consumer-owned ports), ACLs | Domain rules |
 
 **Dependency rule:** inner layers never depend on outer layers. The
 domain depends on nothing; the application depends on the domain and on
 ports (interfaces it owns); infrastructure implements those ports.
 
+**Layers are roles, not folders.** In a **functional-core modular
+monolith**, the four layers are **roles played by files within a vertical
+module slice**, not physical folders (e.g. a module's `types.ts` =
+domain; `service.ts`/`executor.ts` = application; `store.ts`/`schema.ts`
+= infrastructure; controllers live in a shared adapter module). Map files
+to layer *roles*; do **not** flag the lack of `domain/`/`application/`/
+`infrastructure/` folders as a violation. The dependency rule still
+applies — enforced by import direction within the module.
+
 ## Building blocks (what each is, and how it fails)
 
 - **Entity** — identity + behavior; protects invariants; equality by
-  id; no public setters. *Fails as:* anemic (getters/setters only,
-  logic in services).
+  id; no public setters. An entity may be a **data record + behavior in
+  module-scoped functions** (functional core) rather than a class with
+  methods. This is *not* anemic. Anemic is when logic that belongs to the
+  entity is scattered into **unrelated** services far from its data. Flag
+  only the latter. *Fails as:* anemic (logic that belongs to the entity
+  scattered into unrelated services).
 - **Value Object** — no identity, immutable, validates a domain concept
   (Email, Money, Address). *Fails as:* primitive obsession (raw
   strings/ints passed around unvalidated).
@@ -68,9 +81,16 @@ ports (interfaces it owns); infrastructure implements those ports.
   infra via ports. *Fails as:* containing business rules, or depending
   on other application services (cyclic).
 - **Port** — an interface the application owns, shaped to the domain's
-  needs (not the tool's API). Infrastructure provides the adapter.
-  *Fails as:* the port mirroring a vendor SDK; or needless abstraction
-  with a single forever-adapter.
+  needs (not the tool's API). Infrastructure provides the adapter. A port
+  is **owned by the consumer and shaped to its need**, not a mirror of the
+  provider's full surface. *Configuration as infrastructure*: a consumer
+  that needs settings depends on a narrow port it owns (e.g.
+  `ModelDefaults`), and the config source is the adapter that implements
+  it — never a wide dependency on the whole config module, never a
+  reached-for global. For reactive config, the port is a *service that
+  reads live state* (not a snapshot value). *Fails as:* the port
+  mirroring a vendor SDK; or needless abstraction with a single
+  forever-adapter.
 - **Repository** — collection-like abstraction over storage; accepts
   and returns domain entities; a mapper translates to/from persistence
   models. *Fails as:* leaking ORM entities as domain models.
@@ -81,9 +101,11 @@ ports (interfaces it owns); infrastructure implements those ports.
 ## Review process
 
 1. **Locate the layers.** Map the changed files to domain /
-   application / adapter / infrastructure. If the repo isn't layered,
-   that's context — note it; don't impose ceremony a simple CRUD app
-   doesn't need (see *Proportionality*).
+   application / adapter / infrastructure — by **role**, not by folder
+   name (a vertical module slice plays all four; see *Layers are roles,
+   not folders*). If the repo isn't layered, that's context — note it;
+   don't impose ceremony a simple CRUD app doesn't need (see
+   *Proportionality*).
 2. **Read `CONTEXT.md`** (and ADRs) for the ubiquitous language and
    prior decisions. Don't re-litigate settled decisions.
 3. **Walk the diff against the checklist** below. For each hit, record
@@ -94,8 +116,9 @@ ports (interfaces it owns); infrastructure implements those ports.
 
 ## Review checklist (the heuristics)
 
-- [ ] **Anemic model** — entities that are data bags; business logic
-      living in services that should live on the entity.
+- [ ] **Anemic model** — business logic for an entity living in
+      *unrelated* services, far from its data. (A functional core — data
+      record + co-located module functions — is healthy, not anemic.)
 - [ ] **Infrastructure in the domain** — ORM/HTTP/SQL/framework imports
       inside domain classes.
 - [ ] **Primitive obsession** — domain concepts passed as raw
@@ -116,6 +139,9 @@ ports (interfaces it owns); infrastructure implements those ports.
       (use Response DTOs; whitelist fields).
 - [ ] **Dependency-rule inversion** — a domain or application module
       importing from infrastructure.
+- [ ] **Wide cross-module dependency** — depending on a provider module's
+      *full* public interface instead of a narrow, consumer-owned port;
+      or reading configuration via a global instead of a port + adapter.
 
 ## Proportionality
 
@@ -125,6 +151,27 @@ inventing violations. "Use as many layers as the domain needs; it's
 easier to refactor over-design than no design." Calibrate findings to
 the repo's actual complexity (and to `architecture-impact.md` when run
 inside `/build-feature-workflow`).
+
+- **Classify the domain first.** *Rule-rich* domains (invariants,
+  calculations, policy — e.g. billing, scheduling) reward **tactical**
+  DDD: aggregates protecting invariants, value objects, domain services.
+  *Coordination-rich* domains (orchestration, I/O, integration, streaming
+  — e.g. an agent runtime, a gateway) reward **strategic** DDD and ports,
+  and treat heavy tactical machinery as ceremony. Calibrate findings
+  accordingly: do not invent aggregate/VO findings in a coordination-rich
+  repo.
+- **Architecture is the lines, not the boxes.** The high-leverage,
+  hard-to-reverse decisions are the *relationships between bounded
+  contexts* (the context map) and the *seam contracts*, not the internal
+  models. Weight findings there.
+- **Subdomain distillation.** Spend modeling effort on **Core**
+  subdomains; build **Supporting** plainly; **buy/wrap Generic** ones.
+  Flag effort lavished on a generic/technical subdomain (e.g. lovingly
+  hand-crafting a provider-SDK wrapper) as misallocated.
+- **Strategic DDD is almost always worth keeping** even when tactical DDD
+  is over-engineering: ubiquitous language, bounded contexts, a context
+  map, and anti-corruption layers at external seams. Encourage these
+  regardless of the tactical calibration.
 
 ## Output
 
@@ -144,3 +191,8 @@ inside `/build-feature-workflow`).
   distilled from github.com/kgrzybek/modular-monolith-with-ddd (C# /
   .NET): module isolation, per-module Clean Architecture, CQRS via
   MediatR, Outbox/Inbox messaging, and .NET-specific review cues.
+- [references/effect/concepts.md](references/effect/concepts.md) —
+  Effect-TS mappings for the DDD building blocks (typed `E` channel,
+  `Context.Tag` + `Layer`, the `R` requirements channel) and
+  Effect-specific review cues. Read this when the target repo uses
+  Effect.
