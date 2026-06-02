@@ -18,10 +18,13 @@ primitives:
     - grill-with-docs
     - diagnose
     - improve-codebase-architecture
+    - thermo-nuclear-code-quality-review
     - prototype
     - to-prd
     - to-issues
     - zoom-out
+    - tdd
+    - caveman
   plugins: []
   mcp: []
   hooks: []

@@ -9,6 +9,7 @@ primitives:
     - grill-me
     - handoff
     - write-a-skill
+    - caveman
   plugins: []
   mcp: []
   hooks: []

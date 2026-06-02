@@ -4,6 +4,19 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.16.0] - 2026-06-02
+
+### Added
+
+- **`tdd` skill** ([.apm/skills/tdd/](.apm/skills/tdd/)) — red-green-refactor test-driven development with an explicit anti-pattern guard against "horizontal slicing" (writing all tests then all code) in favor of vertical tracer-bullet slices. Ships with five companion references the SKILL.md links into: `tests.md` (good vs. bad tests), `mocking.md` (mock only at system boundaries), `deep-modules.md`, `interface-design.md`, and `refactoring.md`. Wired into the **`engineering`** preset ([presets/engineering.yaml](presets/engineering.yaml)). Adapted from [mattpocock/skills](https://github.com/mattpocock/skills).
+- **`caveman` skill** ([.apm/skills/caveman/](.apm/skills/caveman/)) — ultra-compressed communication mode that drops articles, filler, and pleasantries (~75% fewer tokens) while preserving technical substance, code, and error strings exactly. Persists across turns until "stop caveman"/"normal mode", with an auto-clarity exception for security warnings and destructive-action confirmations. Wired into both the **`engineering`** and **`productivity`** presets ([presets/engineering.yaml](presets/engineering.yaml), [presets/productivity.yaml](presets/productivity.yaml)). Adapted from [mattpocock/skills](https://github.com/mattpocock/skills).
+
+## [0.15.0] - 2026-06-02
+
+### Added
+
+- **`thermo-nuclear-code-quality-review` skill** ([.apm/skills/thermo-nuclear-code-quality-review/](.apm/skills/thermo-nuclear-code-quality-review/)) — an unusually strict, slash-only maintainability review focused on abstraction quality, file-size sprawl (the under-1k → over-1k-lines smell), and spaghetti-condition growth. Pushes the reviewer toward ambitious "code judo" restructurings that delete complexity rather than rearrange it, with an explicit approval bar and presumptive blockers. Wired into the **`engineering`** preset ([presets/engineering.yaml](presets/engineering.yaml)), so existing consumers see it on `agent-kit update`. Adapted from [shaneholloman/cursor-plugins](https://github.com/shaneholloman/cursor-plugins/tree/main/cursor-team-kit/skills/thermo-nuclear-code-quality-review).
+
 ## [0.14.0] - 2026-05-29
 
 ### Added
