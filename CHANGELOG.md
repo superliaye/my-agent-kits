@@ -4,6 +4,14 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.1] - 2026-06-02
+
+### Changed
+
+- **`/loop-build` builds from a plan you already have — no `/loop-research-plan` prerequisite** ([.apm/skills/loop-build/SKILL.md](.apm/skills/loop-build/SKILL.md)). The pre-flight now resolves the plan in order — an existing `.loop-swe/plan.md`, a plan file you name, or the plan already in the **conversation** (context-first) — writes it to `.loop-swe/plan.md`, then launches the build. Previously it dead-ended with "run `/loop-research-plan` first" whenever `.loop-swe/plan.md` was absent, which blocked starting a build from a plan worked out in-session. The build-phase review gate (multi-perspective review → adversarial verify → `needsHuman` digest) is unchanged, so building from your own plan keeps the review guarantee. If no plan exists anywhere, it falls back to plan-then-build in one run.
+- **`loop-full-swe` is now default-selected in `agent-kit init`** ([lib/init.js](lib/init.js)) — added to the interactive wizard's pre-checked preset list, so a default install includes the loop SWE skill set.
+- **`gstack` bundle is no longer installed by default** ([presets/experimenting-engineering.yaml](presets/experimenting-engineering.yaml)) — removed from the `experimenting-engineering` preset's bundle list, so it is not pre-selected on a default init. It remains available as an opt-in bundle (pick it in the bundles step or pass `--bundles gstack`).
+
 ## [0.17.0] - 2026-06-02
 
 ### Added

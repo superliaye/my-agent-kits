@@ -1,5 +1,5 @@
 name: experimenting-engineering
-description: Experimental add-on to engineering — bundles gstack (30+ /gstack-* planning/design/QA/ship slash commands via external setup script) and the Anthropic superpowers plugin (TDD, debugging, brainstorming, plans, code review). Default-selected alongside engineering in init. Stable engineering preset stays bundle/plugin-free.
+description: Experimental add-on to engineering — adds the desktop-app-loop skill and the Anthropic superpowers plugin (TDD, debugging, brainstorming, plans, code review). Default-selected alongside engineering in init. The gstack bundle (30+ /gstack-* planning/design/QA/ship slash commands) is no longer default-installed; it stays available as an opt-in bundle (pick it in the bundles step or pass --bundles gstack). Stable engineering preset stays bundle/plugin-free.
 default_agents: [claude]
 extends: engineering
 
@@ -11,7 +11,6 @@ primitives:
     - superpowers
   mcp: []
   hooks: []
-  bundles:
-    - gstack
+  bundles: []
 
 apm_dependencies: []

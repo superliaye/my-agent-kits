@@ -59,7 +59,7 @@ The test runner is `npm test` (builds + runs Docker — isolated, doesn't touch 
 
 For a feature add, this is **minor** (e.g. `0.8.0` → `0.9.0`). For a fix only, **patch** (`0.8.0` → `0.8.1`).
 
-1. **`package.json`** — bump `version`.
+1. **`package.json`** — bump `version`, then run `npm install --package-lock-only` to sync `package-lock.json`'s `version` field. Skipping this leaves the lockfile stale, so the first `npm install` after any clone (e.g. `bootstrap.sh` during `agent-kit init`) rewrites it and produces a spurious diff.
 2. **`CHANGELOG.md`** — add a new top section under `## [X.Y.Z] - YYYY-MM-DD` with `### Added` / `### Changed` / `### Removed` sub-sections per [Keep a Changelog](https://keepachangelog.com). Lead with what *changed for consumers*, not internal refactors.
 3. **`added_in:`** in the new primitive's frontmatter must match the version you're bumping to (step 1). Without this, `agent-kit update` won't surface the primitive as "new in preset" to existing consumers.
 
