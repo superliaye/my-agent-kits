@@ -31,10 +31,12 @@ export const meta = {
 }
 
 const A = '.loop-swe'                           // artifact root; agents touch the fs, the script never does
-const FEATURE = args?.feature ?? ''
-const START = args?.startFrom ?? 'scope'
-const STOP = args?.stopAfter ?? 'retro'
-const RES = args?.resolutions ?? {}
+// The harness may deliver `args` as a JSON string rather than a parsed object; normalize first.
+const ARGS = typeof args === 'string' ? JSON.parse(args) : (args ?? {})
+const FEATURE = ARGS.feature ?? ''
+const START = ARGS.startFrom ?? 'scope'
+const STOP = ARGS.stopAfter ?? 'retro'
+const RES = ARGS.resolutions ?? {}
 const ORDER = ['scope', 'plan', 'build', 'retro']
 const runs = (p) => ORDER.indexOf(p) >= ORDER.indexOf(START) && ORDER.indexOf(p) <= ORDER.indexOf(STOP)
 const unresolved = (qs) => (qs ?? []).filter((q) => !(q.id in RES))

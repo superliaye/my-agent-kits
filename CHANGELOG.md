@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.2] - 2026-06-03
+
+### Fixed
+
+- **The four `loop-*` skills are reliably invocable again** — removed `disable-model-invocation: true` from `loop-full-swe`, `loop-research-plan`, `loop-build`, and `loop-retro`. That flag drops a skill's description from the model's context, which (per [anthropics/claude-code#26251](https://github.com/anthropics/claude-code/issues/26251)) makes the model refuse a user-typed `/loop-*` slash command as an unregistered skill because it can't see the skill exists. Dropping the flag restores reliable slash invocation; the heavyweight run stays gated by the `Workflow` tool's own user opt-in. These skills are meant to be user-invoked via `/loop-*` — the flag was the only Claude Code mechanism to mark a skill model-uninvokable, and it is broken, so removing it unavoidably leaves them model-visible too. That visibility is a consequence of the bug, not a goal.
+- **The `loop-*` engine can drive gated builds again** — `loop-swe.js` read its control fields (`feature`, `startFrom`, `stopAfter`, `resolutions`) off the `args` global assuming it was an object, but the `Workflow` tool delivers `args` as a JSON string. Every field read `undefined`, so the engine silently ran from `scope` on every call, ignored `startFrom:"build"`, and — because `resolutions` never populated — resume-to-resolve returned a 0-token cache replay of the same gate (a plan with any open question could never reach `build`). The engine now parses `args` when it arrives as a string. Verified end-to-end: fresh args populate correctly, and a resumed run with new `resolutions` re-runs the digest and clears the gate.
+
 ## [0.17.1] - 2026-06-02
 
 ### Changed

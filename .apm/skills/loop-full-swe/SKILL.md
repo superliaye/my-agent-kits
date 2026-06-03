@@ -2,7 +2,6 @@
 name: loop-full-swe
 description: Autonomous, architecture-aware end-to-end SWE loop. Runs scope -> survey/plan -> implement + multi-perspective review -> summary/retro as ONE dynamic-workflow run that proceeds on its own and only breaks to you when a self-digest finds a decision that genuinely needs a human. Use when the user says "/loop-full-swe <feature>" or wants the full research-to-retro loop in one go. The three stage skills (/loop-research-plan, /loop-build, /loop-retro) run segments of this same engine.
 added_in: 0.17.0
-disable-model-invocation: true
 ---
 
 # /loop-full-swe

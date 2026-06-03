@@ -2,7 +2,6 @@
 name: loop-build
 description: Implement + multi-perspective-review stage of the loop SWE engine. Implements the plan in bounded rounds, runs parallel cross-discipline reviews (architecture, DDD, general, and design when UI), adversarially verifies each finding, and autonomously incorporates the confirmed ones — surfacing ONLY review decisions that genuinely need you. Use when the user says "/loop-build" and a plan already exists — in the conversation, a file they name, or .loop-swe/plan.md — to start the implement+review stage directly, without running /loop-research-plan first.
 added_in: 0.17.0
-disable-model-invocation: true
 ---
 
 # /loop-build

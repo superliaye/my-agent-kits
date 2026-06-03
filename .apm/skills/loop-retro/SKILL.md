@@ -2,7 +2,6 @@
 name: loop-retro
 description: Summary + retrospective stage of the loop SWE engine. Writes a human-readable run summary (what was built, rounds taken, findings breakdown, and the decisions auto-resolved without you) and mines the run for a reflection patch proposing improvements to CLAUDE.md, the skills, and docs — never auto-applied. Use when the user says "/loop-retro" after a build, or wants the close-out segment on its own. Reads run artifacts from .loop-swe/.
 added_in: 0.17.0
-disable-model-invocation: true
 ---
 
 # /loop-retro

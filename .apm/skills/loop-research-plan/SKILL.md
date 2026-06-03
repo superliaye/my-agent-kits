@@ -2,7 +2,6 @@
 name: loop-research-plan
 description: Cautious, survey-grade research + planning stage of the loop SWE engine. Runs scope-gate + architecture-aware planning, then self-digests the open questions so it surfaces ONLY decisions that genuinely need you (and proceeds silently on the rest). If the work is too large for one build, it hands a breakdown to /to-issues. Use when the user says "/loop-research-plan <feature>" or wants a powerful plan-only pass before committing to a build. Stops before any code is written.
 added_in: 0.17.0
-disable-model-invocation: true
 ---
 
 # /loop-research-plan
