@@ -161,13 +161,22 @@ genuine open question (options + your recommendation + reversibility). Write ${A
 track=trivial, ${A}/architecture-impact.md.${DISC}`,
     { label: 'plan', phase: 'Plan', schema: PLAN })
   const digest = await agent(
-    `Self-digest the plan's open questions. For each: do the escalation/doc sources genuinely answer it
-(-> autoResolved with the decision) or does it truly need the human (-> needsHuman)? Human answers so
-far: ${JSON.stringify(RES)}. Questions: ${JSON.stringify(plan.openQuestions)}. Put ONLY genuinely
-unresolved, consequential questions in needsHuman.${DISC}`,
+    `Self-digest the plan's open questions. Human answers so far: ${JSON.stringify(RES)}. For each question:
+if it is already answered there, put it in autoResolved with decision = the human's directive (verbatim
+intent); else if the escalation/doc sources answer it, put it in autoResolved with that decision; else keep
+it in needsHuman. Questions: ${JSON.stringify(plan.openQuestions)}. Put ONLY genuinely unresolved,
+consequential questions in needsHuman.${DISC}`,
     { label: 'plan-digest', phase: 'Plan', schema: DIGEST })
   const open = unresolved(digest.needsHuman)
   if (open.length) return { gate: 'plan', scope, plan, autoResolved: digest.autoResolved, needsHuman: open, note: 'Resolve, then resume; planning is cached.' }
+  // Operator-resolved questions must reach the plan the build implements, not just clear the gate.
+  const resIds = new Set(Object.keys(RES))
+  const planResolved = (digest.autoResolved || []).filter((x) => resIds.has(x.id))
+  if (planResolved.length) await agent(
+    `Bake these operator decisions into ${A}/plan.md before the build reads it — they are BINDING: reflect
+each fully in the affected items and success criteria, do NOT narrow them. Decisions:
+${JSON.stringify(planResolved)}${DISC}`,
+    { label: 'plan-resolve', phase: 'Plan' })
   log(`plan clear: ${plan.items.length} items, ${digest.autoResolved.length} auto-resolved`)
 }
 if (STOP === 'plan') return { gate: 'plan-done', scope, plan }
@@ -187,10 +196,12 @@ if (runs('build')) {
     round++
     phase(`Build r${round}`)
     await agent(
-      `Round ${round}: implement all still-pending items in ${A}/plan.md (read from disk). Record the
-pre-change HEAD sha to ${A}/round-${round}/start-sha, commit per logical chunk, write
-${A}/round-${round}/status.md. If a step is not unambiguously executable, do NOT invent — record it as
-an open question in ${A}/round-${round}/questions.md.${DISC}`,
+      `Round ${round}: implement all still-pending items in ${A}/plan.md (read from disk). Items flagged as
+operator decisions are BINDING — implement them in full as written; do NOT reduce their scope citing
+minimalism, and if one is genuinely infeasible, record that as an open question rather than silently
+delivering less. Record the pre-change HEAD sha to ${A}/round-${round}/start-sha, commit per logical
+chunk, write ${A}/round-${round}/status.md. If a step is not unambiguously executable, do NOT invent —
+record it as an open question in ${A}/round-${round}/questions.md.${DISC}`,
       { label: `implement-r${round}`, phase: `Build r${round}` })
     const val = await agent(
       `Round ${round}: invoke /e2e-validate (chunk mode) via Skill. Verify the code RUNS and meets the
@@ -215,36 +226,50 @@ Default to skepticism.\nFinding: ${JSON.stringify(f)}${DISC}`,
     const toApply = real.filter((f) => f.disposition === 'auto-apply')
     const human = real.filter((f) => f.disposition === 'needs-human')
 
+    let resolvedHuman = []
     if (human.length) {     // self-digest the review escalations, same gate as the plan
       const d = await agent(
-        `Self-digest these needs-human review findings: resolve any the docs/escalation sources answer
-(-> autoResolved); keep only genuine human decisions (-> needsHuman). Human answers so far:
-${JSON.stringify(RES)}. Findings: ${JSON.stringify(human)}.${DISC}`,
+        `Self-digest these needs-human review findings. Human answers so far: ${JSON.stringify(RES)}. For
+each finding: if it is already answered there, put it in autoResolved with decision = the human's directive
+(verbatim intent); else if the docs/escalation sources answer it, put it in autoResolved with that
+decision; else keep it in needsHuman. Findings: ${JSON.stringify(human)}.${DISC}`,
         { label: `review-digest-r${round}`, phase: `Build r${round}`, schema: DIGEST })
       buildOpen = unresolved(d.needsHuman)
       if (buildOpen.length) return { gate: 'build', scope, round, needsHuman: buildOpen, autoApplied: toApply.length, note: 'Resolve, then resume; prior rounds are cached.' }
+      // Operator-resolved findings (now in autoResolved) must change code, not just clear the gate:
+      // fold each into a pending fix so the next round implements it.
+      const resIds = new Set(Object.keys(RES))
+      resolvedHuman = (d.autoResolved || []).filter((x) => resIds.has(x.id)).map((x) => ({ title: x.decision, severity: 'high', evidence: 'operator resolution', fix: x.decision, reviewer: 'human-resolution' }))
     }
-    if (!toApply.length) { settled = true; break }
-    // autonomously incorporate confirmed fixes: append to plan.md for the next round to implement
+    const nextItems = [...toApply, ...resolvedHuman]
+    if (!nextItems.length) { settled = true; break }
+    // autonomously incorporate confirmed fixes + operator-resolved decisions: append to plan.md for the next round
     await agent(
-      `Append these confirmed fixes as new pending items to ${A}/plan.md so the next round implements them:
-${JSON.stringify(toApply)}${DISC}`,
+      `Append these as new pending items to ${A}/plan.md so the next round implements them. Items tagged
+reviewer="human-resolution" are explicit OPERATOR decisions — flag them as operator decisions and
+implement in full, do not narrow:
+${JSON.stringify(nextItems)}${DISC}`,
       { label: `incorporate-r${round}`, phase: `Build r${round}` })
-    log(`round ${round}: applied ${toApply.length} fix(es), looping`)
+    log(`round ${round}: applied ${nextItems.length} fix(es), looping`)
   }
 }
 if (STOP === 'build') return { gate: 'build-done', scope, buildOpen }
 
 // ---- Phase 3: Summary + Retro ---------------------------------------------
+// Per-run folder so successive runs don't overwrite each other's reflections. The script
+// can't generate a key (no Date/random), so the agent derives one: `git rev-parse --short HEAD`
+// (append a short timestamp if that folder already exists).
+const RUN_DIR = `${A}/runs/<short-HEAD-sha>`
 phase('Retro')
 const summary = await agent(
-  `Write ${A}/summary.md: request, track, what was built, rounds taken, findings breakdown, status, and
-the list of decisions auto-resolved without the human (so they can be audited). Return the markdown.${DISC}`,
+  `Write ${RUN_DIR}/summary.md (create the dir; resolve <short-HEAD-sha> via \`git rev-parse --short HEAD\`):
+request, track, what was built, rounds taken, findings breakdown, status, and the list of decisions
+auto-resolved without the human (so they can be audited). Return the markdown.${DISC}`,
   { label: 'summary', phase: 'Retro', schema: SUMMARY })
 await agent(
   `Retro: mine this run for stalls, repeated failures, avoidable escalations, token waste, and what worked.
-Write ${A}/reflection.md + ${A}/reflection.patch (proposals for CLAUDE.md / the skills / docs). Do NOT
-apply the patch.${DISC}`,
+Write ${RUN_DIR}/reflection.md + ${RUN_DIR}/reflection.patch (same run folder as the summary; proposals
+for CLAUDE.md / the skills / docs). Do NOT apply the patch.${DISC}`,
   { label: 'retro', phase: 'Retro' })
 
-return { gate: 'done', scope, summaryMarkdown: summary.markdown, note: 'Code committed; reflection.patch left for review.' }
+return { gate: 'done', scope, summaryMarkdown: summary.markdown, note: 'Code committed; per-run reflection.patch under .loop-swe/runs/ left for review.' }

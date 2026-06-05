@@ -4,6 +4,18 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.3] - 2026-06-05
+
+### Fixed
+
+- **`loop-*` resolutions now change code, not just clear the gate** (handoff LT-1). When a `plan` or `build` gate cleared on resume, the digest only *removed* the answered question from `needsHuman` — nothing implemented the operator's decision, so resumed resolutions silently never reached the files (the auto-apply path looped back via `incorporate`, but human-resolved items had no analogous apply path). Both gates now route operator-answered questions into `autoResolved` and fold them into `.loop-swe/plan.md` so a follow-up round implements them: the plan gate adds a `plan-resolve` step before build; the build gate appends them as pending items through the existing `incorporate` path.
+- **`e2e-validate` runs the project's format/lint check** (handoff LT-2). Validation discovered the test/build harness but never ran lint, so lint-failing diffs passed as "validated." It now runs the discovered lint/format tool (biome / eslint / prettier / ruff / etc.) on changed files and reports failures as `Code Errors`, with a Windows CRLF-noise caveat (`git ls-files --eol` / staged-content check).
+
+### Changed
+
+- **Operator resolutions are binding in the loop build phase** (handoff LT-3). The implement prompt now states that items flagged as operator decisions are implemented in full; narrowing a directed resolution requires surfacing infeasibility as a new open question, not silently delivering the minimal version.
+- **Loop retro artifacts are namespaced per run** (handoff LT-5). `summary.md` / `reflection.md` / `reflection.patch` now write under `.loop-swe/runs/<short-HEAD-sha>/` (the retro agent resolves the sha; the sandboxed script can't) instead of overwriting a single file, so a multi-run effort retains every reflection.
+
 ## [0.17.2] - 2026-06-03
 
 ### Fixed
