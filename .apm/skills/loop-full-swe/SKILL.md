@@ -34,8 +34,11 @@ other root: it launches the workflow and brokers the human gates between runs.
 ## What the assistant does
 
 1. **Pre-flight.** Confirm the working tree has no uncommitted changes the loop
-   would overwrite — the build phase commits code and writes artifacts under
-   `.loop-swe/`.
+   would overwrite — the build phase commits code. Run artifacts are written to a
+   per-repo folder under your home directory (`~/.loop-swe/<repo-key>/`,
+   host-neutral — not under `~/.claude` or `~/.codex`), not the working tree, so
+   they never dirty git or need a `.gitignore` entry; the absolute path comes back
+   as `artifactRoot` in the gate result.
 
 2. **Launch the engine.** The engine file sits next to this SKILL.md. Launch it
    as a background workflow:
@@ -54,7 +57,7 @@ other root: it launches the workflow and brokers the human gates between runs.
 
    | `gate` | What it means | What you do |
    |---|---|---|
-   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `.loop-swe/summary.md` and `.loop-swe/reflection.patch` (review-only — never auto-applied). |
+   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). |
    | `plan` | The plan has questions the digest could not resolve | Surface each `needsHuman` item (question + options + recommendation + reversibility). Resolve, then **resume** (step 4). |
    | `build` | A review round surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
    | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md); do not implement here. |
@@ -86,8 +89,8 @@ audit them:
 
 - **Escalation discipline.** Before flagging anything as needing a human, the
   agent checks `~/.claude/CLAUDE.md`, `<repo>/CLAUDE.md`, `CONTEXT.md`,
-  `docs/adr/`, `docs/`, and prior `.loop-swe/` artifacts. Only genuinely
-  unanswered questions reach you.
+  `docs/adr/`, `docs/`, and prior run artifacts. Only genuinely unanswered
+  questions reach you.
 - **Leaf-only.** No agent spawns another agent.
 - **Adversarial verification.** Every review finding is independently verified
   against the diff before it can cost an implement round.
@@ -100,8 +103,13 @@ audit them:
 └── loop-swe.js   ← the shared engine (also launched by the 3 stage skills)
 ```
 
-Artifacts for a run live under `<repo>/.loop-swe/`. Add `.loop-swe/` to
-`.gitignore` if you do not want them in version control.
+Artifacts for a run live **outside the repo**, in a per-repo folder under your
+home directory: `~/.loop-swe/<repo-key>/` (`<repo-key>` is the repo's basename
+plus a short hash of its path; on Windows the home is `%USERPROFILE%`). The path
+is **host-neutral** — not under `~/.claude` or `~/.codex` — since run-scratch is
+not agent config. A resolver leaf creates it at the start of every run, so the
+working tree stays clean — no `.gitignore` entry needed. The absolute path is
+returned as `artifactRoot` on every gate.
 
 ## Dependencies
 

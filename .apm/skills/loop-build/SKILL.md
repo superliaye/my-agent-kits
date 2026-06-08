@@ -1,6 +1,6 @@
 ---
 name: loop-build
-description: Implement + multi-perspective-review stage of the loop SWE engine. Implements the plan in bounded rounds, runs parallel cross-discipline reviews (architecture, DDD, general, and design when UI), adversarially verifies each finding, and autonomously incorporates the confirmed ones — surfacing ONLY review decisions that genuinely need you. Use when the user says "/loop-build" and a plan already exists — in the conversation, a file they name, or .loop-swe/plan.md — to start the implement+review stage directly, without running /loop-research-plan first.
+description: Implement + multi-perspective-review stage of the loop SWE engine. Implements the plan in bounded rounds, runs parallel cross-discipline reviews (architecture, DDD, general, and design when UI), adversarially verifies each finding, and autonomously incorporates the confirmed ones — surfacing ONLY review decisions that genuinely need you. Use when the user says "/loop-build" and a plan already exists — in the conversation, a file they name, or a previously saved loop-swe plan — to start the implement+review stage directly, without running /loop-research-plan first.
 added_in: 0.17.0
 ---
 
@@ -9,16 +9,16 @@ added_in: 0.17.0
 The implement + review segment of the shared loop engine
 ([`loop-swe.js`](../loop-full-swe/loop-swe.js), owned by
 [`/loop-full-swe`](../loop-full-swe/SKILL.md)). It implements the pending items
-in `.loop-swe/plan.md` in bounded rounds, fans out parallel cross-discipline
+in the run's `plan.md` in bounded rounds, fans out parallel cross-discipline
 reviewers, **adversarially verifies** each finding against the diff, and
 autonomously folds the confirmed `auto-apply` fixes back in. Only review
 decisions the digest cannot resolve reach you.
 
 **Plan source:** `/loop-build` builds from a plan you **already have** — it does
 NOT require `/loop-research-plan` to have run. It resolves the plan in order: an
-existing `.loop-swe/plan.md`, a plan file you name, or the plan in the **current
-conversation** (see Pre-flight). Inside `/loop-full-swe` the plan carries in-run
-automatically.
+existing saved `plan.md` (in the artifact root, see step 1), a plan file you
+name, or the plan in the **current conversation** (see Pre-flight). Inside
+`/loop-full-swe` the plan carries in-run automatically.
 
 ## How to invoke
 
@@ -28,12 +28,20 @@ automatically.
 
 ## What the assistant does
 
-1. **Resolve the plan and write it to `.loop-swe/plan.md`.** In order:
-   - If `.loop-swe/plan.md` already exists, use it as-is.
+1. **Resolve the artifact root, then resolve the plan and write it to
+   `<root>/plan.md`.** The loop-swe artifact root is a per-repo folder under your
+   home directory (host-neutral — **not** under `~/.claude` or `~/.codex`, and
+   **not** in the repo, so nothing here dirties git or needs a `.gitignore`
+   entry). Resolve it with the same recipe the engine uses (so the build phase
+   reads the same file): `<HOME>/.loop-swe/<key>`, where `<HOME>` is `$HOME` (or
+   `%USERPROFILE%` on Windows) and `<key>` is `<basename of \`git rev-parse
+   --show-toplevel\`>-<first 8 hex of the SHA-256 of the absolute toplevel path>`.
+   Create it (`mkdir -p`) if missing. Then resolve the plan, in order:
+   - If `<root>/plan.md` already exists, use it as-is.
    - Else if the user named a plan file (e.g. `docs/some-plan.md`), write its
-     content to `.loop-swe/plan.md`.
+     content to `<root>/plan.md`.
    - Else take the plan from the **current conversation** and write it to
-     `.loop-swe/plan.md` as a checklist of still-pending items, each with its
+     `<root>/plan.md` as a checklist of still-pending items, each with its
      success criteria where known.
    - Only if there is genuinely no plan anywhere: say "no plan found — planning
      first, then building" and launch with `{ startFrom: "plan", stopAfter: "build" }`

@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.4] - 2026-06-08
+
+### Changed
+
+- **`loop-*` artifacts now write to a per-repo folder under your home directory, not the working tree** ([loop-swe.js](.apm/skills/loop-full-swe/loop-swe.js)). The engine previously wrote all run artifacts (`plan.md`, `round-*/`, `runs/<sha>/summary.md`, `reflection.patch`) into `<repo>/.loop-swe/`, which dirtied `git status` and required a manual `.gitignore` entry on every consuming repo. The artifact root is now resolved once by a `resolve-root` leaf to `~/.loop-swe/<repo-key>/` (`<repo-key>` is the repo basename plus a short hash of its absolute path; `%USERPROFILE%` on Windows) and threaded through every phase prompt, so a run never touches the working tree and no `.gitignore` change is needed. The location is **host-neutral** — under `~/.loop-swe/`, not `~/.claude` or `~/.codex`, since the kit targets multiple hosts and run-scratch is not agent config. The absolute path is returned as `artifactRoot` on every gate. `/loop-build`'s pre-flight resolves the same folder with the same deterministic recipe before writing `plan.md`, so the build phase reads the file it wrote; `/loop-retro` resolves the same folder to find a prior build's artifacts. All four SKILL.md files updated to describe the new location.
+
 ## [0.17.3] - 2026-06-05
 
 ### Fixed

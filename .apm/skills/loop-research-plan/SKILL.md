@@ -37,7 +37,7 @@ reach you. No code is written — it stops after planning.
 
    | `gate` | Meaning | Action |
    |---|---|---|
-   | `plan-done` | Plan is clear, nothing needs you | Relay `.loop-swe/plan.md` and the auto-resolved decisions; tell the user it's ready for [`/loop-build`](../loop-build/SKILL.md). |
+   | `plan-done` | Plan is clear, nothing needs you | Relay `plan.md` under the returned `artifactRoot` and the auto-resolved decisions; tell the user it's ready for [`/loop-build`](../loop-build/SKILL.md). |
    | `plan` | The digest kept open questions for you | Surface each `needsHuman` item (options + recommendation + reversibility) with `AskUserQuestion`, then **resume** (step 3). |
    | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md); do not plan further here. |
 
@@ -55,8 +55,10 @@ reach you. No code is written — it stops after planning.
    The scope + plan agents replay from cache; the digest re-runs with your
    answers. Repeat until `gate` is `plan-done`.
 
-The plan lands at `.loop-swe/plan.md` (plus `.loop-swe/architecture-impact.md`
-for non-trivial tracks), where `/loop-build` picks it up.
+The plan lands at `<artifactRoot>/plan.md` (plus `architecture-impact.md` for
+non-trivial tracks) — a per-repo folder under your home directory
+(`~/.loop-swe/<repo-key>/`, host-neutral), not the working tree, so nothing
+dirties git. `/loop-build` resolves the same folder and picks it up.
 
 ## Dependencies
 

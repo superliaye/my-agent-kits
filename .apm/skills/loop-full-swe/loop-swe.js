@@ -30,7 +30,6 @@ export const meta = {
   phases: [{ title: 'Scope' }, { title: 'Plan' }, { title: 'Build' }, { title: 'Retro' }],
 }
 
-const A = '.loop-swe'                           // artifact root; agents touch the fs, the script never does
 // The harness may deliver `args` as a JSON string rather than a parsed object; normalize first.
 const ARGS = typeof args === 'string' ? JSON.parse(args) : (args ?? {})
 const FEATURE = ARGS.feature ?? ''
@@ -40,15 +39,8 @@ const RES = ARGS.resolutions ?? {}
 const ORDER = ['scope', 'plan', 'build', 'retro']
 const runs = (p) => ORDER.indexOf(p) >= ORDER.indexOf(START) && ORDER.indexOf(p) <= ORDER.indexOf(STOP)
 const unresolved = (qs) => (qs ?? []).filter((q) => !(q.id in RES))
-
-// Injected into every leaf prompt: the no-spawn rule + the escalation discipline.
-const DISC = `
-You are a LEAF agent: do your one job and return your result; you may NOT spawn sub-agents.
-Escalation discipline — before flagging anything as needing a human, check, in order:
-~/.claude/CLAUDE.md, <repo>/CLAUDE.md, <repo>/CONTEXT.md, <repo>/docs/adr/, <repo>/docs/, and prior
-artifacts under ${A}/. Escalate ONLY what those genuinely do not answer. Write artifacts under ${A}/ only.`
-
 // ---- schemas (force StructuredOutput; no regex parsing of free text) --------
+const ROOT = { type: 'object', additionalProperties: false, required: ['root'], properties: { root: { type: 'string' } } }
 const QUESTION = {
   type: 'object', additionalProperties: false,
   required: ['id', 'question', 'recommendation', 'reversibility'],
@@ -127,6 +119,31 @@ const ISSUES = {
 const SUMMARY = { type: 'object', additionalProperties: false, required: ['markdown'], properties: { markdown: { type: 'string' } } }
 
 // ===========================================================================
+// Artifact root: a per-repo folder under the user's home dir, NEVER the working tree —
+// so a run never dirties git or needs a .gitignore entry. Host-neutral on purpose (NOT under
+// ~/.claude or ~/.codex): the kit targets multiple hosts, and run-scratch is not agent config.
+// The script can't touch the fs (no Date/random/git), so one leaf resolves the path ONCE and we
+// thread it through every later prompt. The recipe is deterministic per repo, so loop-build's
+// pre-write step and a later /loop-retro resolve the SAME folder (see each SKILL.md's note).
+const rootRes = await agent(
+  `Resolve and create the loop-swe artifact root, then return it. It is a per-repo folder under the
+user's home directory — host-neutral, do NOT put it under ~/.claude, ~/.codex, or the working tree:
+  HOME = $HOME (or %USERPROFILE% on Windows when $HOME is unset)
+  KEY  = "<basename of \`git rev-parse --show-toplevel\`>-<first 8 hex of the SHA-256 of the absolute
+          toplevel path exactly as \`git rev-parse --show-toplevel\` prints it>"
+  ROOT = "<HOME>/.loop-swe/<KEY>"
+Run \`mkdir -p\` on ROOT. Write nothing else. Return { root: "<absolute ROOT>" }.
+You are a LEAF agent: do your one job; you may NOT spawn sub-agents.`,
+  { label: 'resolve-root', schema: ROOT })
+const A = rootRes.root
+
+// Injected into every leaf prompt: the no-spawn rule + the escalation discipline.
+const DISC = `
+You are a LEAF agent: do your one job and return your result; you may NOT spawn sub-agents.
+Escalation discipline — before flagging anything as needing a human, check, in order:
+~/.claude/CLAUDE.md, <repo>/CLAUDE.md, <repo>/CONTEXT.md, <repo>/docs/adr/, <repo>/docs/, and prior
+artifacts under ${A}/. Escalate ONLY what those genuinely do not answer. Write artifacts under ${A}/ only.`
+
 let scope = { track: 'standard', uiWork: false, tooLargeForOneRun: false }
 let plan = null
 
@@ -168,7 +185,7 @@ it in needsHuman. Questions: ${JSON.stringify(plan.openQuestions)}. Put ONLY gen
 consequential questions in needsHuman.${DISC}`,
     { label: 'plan-digest', phase: 'Plan', schema: DIGEST })
   const open = unresolved(digest.needsHuman)
-  if (open.length) return { gate: 'plan', scope, plan, autoResolved: digest.autoResolved, needsHuman: open, note: 'Resolve, then resume; planning is cached.' }
+  if (open.length) return { gate: 'plan', scope, plan, artifactRoot: A, autoResolved: digest.autoResolved, needsHuman: open, note: 'Resolve, then resume; planning is cached.' }
   // Operator-resolved questions must reach the plan the build implements, not just clear the gate.
   const resIds = new Set(Object.keys(RES))
   const planResolved = (digest.autoResolved || []).filter((x) => resIds.has(x.id))
@@ -179,7 +196,7 @@ ${JSON.stringify(planResolved)}${DISC}`,
     { label: 'plan-resolve', phase: 'Plan' })
   log(`plan clear: ${plan.items.length} items, ${digest.autoResolved.length} auto-resolved`)
 }
-if (STOP === 'plan') return { gate: 'plan-done', scope, plan }
+if (STOP === 'plan') return { gate: 'plan-done', scope, plan, artifactRoot: A }
 
 // ---- Phase 2: Build = implement + multi-perspective review, budget-bounded -
 let buildOpen = []
@@ -235,7 +252,7 @@ each finding: if it is already answered there, put it in autoResolved with decis
 decision; else keep it in needsHuman. Findings: ${JSON.stringify(human)}.${DISC}`,
         { label: `review-digest-r${round}`, phase: `Build r${round}`, schema: DIGEST })
       buildOpen = unresolved(d.needsHuman)
-      if (buildOpen.length) return { gate: 'build', scope, round, needsHuman: buildOpen, autoApplied: toApply.length, note: 'Resolve, then resume; prior rounds are cached.' }
+      if (buildOpen.length) return { gate: 'build', scope, round, artifactRoot: A, needsHuman: buildOpen, autoApplied: toApply.length, note: 'Resolve, then resume; prior rounds are cached.' }
       // Operator-resolved findings (now in autoResolved) must change code, not just clear the gate:
       // fold each into a pending fix so the next round implements it.
       const resIds = new Set(Object.keys(RES))
@@ -253,7 +270,7 @@ ${JSON.stringify(nextItems)}${DISC}`,
     log(`round ${round}: applied ${nextItems.length} fix(es), looping`)
   }
 }
-if (STOP === 'build') return { gate: 'build-done', scope, buildOpen }
+if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoot: A }
 
 // ---- Phase 3: Summary + Retro ---------------------------------------------
 // Per-run folder so successive runs don't overwrite each other's reflections. The script
@@ -272,4 +289,4 @@ Write ${RUN_DIR}/reflection.md + ${RUN_DIR}/reflection.patch (same run folder as
 for CLAUDE.md / the skills / docs). Do NOT apply the patch.${DISC}`,
   { label: 'retro', phase: 'Retro' })
 
-return { gate: 'done', scope, summaryMarkdown: summary.markdown, note: 'Code committed; per-run reflection.patch under .loop-swe/runs/ left for review.' }
+return { gate: 'done', scope, artifactRoot: A, summaryMarkdown: summary.markdown, note: `Code committed; per-run reflection.patch under ${A}/runs/ (a user-folder cache outside the repo) left for review.` }
