@@ -60,7 +60,7 @@ other root: it launches the workflow and brokers the human gates between runs.
    | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). |
    | `plan` | The plan has questions the digest could not resolve | Surface each `needsHuman` item (question + options + recommendation + reversibility). Resolve, then **resume** (step 4). |
    | `build` | A review round surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
-   | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md); do not implement here. |
+   | `distribute-to-issues` | Too large for one build | Default: hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md) and stop. To build the whole breakdown now, see [Continuing after decomposition (opt-in)](#continuing-after-decomposition-opt-in). |
 
 4. **Resolve and resume.** Present the `needsHuman` items with `AskUserQuestion`
    (the engine already gives you each option set + its own recommendation, so
@@ -81,6 +81,64 @@ other root: it launches the workflow and brokers the human gates between runs.
 5. **Never auto-accept the irreversible.** If you ever see a resolved item the
    engine rated `reversibility: hard`, surface it to the user anyway before
    continuing — a hard-to-undo choice is always worth a human glance.
+
+## Continuing after decomposition (opt-in)
+
+When the engine returns `gate: 'distribute-to-issues'`, the feature was too large
+for one build and came back as a sequenced `issues[]` (each with `title`, `body`,
+optional `dependsOn`). The engine itself is **never edited** for this — the
+build-out below is pure main-agent orchestration on top of the same gate.
+
+1. **Default stays distribute-only.** The continue is **opt-in**. Unless the user
+   asks to build the whole breakdown now, hand the returned `issues` to
+   [`/to-issues`](../to-issues/SKILL.md) and stop. Do not implement.
+
+2. **One human checkpoint.** If the user opts in, present the breakdown — issue
+   titles in topo order with each issue's `dependsOn` — and ask the **single** OK
+   via `AskUserQuestion`: "build all these in order?" This is the *only* added
+   human gate. (Each per-issue run's own `plan`/`build` `needsHuman` gates still
+   surface, but no *extra* per-issue checkpoint is introduced.)
+
+3. **On OK, write the progress artifact.** Persist a recoverable record at
+   `<artifactRoot>/decomposition-<key>.md` — the issue list, the resolved topo
+   order, and one unchecked box (`- [ ]`) per issue. `<artifactRoot>` is the
+   per-repo `~/.loop-swe/<repo-key>/` folder; resolve it with the same
+   deterministic recipe the engine and `/loop-build` use (repo basename + short
+   hash of the absolute toplevel path — see **Files** below). `<key>` is a short
+   hash or the HEAD sha. This file is the resume anchor: a session death is
+   recoverable by reading it, skipping checked issues, and continuing.
+
+4. **Drive the chain — sequential, topo-ordered.** Topo-sort the issues by
+   `dependsOn`. **Sequentially** (no parallel, no worktrees), for each *unchecked*
+   issue, launch a per-issue build:
+
+   ```
+   Workflow({
+     scriptPath: "<this-skill-dir>/loop-swe.js",
+     args: { feature: "<issue body>", stopAfter: "build" }
+   })
+   ```
+
+   `stopAfter: "build"` skips each issue's own summary/retro (one retro for the
+   whole chain runs at the end). Branch on that run's gate:
+   - **`plan` / `build` (needs-human):** surface the items and **stop the chain** —
+     downstream issues depend on this one. Resume that run after the human answers
+     (`resumeFromRunId` + `resolutions`, as in step 4 above), then continue.
+   - **`distribute-to-issues` again (issue still too large):** **stop and
+     escalate** to the human. This is the **one-level re-decomposition cap** — do
+     **not** auto-recurse into a nested breakdown.
+   - **`build-done` (committed):** check that issue's box in the progress artifact,
+     then move to the next unchecked issue.
+
+5. **One retro at the end.** After every box is checked, run
+   [`/loop-retro`](../loop-retro/SKILL.md) **once** over the whole chain (not per
+   issue).
+
+**Properties.** Each issue lands as its own commit, so a failure is isolated to
+one issue and the rest of the chain is unaffected. Zero engine change — this is
+all main-agent orchestration over the existing gate. The cost versus internalizing
+the work is more tokens: each issue re-runs scope/plan for itself rather than
+sharing one plan.
 
 ## Disciplines (enforced inside every phase agent)
 
