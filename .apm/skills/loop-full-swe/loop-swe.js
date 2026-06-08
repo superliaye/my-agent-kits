@@ -105,6 +105,9 @@ const VERDICT = {
   type: 'object', additionalProperties: false, required: ['confirmed', 'disposition', 'why'],
   properties: { confirmed: { type: 'boolean' }, disposition: { type: 'string', enum: ['auto-apply', 'auto-skip', 'needs-human'] }, why: { type: 'string' } },
 }
+// Issue contract for the decomposition gate. Cross-element invariants the JSON schema can't encode are
+// enforced by the breakdown prompt below: ids are unique, every dependsOn entry references an existing id
+// in this set, and the dependency graph is acyclic (so the continue-after-decomposition runbook can topo-sort).
 const ISSUES = {
   type: 'object', additionalProperties: false, required: ['issues'],
   properties: {
@@ -163,8 +166,9 @@ tooLargeForOneRun (really several features that should be separate issues?).${DI
     const bd = await agent(
       `Too large for one build. Decompose "${FEATURE}" into independent, sequenced issues. Each issue needs a
 short stable kebab-case \`id\` (e.g. "auth-schema"), a \`title\`, a \`body\`, and an optional \`dependsOn\`
-array whose entries are the \`id\`s of the issues it depends on (reference ids, not titles). Implement
-nothing.${DISC}`,
+array whose entries are the \`id\`s of the issues it depends on (reference ids, not titles). Invariants:
+ids are unique, every \`dependsOn\` entry references an existing id in this set, and the dependency graph
+is acyclic. Implement nothing.${DISC}`,
       { label: 'breakdown', phase: 'Scope', schema: ISSUES })
     return { gate: 'distribute-to-issues', scope, issues: bd.issues, note: 'Feed these to /to-issues, then /loop-full-swe each.' }
   }

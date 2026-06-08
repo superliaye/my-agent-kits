@@ -109,13 +109,16 @@ pure main-agent orchestration on top of the same gate.
    `<basename of \`git rev-parse --show-toplevel\`>-<first 8 hex of the SHA-256 of
    the absolute toplevel path exactly as \`git rev-parse --show-toplevel\` prints
    it>` (the engine's `resolve-root` leaf is the single source of truth for this
-   recipe — see **Files** below). `<key>` MUST be invariant across the whole chain,
-   because step 4 commits each issue as its own commit and HEAD moves: capture the
-   HEAD sha **once at decomposition time** and reuse it verbatim (do **not**
-   re-derive it from a moving HEAD), or use a short hash of the feature text. A
-   fresh agent resuming after a session death recomputes the SAME `<key>`, finds
-   this file, skips checked issues, and continues — so the anchor must never depend
-   on anything that changes as the chain progresses.
+   recipe — see **Files** below). `<key>` MUST be recomputable from scratch after a
+   session death, so it is a **short hash of the stable feature text** — never
+   anything that changes as the chain runs. (Do **not** key it on the HEAD sha:
+   step 4 commits each issue, so HEAD moves, and a sha captured at decomposition
+   time lives only *inside* `decomposition-<key>.md` — the very file you cannot
+   name without already knowing `<key>`.) A fresh agent resuming after a session
+   death recomputes the SAME `<key>` from the feature text, finds this file, skips
+   checked issues, and continues. One caveat: decomposing the identical feature
+   text twice resolves to the same `<key>` (same artifact), which is acceptable —
+   a re-run resumes the same chain.
 
 4. **Drive the chain — sequential, topo-ordered.** Topo-sort the issues by
    `dependsOn`, resolving each `dependsOn` entry against the issues' `id`s (not
