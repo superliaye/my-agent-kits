@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.19.0] - 2026-06-08
+
+### Added
+
+- **Opt-in continue-after-decomposition for `/loop-full-swe`** ([.apm/skills/loop-full-swe/SKILL.md](.apm/skills/loop-full-swe/SKILL.md)) — when the engine decides a feature is too large for one build it returns `gate: 'distribute-to-issues'` with a sequenced `issues[]` and previously dead-ended at "feed these to `/to-issues`." A new **"Continuing after decomposition"** section documents a main-agent path that builds the whole breakdown after **one** human OK — **with zero engine change** (`loop-swe.js` is not touched; the same gate is reused). The orchestration: ask the single OK ("build all these in order?") via `AskUserQuestion`; persist a recoverable progress artifact at `~/.loop-swe/<repo-key>/decomposition-<key>.md` (issue list + topo order + a checkbox per issue); then **sequentially**, in `dependsOn` topo order, run each issue as its own `Workflow` launch with `stopAfter: 'build'` (no parallel, no worktrees), checking each issue's box on commit. A per-issue run that needs a human stops the chain (downstream depends on it) and resumes after the answer; a per-issue run that *itself* returns `distribute-to-issues` **stops and escalates** — a **one-level re-decomposition cap**, never auto-recursing. After the whole chain, `/loop-retro` runs **once**. Each issue lands as its own commit (failure-isolated); the cost versus internalizing is more tokens (each issue re-scopes itself).
+
 ## [0.18.0] - 2026-06-08
 
 ### Added
