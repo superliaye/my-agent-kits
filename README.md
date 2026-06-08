@@ -18,6 +18,7 @@ Stay in `~/my-agent-kits` and invoke the launcher with the target repo as the fi
 
 ```bash
 cd ~/my-agent-kits
+./bin/agent-kit init --default               # install default settings (global)
 ./bin/agent-kit init ~/work/some-repo        # interactive 5-step wizard
 ./bin/agent-kit update ~/work/some-repo      # catch up to latest kit
 ./bin/agent-kit help
