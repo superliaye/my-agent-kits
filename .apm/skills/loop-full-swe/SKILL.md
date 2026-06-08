@@ -85,31 +85,41 @@ other root: it launches the workflow and brokers the human gates between runs.
 ## Continuing after decomposition (opt-in)
 
 When the engine returns `gate: 'distribute-to-issues'`, the feature was too large
-for one build and came back as a sequenced `issues[]` (each with `title`, `body`,
-optional `dependsOn`). The engine itself is **never edited** for this — the
-build-out below is pure main-agent orchestration on top of the same gate.
+for one build and came back as a sequenced `issues[]` (each with a stable
+kebab-case `id`, `title`, `body`, and an optional `dependsOn` array of issue
+`id`s). The only engine touch for this is the `id` field added to the issue
+schema so the breakdown is topo-sortable by id; the build-out below is otherwise
+pure main-agent orchestration on top of the same gate.
 
 1. **Default stays distribute-only.** The continue is **opt-in**. Unless the user
    asks to build the whole breakdown now, hand the returned `issues` to
    [`/to-issues`](../to-issues/SKILL.md) and stop. Do not implement.
 
-2. **One human checkpoint.** If the user opts in, present the breakdown — issue
-   titles in topo order with each issue's `dependsOn` — and ask the **single** OK
-   via `AskUserQuestion`: "build all these in order?" This is the *only* added
-   human gate. (Each per-issue run's own `plan`/`build` `needsHuman` gates still
-   surface, but no *extra* per-issue checkpoint is introduced.)
+2. **One human checkpoint.** If the user opts in, present the breakdown — each
+   issue's `id` + `title` in topo order with its `dependsOn` ids — and ask the
+   **single** OK via `AskUserQuestion`: "build all these in order?" This is the
+   *only* added human gate. (Each per-issue run's own `plan`/`build` `needsHuman`
+   gates still surface, but no *extra* per-issue checkpoint is introduced.)
 
 3. **On OK, write the progress artifact.** Persist a recoverable record at
    `<artifactRoot>/decomposition-<key>.md` — the issue list, the resolved topo
    order, and one unchecked box (`- [ ]`) per issue. `<artifactRoot>` is the
    per-repo `~/.loop-swe/<repo-key>/` folder; resolve it with the same
-   deterministic recipe the engine and `/loop-build` use (repo basename + short
-   hash of the absolute toplevel path — see **Files** below). `<key>` is a short
-   hash or the HEAD sha. This file is the resume anchor: a session death is
-   recoverable by reading it, skipping checked issues, and continuing.
+   deterministic recipe the engine and `/loop-build` use: `<repo-key>` is
+   `<basename of \`git rev-parse --show-toplevel\`>-<first 8 hex of the SHA-256 of
+   the absolute toplevel path exactly as \`git rev-parse --show-toplevel\` prints
+   it>` (the engine's `resolve-root` leaf is the single source of truth for this
+   recipe — see **Files** below). `<key>` MUST be invariant across the whole chain,
+   because step 4 commits each issue as its own commit and HEAD moves: capture the
+   HEAD sha **once at decomposition time** and reuse it verbatim (do **not**
+   re-derive it from a moving HEAD), or use a short hash of the feature text. A
+   fresh agent resuming after a session death recomputes the SAME `<key>`, finds
+   this file, skips checked issues, and continues — so the anchor must never depend
+   on anything that changes as the chain progresses.
 
 4. **Drive the chain — sequential, topo-ordered.** Topo-sort the issues by
-   `dependsOn`. **Sequentially** (no parallel, no worktrees), for each *unchecked*
+   `dependsOn`, resolving each `dependsOn` entry against the issues' `id`s (not
+   titles). **Sequentially** (no parallel, no worktrees), for each *unchecked*
    issue, launch a per-issue build:
 
    ```
@@ -119,11 +129,18 @@ build-out below is pure main-agent orchestration on top of the same gate.
    })
    ```
 
+   **Record this run's Run ID** from the launch result — you need it to resume
+   the run on a `plan`/`build` gate (the engine does not echo it back in the gate
+   payload, so the launch result is the only source). Persist it next to that
+   issue's checkbox in `decomposition-<key>.md` so a chain resumed after a session
+   death can still resume an in-flight per-issue run.
+
    `stopAfter: "build"` skips each issue's own summary/retro (one retro for the
    whole chain runs at the end). Branch on that run's gate:
    - **`plan` / `build` (needs-human):** surface the items and **stop the chain** —
      downstream issues depend on this one. Resume that run after the human answers
-     (`resumeFromRunId` + `resolutions`, as in step 4 above), then continue.
+     (`resumeFromRunId` + `resolutions`, as in the top-level **Resolve and resume**
+     step), then continue.
    - **`distribute-to-issues` again (issue still too large):** **stop and
      escalate** to the human. This is the **one-level re-decomposition cap** — do
      **not** auto-recurse into a nested breakdown.
@@ -135,10 +152,11 @@ build-out below is pure main-agent orchestration on top of the same gate.
    issue).
 
 **Properties.** Each issue lands as its own commit, so a failure is isolated to
-one issue and the rest of the chain is unaffected. Zero engine change — this is
-all main-agent orchestration over the existing gate. The cost versus internalizing
-the work is more tokens: each issue re-runs scope/plan for itself rather than
-sharing one plan.
+one issue and the rest of the chain is unaffected. The only engine touch is the
+`id` field added to the issue schema (so the breakdown is topo-sortable by id);
+the chain itself is all main-agent orchestration over the existing gate. The cost
+versus internalizing the work is more tokens: each issue re-runs scope/plan for
+itself rather than sharing one plan.
 
 ## Disciplines (enforced inside every phase agent)
 
