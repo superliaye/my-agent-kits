@@ -30,6 +30,13 @@ cd ~/work/some-repo
 ~/my-agent-kits/bin/agent-kit init
 ```
 
+To skip every prompt and install the recommended defaults (the pre-checked presets, the preset's agents, global scope), pass `--default` — the "enter through everything" path. Explicit flags still override individual defaults:
+
+```bash
+./bin/agent-kit init ~/work/some-repo --default               # zero prompts, all defaults
+./bin/agent-kit init ~/work/some-repo --default --scope repo  # defaults, but repo-scoped
+```
+
 ### One-shot install (each flag is one decision)
 
 Passing `--preset`, `--agents`, and `--scope` together is enough — the wizard treats it as "you've decided" and skips all prompts:
@@ -51,6 +58,7 @@ Common variations — change exactly the flag(s) that differ:
 
 Flag reference:
 
+- `--default` — accept every wizard default (pre-checked presets, the preset's agents, global scope) and apply without prompting; explicit flags still override individual defaults
 - `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
 - `--scope {repo|global}` — repo-local or `~/.claude/` (and `~/.codex/`)

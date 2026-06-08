@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.18.0] - 2026-06-08
+
+### Added
+
+- **`agent-kit init --default`** ([lib/init.js](lib/init.js), [lib/cli.js](lib/cli.js)) — a zero-prompt install that accepts every wizard default and applies without confirmation: the pre-checked preset set (`DEFAULT_SELECTED_PRESETS`), the preset's default agents, and global scope — the "enter through everything" path. Previously the only non-interactive route required passing `--preset`, `--agents`, and `--scope` together. `--default` forces non-interactive mode and each `pick*` step falls back to the same value its interactive prompt would have defaulted to; explicit flags still override individual defaults (e.g. `init --default --scope repo`). New test: [test/cases/init-default.sh](test/cases/init-default.sh).
+
 ## [0.17.4] - 2026-06-08
 
 ### Changed
