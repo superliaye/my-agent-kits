@@ -110,8 +110,8 @@ const ISSUES = {
   properties: {
     issues: {
       type: 'array', items: {
-        type: 'object', additionalProperties: false, required: ['title', 'body'],
-        properties: { title: { type: 'string' }, body: { type: 'string' }, dependsOn: { type: 'array', items: { type: 'string' } } },
+        type: 'object', additionalProperties: false, required: ['id', 'title', 'body'],
+        properties: { id: { type: 'string' }, title: { type: 'string' }, body: { type: 'string' }, dependsOn: { type: 'array', items: { type: 'string' } } },
       },
     },
   },
@@ -161,8 +161,10 @@ tooLargeForOneRun (really several features that should be separate issues?).${DI
   // Only fresh planning runs may bail out to issue-distribution; a resumed build never does.
   if (scope.tooLargeForOneRun && runs('plan')) {
     const bd = await agent(
-      `Too large for one build. Decompose "${FEATURE}" into independent, sequenced issues (title, body,
-dependsOn). Implement nothing.${DISC}`,
+      `Too large for one build. Decompose "${FEATURE}" into independent, sequenced issues. Each issue needs a
+short stable kebab-case \`id\` (e.g. "auth-schema"), a \`title\`, a \`body\`, and an optional \`dependsOn\`
+array whose entries are the \`id\`s of the issues it depends on (reference ids, not titles). Implement
+nothing.${DISC}`,
       { label: 'breakdown', phase: 'Scope', schema: ISSUES })
     return { gate: 'distribute-to-issues', scope, issues: bd.issues, note: 'Feed these to /to-issues, then /loop-full-swe each.' }
   }
