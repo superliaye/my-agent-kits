@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.19.1] - 2026-06-08
+
+### Fixed
+
+- **`loop-swe` engine review/resume correctness, plus a simpler artifact key and progress file** ([loop-swe.js](.apm/skills/loop-full-swe/loop-swe.js)). A review pass surfaced five engine issues, now fixed: (1) review findings were tagged by their post-`filter(Boolean)` index, so a dead reviewer leaf misattributed the discipline of every later finding — findings are now indexed against the unfiltered `reviews` array; (2) review-gate question ids were minted by the digest, which re-runs on resume, so a gated resume could fail to match the human's answer (re-gate loop, or a silently dropped resolution) — ids are now anchored at the cached review step (`r<round>-<reviewer>-<n>`) and the digest carries them verbatim; (3) the `distribute-to-issues` gate omitted `artifactRoot` although every other gate returns it and the continue-after-decomposition runbook needs it; (4) a `code-errors`/`requirements-unmet` validation on the final round settled as `build-done`/`done` with no signal — the terminal gates now carry `validation`, and the `done`/`build-done` SKILL handling flags a non-`passing` status; (5) the per-repo artifact key was a SHA-256 of the toplevel path reproduced byte-identically by three skills (a trailing-newline or casing divergence silently misrouted `/loop-build` and `/loop-retro`) — replaced with a deterministic lowercased path slug stated identically in [loop-full-swe](.apm/skills/loop-full-swe/SKILL.md) and [loop-build](.apm/skills/loop-build/SKILL.md). Also simplified two over-built pieces from 0.19.0: the continue-after-decomposition progress file is now a constant `decomposition.md` under the gate-returned `artifactRoot` (dropping the recomputable-key machinery and its HEAD-sha proof), and the retro run-folder is resolved once by the summary leaf and threaded to the retro leaf instead of each re-deriving it.
+
 ## [0.19.0] - 2026-06-08
 
 ### Added

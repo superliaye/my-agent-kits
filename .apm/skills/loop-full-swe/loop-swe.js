@@ -119,7 +119,7 @@ const ISSUES = {
     },
   },
 }
-const SUMMARY = { type: 'object', additionalProperties: false, required: ['markdown'], properties: { markdown: { type: 'string' } } }
+const SUMMARY = { type: 'object', additionalProperties: false, required: ['markdown', 'runDir'], properties: { markdown: { type: 'string' }, runDir: { type: 'string' } } }
 
 // ===========================================================================
 // Artifact root: a per-repo folder under the user's home dir, NEVER the working tree —
@@ -132,8 +132,10 @@ const rootRes = await agent(
   `Resolve and create the loop-swe artifact root, then return it. It is a per-repo folder under the
 user's home directory — host-neutral, do NOT put it under ~/.claude, ~/.codex, or the working tree:
   HOME = $HOME (or %USERPROFILE% on Windows when $HOME is unset)
-  KEY  = "<basename of \`git rev-parse --show-toplevel\`>-<first 8 hex of the SHA-256 of the absolute
-          toplevel path exactly as \`git rev-parse --show-toplevel\` prints it>"
+  KEY  = the absolute path from \`git rev-parse --show-toplevel\`, trimmed of trailing whitespace,
+         lowercased, with every character outside [a-z0-9] replaced by "-" (e.g. "D:/Repos/My-App"
+         -> "d--repos-my-app"). A deterministic slug, NO hashing — the other loop skills reproduce this
+         exact rule, so keep it character-for-character.
   ROOT = "<HOME>/.loop-swe/<KEY>"
 Run \`mkdir -p\` on ROOT. Write nothing else. Return { root: "<absolute ROOT>" }.
 You are a LEAF agent: do your one job; you may NOT spawn sub-agents.`,
@@ -170,7 +172,7 @@ array whose entries are the \`id\`s of the issues it depends on (reference ids, 
 ids are unique, every \`dependsOn\` entry references an existing id in this set, and the dependency graph
 is acyclic. Implement nothing.${DISC}`,
       { label: 'breakdown', phase: 'Scope', schema: ISSUES })
-    return { gate: 'distribute-to-issues', scope, issues: bd.issues, note: 'Feed these to /to-issues, then /loop-full-swe each.' }
+    return { gate: 'distribute-to-issues', scope, artifactRoot: A, issues: bd.issues, note: 'Feed these to /to-issues, then /loop-full-swe each.' }
   }
 }
 
@@ -205,7 +207,7 @@ ${JSON.stringify(planResolved)}${DISC}`,
 if (STOP === 'plan') return { gate: 'plan-done', scope, plan, artifactRoot: A }
 
 // ---- Phase 2: Build = implement + multi-perspective review, budget-bounded -
-let buildOpen = []
+let buildOpen = [], lastVal = null
 if (runs('build')) {
   const REVIEWERS = [
     { key: 'architecture', skill: '/improve-codebase-architecture' },
@@ -230,6 +232,7 @@ record it as an open question in ${A}/round-${round}/questions.md.${DISC}`,
       `Round ${round}: invoke /e2e-validate (chunk mode) via Skill. Verify the code RUNS and meets the
 plan's success criteria. Write ${A}/round-${round}/validation.md.${DISC}`,
       { label: `validate-r${round}`, phase: `Build r${round}`, schema: VALIDATE })
+    lastVal = val
     if ((val.status === 'code-errors' || val.status === 'requirements-unmet') && round < cap) continue
 
     // multi-perspective review (parallel leaves) -> adversarial verify per finding (pipeline)
@@ -238,7 +241,9 @@ plan's success criteria. Write ${A}/round-${round}/validation.md.${DISC}`,
         `Round ${round} ${r.key} review of the diff since ${A}/round-${round}/start-sha.
 ${r.skill ? `Invoke ${r.skill} via Skill.` : 'Review the diff directly.'} Return findings only.${DISC}`,
         { label: `review:${r.key}`, phase: `Build r${round}`, schema: FINDINGS })))
-    const findings = reviews.filter(Boolean).flatMap((r, i) => (r.findings || []).map((f) => ({ ...f, reviewer: REVIEWERS[i].key })))
+    // Index against the UNFILTERED reviews so REVIEWERS[i] stays aligned when a reviewer leaf died (null).
+    // Anchor the finding id here (a cached step) so a gated resume matches it; the digest must not re-mint it.
+    const findings = reviews.flatMap((r, i) => (r?.findings || []).map((f, j) => ({ ...f, reviewer: REVIEWERS[i].key, id: `r${round}-${REVIEWERS[i].key}-${j}` })))
     const verified = await pipeline(findings, (f) =>
       agent(
         `Adversarially verify this ${f.reviewer} finding against the actual diff. Is it real? Then disposition:
@@ -255,7 +260,9 @@ Default to skepticism.\nFinding: ${JSON.stringify(f)}${DISC}`,
         `Self-digest these needs-human review findings. Human answers so far: ${JSON.stringify(RES)}. For
 each finding: if it is already answered there, put it in autoResolved with decision = the human's directive
 (verbatim intent); else if the docs/escalation sources answer it, put it in autoResolved with that
-decision; else keep it in needsHuman. Findings: ${JSON.stringify(human)}.${DISC}`,
+decision; else keep it in needsHuman. Use each finding's \`id\` verbatim as the entry id (in autoResolved
+AND needsHuman) — NEVER mint a new one, so a gated resume matches the human's answer. Findings:
+${JSON.stringify(human)}.${DISC}`,
         { label: `review-digest-r${round}`, phase: `Build r${round}`, schema: DIGEST })
       buildOpen = unresolved(d.needsHuman)
       if (buildOpen.length) return { gate: 'build', scope, round, artifactRoot: A, needsHuman: buildOpen, autoApplied: toApply.length, note: 'Resolve, then resume; prior rounds are cached.' }
@@ -276,23 +283,25 @@ ${JSON.stringify(nextItems)}${DISC}`,
     log(`round ${round}: applied ${nextItems.length} fix(es), looping`)
   }
 }
-if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoot: A }
+if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoot: A, validation: lastVal }
 
 // ---- Phase 3: Summary + Retro ---------------------------------------------
-// Per-run folder so successive runs don't overwrite each other's reflections. The script
-// can't generate a key (no Date/random), so the agent derives one: `git rev-parse --short HEAD`
-// (append a short timestamp if that folder already exists).
-const RUN_DIR = `${A}/runs/<short-HEAD-sha>`
+// Per-run folder so successive runs don't overwrite each other's reflections. The script can't
+// generate a key (no Date/random), so the summary leaf derives one from `git rev-parse --short HEAD`,
+// creates the folder (suffixing on collision), and RETURNS it — the retro leaf reuses that exact path
+// instead of independently re-deriving it.
 phase('Retro')
 const summary = await agent(
-  `Write ${RUN_DIR}/summary.md (create the dir; resolve <short-HEAD-sha> via \`git rev-parse --short HEAD\`):
-request, track, what was built, rounds taken, findings breakdown, status, and the list of decisions
-auto-resolved without the human (so they can be audited). Return the markdown.${DISC}`,
+  `Resolve a per-run folder RUN_DIR = ${A}/runs/<id>, where <id> is \`git rev-parse --short HEAD\` (append
+"-2", "-3", ... if that folder already exists, so successive runs at the same HEAD don't overwrite). Create
+it, then write RUN_DIR/summary.md: request, track, what was built, rounds taken, findings breakdown, status,
+and the list of decisions auto-resolved without the human (so they can be audited). Return the markdown and
+the absolute RUN_DIR as \`runDir\`.${DISC}`,
   { label: 'summary', phase: 'Retro', schema: SUMMARY })
 await agent(
   `Retro: mine this run for stalls, repeated failures, avoidable escalations, token waste, and what worked.
-Write ${RUN_DIR}/reflection.md + ${RUN_DIR}/reflection.patch (same run folder as the summary; proposals
-for CLAUDE.md / the skills / docs). Do NOT apply the patch.${DISC}`,
+Write ${summary.runDir}/reflection.md + ${summary.runDir}/reflection.patch (the run folder the summary leaf
+returned; proposals for CLAUDE.md / the skills / docs). Do NOT apply the patch.${DISC}`,
   { label: 'retro', phase: 'Retro' })
 
-return { gate: 'done', scope, artifactRoot: A, summaryMarkdown: summary.markdown, note: `Code committed; per-run reflection.patch under ${A}/runs/ (a user-folder cache outside the repo) left for review.` }
+return { gate: 'done', scope, artifactRoot: A, validation: lastVal, summaryMarkdown: summary.markdown, note: `Code committed; per-run reflection.patch under ${A}/runs/ (a user-folder cache outside the repo) left for review.` }

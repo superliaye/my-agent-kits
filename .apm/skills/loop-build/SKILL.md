@@ -34,9 +34,10 @@ name, or the plan in the **current conversation** (see Pre-flight). Inside
    **not** in the repo, so nothing here dirties git or needs a `.gitignore`
    entry). Resolve it with the same recipe the engine uses (so the build phase
    reads the same file): `<HOME>/.loop-swe/<key>`, where `<HOME>` is `$HOME` (or
-   `%USERPROFILE%` on Windows) and `<key>` is `<basename of \`git rev-parse
-   --show-toplevel\`>-<first 8 hex of the SHA-256 of the absolute toplevel path>`.
-   Create it (`mkdir -p`) if missing. Then resolve the plan, in order:
+   `%USERPROFILE%` on Windows) and `<key>` is the absolute path from `git rev-parse
+   --show-toplevel`, trimmed, lowercased, with every character outside `[a-z0-9]`
+   replaced by `-` (e.g. `D:/Repos/My-App` -> `d--repos-my-app`). Create it
+   (`mkdir -p`) if missing. Then resolve the plan, in order:
    - If `<root>/plan.md` already exists, use it as-is.
    - Else if the user named a plan file (e.g. `docs/some-plan.md`), write its
      content to `<root>/plan.md`.
@@ -68,7 +69,7 @@ name, or the plan in the **current conversation** (see Pre-flight). Inside
 
    | `gate` | Meaning | Action |
    |---|---|---|
-   | `build-done` | Implemented + reviewed clean | Relay what was built and the auto-applied fixes; tell the user it's ready for [`/loop-retro`](../loop-retro/SKILL.md). |
+   | `build-done` | Implemented + reviewed clean | Relay what was built and the auto-applied fixes; if `validation.status` isn't `passing`, flag that the build settled without going green. Then it's ready for [`/loop-retro`](../loop-retro/SKILL.md). |
    | `build` | A review finding needs your decision | Surface each `needsHuman` item with `AskUserQuestion`, then **resume** (step 4). |
 
 4. **Resolve and resume.** Map answers by each item's `id` and continue (pass the

@@ -57,7 +57,7 @@ other root: it launches the workflow and brokers the human gates between runs.
 
    | `gate` | What it means | What you do |
    |---|---|---|
-   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). |
+   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). If `validation.status` is not `passing`, say so — the build settled without going green. |
    | `plan` | The plan has questions the digest could not resolve | Surface each `needsHuman` item (question + options + recommendation + reversibility). Resolve, then **resume** (step 4). |
    | `build` | A review round surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
    | `distribute-to-issues` | Too large for one build | Default: hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md) and stop. To build the whole breakdown now, see [Continuing after decomposition (opt-in)](#continuing-after-decomposition-opt-in). |
@@ -102,23 +102,13 @@ pure main-agent orchestration on top of the same gate.
    gates still surface, but no *extra* per-issue checkpoint is introduced.)
 
 3. **On OK, write the progress artifact.** Persist a recoverable record at
-   `<artifactRoot>/decomposition-<key>.md` — the issue list, the resolved topo
-   order, and one unchecked box (`- [ ]`) per issue. `<artifactRoot>` is the
-   per-repo `~/.loop-swe/<repo-key>/` folder; resolve it with the same
-   deterministic recipe the engine and `/loop-build` use: `<repo-key>` is
-   `<basename of \`git rev-parse --show-toplevel\`>-<first 8 hex of the SHA-256 of
-   the absolute toplevel path exactly as \`git rev-parse --show-toplevel\` prints
-   it>` (the engine's `resolve-root` leaf is the single source of truth for this
-   recipe — see **Files** below). `<key>` MUST be recomputable from scratch after a
-   session death, so it is a **short hash of the stable feature text** — never
-   anything that changes as the chain runs. (Do **not** key it on the HEAD sha:
-   step 4 commits each issue, so HEAD moves, and a sha captured at decomposition
-   time lives only *inside* `decomposition-<key>.md` — the very file you cannot
-   name without already knowing `<key>`.) A fresh agent resuming after a session
-   death recomputes the SAME `<key>` from the feature text, finds this file, skips
-   checked issues, and continues. One caveat: decomposing the identical feature
-   text twice resolves to the same `<key>` (same artifact), which is acceptable —
-   a re-run resumes the same chain.
+   `<artifactRoot>/decomposition.md` — the issue list, the resolved topo order, and
+   one unchecked box (`- [ ]`) per issue. `<artifactRoot>` comes back **on the
+   gate** (every gate returns it), so you recompute no path. The filename is
+   constant: a fresh agent resuming after a session death reads
+   `<artifactRoot>/decomposition.md`, skips the checked issues, and continues. (One
+   decomposition is in flight per repo at a time; a second overwrites the first,
+   which is fine for a foreground chain.)
 
 4. **Drive the chain — sequential, topo-ordered.** Topo-sort the issues by
    `dependsOn`, resolving each `dependsOn` entry against the issues' `id`s (not
@@ -132,11 +122,10 @@ pure main-agent orchestration on top of the same gate.
    })
    ```
 
-   **Record this run's Run ID** from the launch result — you need it to resume
-   the run on a `plan`/`build` gate (the engine does not echo it back in the gate
-   payload, so the launch result is the only source). Persist it next to that
-   issue's checkbox in `decomposition-<key>.md` so a chain resumed after a session
-   death can still resume an in-flight per-issue run.
+   **Record this run's Run ID** from the launch result — you need it to resume the
+   run on a `plan`/`build` gate (the engine doesn't echo it back). It matters only
+   within this session; a chain resumed after a crash just re-runs any unchecked
+   issue from scratch.
 
    `stopAfter: "build"` skips each issue's own summary/retro (one retro for the
    whole chain runs at the end). Branch on that run's gate:
@@ -183,8 +172,9 @@ audit them:
 ```
 
 Artifacts for a run live **outside the repo**, in a per-repo folder under your
-home directory: `~/.loop-swe/<repo-key>/` (`<repo-key>` is the repo's basename
-plus a short hash of its path; on Windows the home is `%USERPROFILE%`). The path
+home directory: `~/.loop-swe/<repo-key>/` (`<repo-key>` is a lowercased slug of the
+repo's absolute path — every non-`[a-z0-9]` character mapped to `-`; on Windows the
+home is `%USERPROFILE%`). The path
 is **host-neutral** — not under `~/.claude` or `~/.codex` — since run-scratch is
 not agent config. A resolver leaf creates it at the start of every run, so the
 working tree stays clean — no `.gitignore` entry needed. The absolute path is
