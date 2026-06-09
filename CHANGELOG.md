@@ -4,6 +4,16 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.20.0] - 2026-06-09
+
+### Added
+
+- **`teach`** ([.apm/skills/teach/](.apm/skills/teach/)) — a stateful, multi-session teaching skill from [mattpocock/skills](https://github.com/mattpocock/skills) (upstream `2bf7005`, 2026-06-08). Treats the current directory as a teaching workspace: it grounds every lesson in a `MISSION.md` (why the user is learning), draws knowledge only from a curated `RESOURCES.md` rather than parametric guesses, produces self-contained beautiful HTML lessons each teaching one tightly-scoped thing in the user's zone of proximal development, and tracks progress via ADR-style `learning-records/` and a canonical glossary. Five files: [SKILL.md](.apm/skills/teach/SKILL.md) plus the four format specs it links — [MISSION-FORMAT.md](.apm/skills/teach/MISSION-FORMAT.md), [RESOURCES-FORMAT.md](.apm/skills/teach/RESOURCES-FORMAT.md), [LEARNING-RECORD-FORMAT.md](.apm/skills/teach/LEARNING-RECORD-FORMAT.md), [GLOSSARY-FORMAT.md](.apm/skills/teach/GLOSSARY-FORMAT.md). Wired into the `productivity` preset (mirrors upstream's own `skills/productivity/` categorization). Invoke with `/teach <topic>`. New test: [test/cases/teach-skill.sh](test/cases/teach-skill.sh).
+
+### Changed
+
+- On onboarding, the upstream `disable-model-invocation: true` frontmatter flag was **dropped** — in current Claude Code it removes the skill from the model's context, which breaks the `/teach` slash invocation ([claude-code#26251](https://github.com/anthropics/claude-code/issues/26251)). The `name` field was also dropped (the folder name supplies it), matching the existing `prototype` skill onboarded from the same author.
+
 ## [0.19.1] - 2026-06-08
 
 ### Fixed

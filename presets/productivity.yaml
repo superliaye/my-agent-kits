@@ -10,6 +10,7 @@ primitives:
     - handoff
     - write-a-skill
     - caveman
+    - teach
   plugins: []
   mcp: []
   hooks: []
