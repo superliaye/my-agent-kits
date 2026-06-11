@@ -31,7 +31,11 @@ Returns:
 
 1. **Discover the harness — do not invent commands.** Read
    `package.json` scripts, `Cargo.toml`, `Makefile`, CI config
-   (`.github/workflows`), and `CLAUDE.md`. Use what exists.
+   (`.github/workflows`), and `CLAUDE.md`. **Also read any project
+   harness-quirks memory** (e.g.
+   `~/.claude/projects/<repo-key>/memory/*harness*.md`) — if a failure you
+   hit is documented there with a fix, apply it or cite it in one line
+   rather than re-deriving it. Use what exists.
 2. **Pick the smoke recipe** by stack (see Recipes).
 3. **Run it.** Capture output.
 4. **Run the project's format/lint check on the changed files.** Discover
@@ -88,6 +92,11 @@ See per-stack detail in [recipes/](recipes/).
 
 - **Missing harness is a finding, never a silent skip.** Always emit a
   concrete remediation suggestion with the no-harness status.
+- **Documented quirks aren't fresh findings.** Before labeling a failure
+  "environmental / out of scope" or carrying it forward to the human,
+  check the project's harness-quirks memory. If it's documented with a
+  fix, apply it (one-time setup is in scope) or cite the memory in one
+  line — don't re-derive it as a new finding or escalate it.
 - **Lint/format failures in the changed diff are `Code Errors`.** A green
   test run over a lint-failing diff is not validated — surface it so the
   caller fixes it before shipping.

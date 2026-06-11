@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.20.1] - 2026-06-11
+
+### Changed
+
+- **`e2e-validate` now consults project harness-quirks memory before crying "environmental"** ([.apm/skills/e2e-validate/SKILL.md](.apm/skills/e2e-validate/SKILL.md)). Discovery step 1 adds the project's harness-quirks memory (`~/.claude/projects/<repo-key>/memory/*harness*.md`) to the read-before-you-run list, and a new Discipline rule forbids re-deriving a documented quirk as a fresh finding: before labeling a failure "environmental / out of scope" or escalating it to the human, check that memory — if it's documented with a fix, apply it (one-time setup is in scope) or cite it in one line. Folds back the headline lesson from a `loop-retro` run where a documented, one-command-fixable worktree quirk was re-discovered four times and flagged to the human unnecessarily.
+
 ## [0.20.0] - 2026-06-09
 
 ### Added
