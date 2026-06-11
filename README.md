@@ -46,7 +46,7 @@ Passing `--preset` and `--agents` together is enough — the wizard treats it as
 ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude
 ```
 
-That writes a canonical `AGENTS.md` (the instructions), a thin `CLAUDE.md` that imports it via `@AGENTS.md`, and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
+That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `--agents codex`) `~/.codex/AGENTS.md`, and copies skills to `~/.claude/skills/` and `~/.agents/skills/`. No `apm.yml`, no `apm_modules/`.
 
 Common variations — change exactly the flag(s) that differ:
 
@@ -84,20 +84,23 @@ Updating:
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |
 
-## What lands in a consumer repo
+## What lands where
 
-After `agent-kit init` in `~/work/some-repo`:
+`agent-kit init ~/work/some-repo` writes the artifacts to your global agent
+directories — not into the target repo. The only repo-local file is the wizard
+state:
 
 ```text
+~/.claude/CLAUDE.md     # instructions concatenated inline (overwritten each run)
+~/.claude/skills/       # Claude Code reads skills here
+~/.codex/AGENTS.md      # instructions concatenated inline (if --agents codex)
+~/.agents/skills/       # cross-client skills (Codex sidecar reads here; if --agents codex)
+
 some-repo/
-├── AGENTS.md           # canonical instructions — Claude imports it; Codex & other AGENTS.md-native agents read it directly
-├── CLAUDE.md           # thin `@AGENTS.md` import
-├── .claude/skills/     # Claude Code reads skills here
-├── .agents/skills/     # cross-client skills (Codex sidecar reads here; if --agents codex)
 └── .agent-kit.yaml     # wizard state — what was deployed, for `agent-kit update`
 ```
 
-That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` files. Everything in the repo is something an agent actually reads at runtime.
+That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` files, and no instructions or skills copied into the repo itself.
 
 ## Tests
 
