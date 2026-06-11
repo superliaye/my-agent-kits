@@ -73,10 +73,10 @@ The kit reads only the frontmatter. Field reference is in [lib/primitives.js](..
 
 1. **Pick the new commit.** Use a commit SHA from the upstream repo, not a tag or branch — the wizard's source-URL safety check requires a 40-char hex pin.
 2. **Edit the bundle file.** Bump `pinned_commit:` in [.apm/bundles/gstack.bundle.md](../.apm/bundles/gstack.bundle.md). If upstream changed its installer flags or runtime deps, update those too.
-3. **Bump the kit version.** Update [package.json](../package.json) and add a [CHANGELOG.md](../CHANGELOG.md) entry under the new version. This matters because the wizard's update flow detects "new in preset" by comparing `added_in:` to the consumer repo's last-deployed kit version — bumping the bundle's `added_in:` is what makes existing consumer repos see it on `agent-kit update`.
+3. **Bump the kit version.** Update [package.json](../package.json) and add a [CHANGELOG.md](../CHANGELOG.md) entry under the new version. Bump the bundle's `added_in:` to match so the frontmatter records which kit version the change shipped in. (`added_in:` is metadata only — `agent-kit update` is a stateless global re-deploy with no per-repo delta detection, so it does not read this field to surface "new in preset.")
 4. **Test locally.** Run `npm test` (Docker, isolated) to catch regressions in the preset/state plumbing. `npm run test:host` is the opt-in inner-loop alternative — it writes to your real `~/.claude/`. The bundle install itself is skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
 5. **Commit, tag, push.**
-6. **Consumer-side pickup.** Users run `agent-kit update <repo>`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent — gstack's is, per its README.
+6. **Consumer-side pickup.** Users run `agent-kit update`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent — gstack's is, per its README.
 
 ## Adding a new bundle
 
@@ -98,4 +98,4 @@ If you can express the workflow as **just Markdown files** that an agent reads, 
 
 ## Security notes
 
-The wizard validates `source:` (must be `https://.../*.git`) and `pinned_commit:` (must be hex SHA) before invoking `git clone`. This is a defense-in-depth check against a hostile fork of the kit pointing at `file:///` or a non-git URL. Don't relax these patterns without considering the impact on `--scope global` users (where the wizard cumulatively trusts every bundle in every preset they install).
+The wizard validates `source:` (must be `https://.../*.git`) and `pinned_commit:` (must be hex SHA) before invoking `git clone`. This is a defense-in-depth check against a hostile fork of the kit pointing at `file:///` or a non-git URL. Don't relax these patterns without considering the cumulative trust this grants: bundles always install globally, so the wizard ends up trusting every bundle in every preset a user installs.
