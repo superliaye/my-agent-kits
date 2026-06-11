@@ -20,7 +20,7 @@ Stay in `~/my-agent-kits` and invoke the launcher with the target repo as the fi
 cd ~/my-agent-kits
 ./bin/agent-kit init --default               # install recommended defaults
 ./bin/agent-kit init ~/work/some-repo        # interactive 5-step wizard
-./bin/agent-kit update ~/work/some-repo      # catch up to latest kit
+./bin/agent-kit update                       # re-deploy the kit to your global install
 ./bin/agent-kit help
 ```
 
@@ -65,10 +65,11 @@ Flag reference:
 
 Updating:
 
+`agent-kit update` is a stateless global re-deploy. There is no per-repo state to diff against — it re-resolves the working set the same way `init --default` does (same `--preset`/`--agents` shape) and re-runs the idempotent deploy, so the global install matches the current kit:
+
 ```bash
-./bin/agent-kit update ~/work/some-repo                          # interactive — pick which new primitives to adopt
-./bin/agent-kit update ~/work/some-repo --content-only           # refresh content only (no new primitives)
-./bin/agent-kit update ~/work/some-repo --adopt-preset-defaults  # auto-adopt new preset members
+./bin/agent-kit update                                  # re-resolve defaults, re-deploy globally
+./bin/agent-kit update --preset engineering --agents claude  # re-deploy a specific preset/agent set
 ```
 
 ## What's in here
@@ -86,21 +87,19 @@ Updating:
 
 ## What lands where
 
-`agent-kit init ~/work/some-repo` writes the artifacts to your global agent
-directories — not into the target repo. The only repo-local file is the wizard
-state:
+`agent-kit init` writes the artifacts to your global agent directories — nothing
+lands in the target repo. There is no repo-local state file:
 
 ```text
 ~/.claude/CLAUDE.md     # instructions concatenated inline (overwritten each run)
 ~/.claude/skills/       # Claude Code reads skills here
 ~/.codex/AGENTS.md      # instructions concatenated inline (if --agents codex)
-~/.agents/skills/       # cross-client skills (Codex sidecar reads here; if --agents codex)
-
-some-repo/
-└── .agent-kit.yaml     # wizard state — what was deployed, for `agent-kit update`
+~/.agents/skills/       # cross-client skills (Codex reads here; if --agents codex).
+                        #   Each Codex skill also gets a manual-only
+                        #   ~/.agents/skills/<name>/agents/openai.yaml sidecar.
 ```
 
-That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` files, and no instructions or skills copied into the repo itself.
+That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` files, no per-repo state file, and no instructions or skills copied into the repo itself.
 
 ## Tests
 
@@ -121,7 +120,9 @@ npm run test:host
 
 Host mode is gated behind `AGENT_KIT_TEST_HOST=1` so direct `bash test/run-tests.sh` runs refuse without the env var; use the npm script or the `--host` flag.
 
-## Spec & Plan
+## Design history (dated archives)
 
-- Design spec: [`docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md`](docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md)
-- Implementation plan: [`docs/superpowers/plans/2026-05-08-agent-kit-installer.md`](docs/superpowers/plans/2026-05-08-agent-kit-installer.md)
+These are point-in-time records of the original installer design, kept for context. They describe the architecture as it stood when written (May 2026) and predate the global-only refactor — they are **not** a description of current behavior. For current behavior, see the sections above.
+
+- Design spec (2026-05-08): [`docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md`](docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md)
+- Implementation plan (2026-05-08): [`docs/superpowers/plans/2026-05-08-agent-kit-installer.md`](docs/superpowers/plans/2026-05-08-agent-kit-installer.md)
