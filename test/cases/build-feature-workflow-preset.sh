@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Verify the `build-feature-workflow` preset deploys the orchestrator skill + all its
-# supporting skills, and records the right plugin set in .agent-kit.yaml.
+# supporting skills globally.
 #
 # AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude
 # Code plugin set.
@@ -10,21 +10,23 @@ HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 . "$HERE/../lib/assertions.sh"
 
+# Isolate BOTH HOME and USERPROFILE so the global writes land in a throwaway dir.
+TMPHOME="$(mktemp -d)"; export HOME="$TMPHOME" USERPROFILE="$TMPHOME"
 WORK="$(mktemp -d)"
-trap "rm -rf '$WORK'" EXIT
+trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
-  --preset build-feature-workflow --agents claude --scope repo \
+  --preset build-feature-workflow --agents claude \
   || { fail "agent-kit init --preset build-feature-workflow exited non-zero"; exit 1; }
 
 # Orchestrator skill landed
-assert_file_exists "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "build-feature-workflow SKILL.md deployed"
-assert_file_exists "$WORK/.claude/skills/build-feature-workflow/orchestrator.sh" "build-feature-workflow orchestrator.sh deployed"
-assert_file_exists "$WORK/.claude/skills/build-feature-workflow/state-template.md" "build-feature-workflow state-template.md deployed"
-assert_file_exists "$WORK/.claude/skills/build-feature-workflow/lib/state-ops.sh" "build-feature-workflow lib/state-ops.sh deployed"
-assert_file_exists "$WORK/.claude/skills/build-feature-workflow/lib/dispatch-claude.sh" "build-feature-workflow lib/dispatch-claude.sh deployed"
+assert_file_exists "$HOME/.claude/skills/build-feature-workflow/SKILL.md" "build-feature-workflow SKILL.md deployed"
+assert_file_exists "$HOME/.claude/skills/build-feature-workflow/orchestrator.sh" "build-feature-workflow orchestrator.sh deployed"
+assert_file_exists "$HOME/.claude/skills/build-feature-workflow/state-template.md" "build-feature-workflow state-template.md deployed"
+assert_file_exists "$HOME/.claude/skills/build-feature-workflow/lib/state-ops.sh" "build-feature-workflow lib/state-ops.sh deployed"
+assert_file_exists "$HOME/.claude/skills/build-feature-workflow/lib/dispatch-claude.sh" "build-feature-workflow lib/dispatch-claude.sh deployed"
 
 # All 13 phase prompt stubs present
 for stub in \
@@ -32,55 +34,41 @@ for stub in \
   phase5-validate phase6-arch phase6-ddd phase6-general \
   phase7-triage phase8-design-critique phase9-documentation \
   phase10-summary phase11-reflection; do
-  assert_file_exists "$WORK/.claude/skills/build-feature-workflow/prompts/$stub.md" "build-feature-workflow prompt stub: $stub"
+  assert_file_exists "$HOME/.claude/skills/build-feature-workflow/prompts/$stub.md" "build-feature-workflow prompt stub: $stub"
 done
 
 # SKILL.md describes /build-feature-workflow as a tagged-queue cybernetic loop
-assert_content_contains "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "tagged work-item queue" "SKILL.md mentions tagged queue"
-assert_content_contains "$WORK/.claude/skills/build-feature-workflow/SKILL.md" "orchestrator.sh" "SKILL.md references orchestrator"
+assert_content_contains "$HOME/.claude/skills/build-feature-workflow/SKILL.md" "tagged work-item queue" "SKILL.md mentions tagged queue"
+assert_content_contains "$HOME/.claude/skills/build-feature-workflow/SKILL.md" "orchestrator.sh" "SKILL.md references orchestrator"
 
 # Supporting skills the preset includes (full recursive folder copy —
 # SKILL.md + every sub-file)
-assert_file_exists "$WORK/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
-assert_file_exists "$WORK/.claude/skills/e2e-validate/recipes/ts-node.md" "e2e-validate recipes deployed"
-assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "improve-DDD-architecture deployed"
-assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/references/domain-driven-hexagon/concepts.md" "DDD TS reference deployed"
-assert_file_exists "$WORK/.claude/skills/improve-DDD-architecture/references/dotnet/concepts.md" "DDD .NET reference deployed"
-assert_file_exists "$WORK/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"
-assert_file_exists "$WORK/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
-assert_file_exists "$WORK/.claude/skills/design-critique/SKILL.md" "design-critique deployed"
-assert_file_exists "$WORK/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
-assert_file_exists "$WORK/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
+assert_file_exists "$HOME/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
+assert_file_exists "$HOME/.claude/skills/e2e-validate/recipes/ts-node.md" "e2e-validate recipes deployed"
+assert_file_exists "$HOME/.claude/skills/improve-DDD-architecture/SKILL.md" "improve-DDD-architecture deployed"
+assert_file_exists "$HOME/.claude/skills/improve-DDD-architecture/references/domain-driven-hexagon/concepts.md" "DDD TS reference deployed"
+assert_file_exists "$HOME/.claude/skills/improve-DDD-architecture/references/dotnet/concepts.md" "DDD .NET reference deployed"
+assert_file_exists "$HOME/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"
+assert_file_exists "$HOME/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
+assert_file_exists "$HOME/.claude/skills/design-critique/SKILL.md" "design-critique deployed"
+assert_file_exists "$HOME/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
+assert_file_exists "$HOME/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
 
 # New skills carry valid frontmatter (description + added_in) so the kit's
 # primitive catalog discovers them exactly like every other skill.
-assert_content_contains "$WORK/.claude/skills/e2e-validate/SKILL.md" "added_in:" "e2e-validate frontmatter has added_in"
-assert_content_contains "$WORK/.claude/skills/e2e-validate/SKILL.md" "description:" "e2e-validate frontmatter has description"
-assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "added_in:" "improve-DDD-architecture frontmatter has added_in"
-assert_content_contains "$WORK/.claude/skills/improve-DDD-architecture/SKILL.md" "description:" "improve-DDD-architecture frontmatter has description"
+assert_content_contains "$HOME/.claude/skills/e2e-validate/SKILL.md" "added_in:" "e2e-validate frontmatter has added_in"
+assert_content_contains "$HOME/.claude/skills/e2e-validate/SKILL.md" "description:" "e2e-validate frontmatter has description"
+assert_content_contains "$HOME/.claude/skills/improve-DDD-architecture/SKILL.md" "added_in:" "improve-DDD-architecture frontmatter has added_in"
+assert_content_contains "$HOME/.claude/skills/improve-DDD-architecture/SKILL.md" "description:" "improve-DDD-architecture frontmatter has description"
 
-# Core instruction lives in the canonical AGENTS.md; CLAUDE.md imports it.
-assert_file_exists "$WORK/CLAUDE.md" "CLAUDE.md generated"
-assert_content_contains "$WORK/CLAUDE.md" "@AGENTS.md" "CLAUDE.md imports canonical AGENTS.md"
-assert_content_contains "$WORK/AGENTS.md" "Core Instructions" "core instruction in canonical AGENTS.md"
-
-# State recorded — preset + plugins
-assert_content_contains "$WORK/.agent-kit.yaml" "preset: build-feature-workflow" "preset recorded"
-assert_content_contains "$WORK/.agent-kit.yaml" "build-feature-workflow" "build-feature-workflow skill in state"
-assert_content_contains "$WORK/.agent-kit.yaml" "ui-ux-pro-max" "ui-ux-pro-max plugin in state"
-assert_content_contains "$WORK/.agent-kit.yaml" "frontend-design" "frontend-design plugin in state"
-
-# Negative: code-review plugin NOT in build-feature-workflow preset (per Q-phase6 — wrong shape)
-if grep -q "code-review" "$WORK/.agent-kit.yaml"; then
-  fail "code-review should NOT be in build-feature-workflow preset (per Q-phase6)"
-else
-  ok "code-review correctly absent from build-feature-workflow preset"
-fi
+# Core instruction lives in the global CLAUDE.md.
+assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md generated"
+assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction in global CLAUDE.md"
 
 # Bootstrap smoke: orchestrator writes initial state.md
 mkdir -p "$WORK/.build-feature-workflow"
-# The installed orchestrator path under the test workspace
-INSTALLED_ORCH="$WORK/.claude/skills/build-feature-workflow/orchestrator.sh"
+# The installed orchestrator path under the isolated global skills dir
+INSTALLED_ORCH="$HOME/.claude/skills/build-feature-workflow/orchestrator.sh"
 # The installed orchestrator expects a Claude CLI on PATH. Stub it
 # with a no-op fixture so bootstrap completes without invoking real
 # Claude.

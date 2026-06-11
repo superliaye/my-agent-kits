@@ -3,13 +3,17 @@ set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$HERE/../lib/assertions.sh"
 
+# Global-only: init deploys to ~/.claude/CLAUDE.md + ~/.claude/skills/. Isolate
+# BOTH HOME and USERPROFILE (node's os.homedir() reads USERPROFILE on Windows)
+# so the global writes land in a throwaway dir, never the dev's real ~/.claude.
+TMPHOME="$(mktemp -d)"; export HOME="$TMPHOME" USERPROFILE="$TMPHOME"
 WORK="$(mktemp -d)"
-trap "rm -rf '$WORK'" EXIT
+trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --scope global \
-  || { fail "agent-kit init --scope global exited non-zero"; exit 1; }
+"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude \
+  || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive: what should land at user-scope locations Claude Code reads
 assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md (instructions concatenated)"
