@@ -11,7 +11,7 @@ requires:
   - ffmpeg
 verify_paths:
   claude: "~/.claude/skills/hyperframes"
-  codex: "~/.codex/skills/hyperframes"
+  codex: "~/.agents/skills/hyperframes"
 license: Apache-2.0
 ---
 
@@ -19,7 +19,7 @@ license: Apache-2.0
 
 Wraps [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) — an open-source, HTML-native video rendering framework built for AI agents. Write HTML compositions, render to MP4 deterministically.
 
-The kit invokes `npx skills add heygen-com/hyperframes --global --agent <claude-code|codex> --yes` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes directly to `~/.claude/skills/`, `--agent codex` to `~/.codex/skills/`. (Without `--agent`, the CLI defaults to `~/.agents/skills/` — a host-agnostic scratch dir that no host actually reads.)
+The kit invokes `npx skills add heygen-com/hyperframes --global --agent <claude-code|codex> --yes` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, `--agent codex` to `~/.agents/skills/` — which is Codex's user-skill location (`~/.codex/skills/` holds only config and Codex's bundled `.system` skills, so user skills there would be invisible).
 
 What lands in `~/.claude/skills/`:
 

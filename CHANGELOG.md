@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.20.2] - 2026-06-11
+
+### Fixed
+
+- **Bundle `verify_paths.codex` pointed at the wrong directory** ([gstack.bundle.md](.apm/bundles/gstack.bundle.md), [hyperframes.bundle.md](.apm/bundles/hyperframes.bundle.md)). Codex reads user skills from `~/.agents/skills/`, not `~/.codex/skills/` (the latter holds only Codex's config and bundled `.system` skills). Verified by the upstream `skills` CLI dry-run (`npx skills add ... --agent codex` resolves to `~/.agents/skills/<name>`) and by filesystem inspection (every installed user skill lives under `~/.agents/skills/`, while `~/.codex/skills/` contains only `.system/`). Both bundles declared `codex: "~/.codex/skills/<name>"`, so [verify.js](lib/verify.js) would report a false `MISSING` for any Codex bundle install even when it succeeded. Corrected to `~/.agents/skills/<name>`. Also fixed the bundle-authoring template in [docs/maintaining-bundles.md](docs/maintaining-bundles.md) and the backwards code comments in [deploy.js](lib/deploy.js)/[primitives.js](lib/primitives.js) that called `~/.agents/skills/` "a scratch dir no host reads" — it is, in fact, Codex's user-skill location.
+
 ## [0.20.1] - 2026-06-11
 
 ### Changed

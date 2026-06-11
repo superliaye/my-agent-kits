@@ -15,7 +15,7 @@ requires:
   - git
 verify_paths:
   claude: "~/.claude/skills/gstack"
-  codex: "~/.codex/skills/gstack"
+  codex: "~/.agents/skills/gstack"
 license: MIT
 ---
 

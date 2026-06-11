@@ -29,7 +29,7 @@ requires:                            # checked before invoking installer
   - git
 verify_paths:                        # checked by verify.js after install
   claude: "~/.claude/skills/<name>"
-  codex:  "~/.codex/skills/<name>"
+  codex:  "~/.agents/skills/<name>"   # Codex's user-skill dir, NOT ~/.codex/skills
 license: MIT
 ---
 ```
@@ -51,7 +51,7 @@ requires:
   - npx
 verify_paths:
   claude: "~/.claude/skills/<name>"
-  codex:  "~/.codex/skills/<name>"
+  codex:  "~/.agents/skills/<name>"   # Codex's user-skill dir, NOT ~/.codex/skills
 license: Apache-2.0
 ---
 ```
