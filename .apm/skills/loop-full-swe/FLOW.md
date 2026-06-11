@@ -4,32 +4,59 @@ Human-facing reference for the [`loop-swe.js`](loop-swe.js) engine. Not loaded b
 the agent (the skill loader only reads [`SKILL.md`](SKILL.md)); kept here so the
 diagram never costs run-time context.
 
-**Context management is the whole point.** Each shaded box is a separate
-**sub-agent** with its own fresh context window — it does one job and returns a
-short structured result. Your main chat never sees a sub-agent's internal work,
-only its compact result and the gate summaries. Diamonds are cheap script
-branches (no context cost); pale notes are what a phase decides or produces.
+**The point is keeping you *on* the loop, not *in* it.** Repetitive engineering
+work — scope, plan, implement, review, verify — has enough shape to be encoded
+once as a disciplined harness, then run as a loop the agent carries on its own.
+This engine is that harness: it does the work behind guardrails (bounded rounds,
+adversarial verification, escalation discipline) with evidence-backed
+understanding, so you supervise and decide the few things a human owns rather
+than drive every step. Context isolation is one of those guardrails, not the
+goal — see [ADR.md](ADR.md) for the full philosophy and the decisions that flow
+from it.
+
+```mermaid
+flowchart LR
+    Lmain([" your main chat "]):::main
+    Lagent["sub-agent<br/>isolated ctx · returns result"]:::agent
+    Lbranch{"script branch<br/>no context cost"}
+    Lnote["decision /<br/>output"]:::note
+    Lpause[["resumable<br/>pause"]]:::pause
+    Lstop[["terminal<br/>stop"]]:::stop
+    Ldone([" end state "]):::done
+
+    Lmain ~~~ Lagent ~~~ Lbranch ~~~ Lnote ~~~ Lpause ~~~ Lstop ~~~ Ldone
+
+    classDef main fill:#d6e4ff,stroke:#1f5fbf,color:#111;
+    classDef agent fill:#eef0ff,stroke:#5b5bd6,color:#111;
+    classDef note fill:#fcfbe6,stroke:#b8a93a,color:#333;
+    classDef pause fill:#fff3d6,stroke:#c08a00,color:#111;
+    classDef stop fill:#fde2e2,stroke:#c0392b,color:#111;
+    classDef done fill:#e3f6e3,stroke:#27ae60,color:#111;
+```
+
+---
 
 ```mermaid
 flowchart TD
     Main([" You — main chat<br/>launch + answer gates "]):::main --> Scope
 
-    subgraph P0 ["1 — Scope · read-only research"]
+    subgraph S1 ["/loop-research-plan — research + plan"]
+      subgraph P0 ["Scope · Explore agent · read-only"]
         Scope["survey repo + docs"]:::agent --> TL{"too big for<br/>one run?"}
         Scope -. classifies .-> SF["track: trivial /<br/>standard / architectural<br/>+ UI? + too big?"]:::note
-    end
-    TL -->|yes| GDist
-
-    subgraph P1 ["2 — Plan · survey-grade research"]
-        Plan["map architecture<br/>with file:line proof"]:::agent --> Digest
-        Plan -. writes .-> AF["architecture-impact<br/>unless trivial · success<br/>criteria · reversibility"]:::note
+      end
+      subgraph P1 ["Plan · survey-grade"]
+        Plan["work items + success<br/>criteria; map architecture<br/>w/ file:line evidence"]:::agent --> Digest
+        Plan -. writes .-> AF["plan.md +<br/>architecture-impact.md<br/>(unless trivial)"]:::note
         Digest["triage:<br/>self vs human"]:::agent --> NeedH{"need<br/>human?"}
         NeedH -->|no| Bake["fold answers<br/>into plan"]:::agent
+      end
+      TL -->|no| Plan
     end
-    TL -->|no| Plan
+    TL -->|yes| GDist
     NeedH -->|yes| GPlan
 
-    subgraph P2 ["3 — Build · up to 3 rounds"]
+    subgraph S2 ["/loop-build — implement + review · up to 3 rounds"]
         Impl["implement +<br/>commit"]:::agent --> Val{"runs +<br/>passes?"}
         Val -->|no| Impl
         Val -->|yes| Ra & Rd & Rg & Ro
@@ -65,10 +92,6 @@ flowchart TD
     classDef stop fill:#fde2e2,stroke:#c0392b,color:#111;
     classDef done fill:#e3f6e3,stroke:#27ae60,color:#111;
 ```
-
-Legend: blue = your main chat · indigo = a sub-agent (isolated context) ·
-diamond = a script branch · pale note = a decision/output · amber = resumable
-pause · red = terminal stop · green = end state.
 
 ## Where the research happens
 
