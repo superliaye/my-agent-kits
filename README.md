@@ -18,7 +18,7 @@ Stay in `~/my-agent-kits` and invoke the launcher with the target repo as the fi
 
 ```bash
 cd ~/my-agent-kits
-./bin/agent-kit init --default               # install default settings (global)
+./bin/agent-kit init --default               # install recommended defaults
 ./bin/agent-kit init ~/work/some-repo        # interactive 5-step wizard
 ./bin/agent-kit update ~/work/some-repo      # catch up to latest kit
 ./bin/agent-kit help
@@ -31,40 +31,35 @@ cd ~/work/some-repo
 ~/my-agent-kits/bin/agent-kit init
 ```
 
-To skip every prompt and install the recommended defaults (the pre-checked presets, the preset's agents, global scope), pass `--default` — the "enter through everything" path. Explicit flags still override individual defaults:
+To skip every prompt and install the recommended defaults (the pre-checked presets and the preset's agents), pass `--default` — the "enter through everything" path. Explicit flags still override individual defaults:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --default               # zero prompts, all defaults
-./bin/agent-kit init ~/work/some-repo --default --scope repo  # defaults, but repo-scoped
+./bin/agent-kit init ~/work/some-repo --default                       # zero prompts, all defaults
+./bin/agent-kit init ~/work/some-repo --default --preset productivity # defaults, but a different preset
 ```
 
 ### One-shot install (each flag is one decision)
 
-Passing `--preset`, `--agents`, and `--scope` together is enough — the wizard treats it as "you've decided" and skips all prompts:
+Passing `--preset` and `--agents` together is enough — the wizard treats it as "you've decided" and skips all prompts:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md overwrite
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude
 ```
 
-That writes a canonical `AGENTS.md` (the instructions), a thin `CLAUDE.md` that imports it via `@AGENTS.md` (overwriting any existing one), and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
+That writes a canonical `AGENTS.md` (the instructions), a thin `CLAUDE.md` that imports it via `@AGENTS.md`, and `.claude/skills/` in the target repo. No `apm.yml`, no `apm_modules/`.
 
 Common variations — change exactly the flag(s) that differ:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude,codex --scope repo --claude-md overwrite  # Codex too
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope global --claude-md overwrite      # install globally to ~/.claude/
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md concat           # preserve existing CLAUDE.md
-./bin/agent-kit init ~/work/some-repo --preset productivity --agents claude --scope repo --claude-md overwrite       # core + grill-me + hyperframes video
+./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude,codex  # Codex too
+./bin/agent-kit init ~/work/some-repo --preset productivity --agents claude        # core + grill-me + hyperframes video
 ```
 
 Flag reference:
 
-- `--default` — accept every wizard default (pre-checked presets, the preset's agents, global scope) and apply without prompting; explicit flags still override individual defaults
+- `--default` — accept every wizard default (pre-checked presets and the preset's agents) and apply without prompting; explicit flags still override individual defaults
 - `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, financial, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
-- `--scope {repo|global}` — repo-local or `~/.claude/` (and `~/.codex/`)
-- `--claude-md {overwrite|concat|skip}` — what to do if a `CLAUDE.md` already exists
-- `--codex-personal-layer` — write a gitignored `AGENTS.override.md` (Codex repo scope only)
 - `--primitives '+name,-name'` — tweak the preset's primitive set on the fly
 - `--bundles name1,name2` — external installers (e.g. `gstack`) to run after primitives deploy. Always install globally. Pass `--bundles ''` to skip all.
 
@@ -81,7 +76,7 @@ Updating:
 | Path | Purpose |
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`engineering`, `productivity`, `none`). Multi-select via `--preset a,b` |
-| `.apm/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into the canonical `AGENTS.md` (repo-scope `CLAUDE.md` imports it via `@AGENTS.md`; global scope writes them inline) |
+| `.apm/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
@@ -96,7 +91,7 @@ After `agent-kit init` in `~/work/some-repo`:
 ```text
 some-repo/
 ├── AGENTS.md           # canonical instructions — Claude imports it; Codex & other AGENTS.md-native agents read it directly
-├── CLAUDE.md           # thin `@AGENTS.md` import (global scope: carries instructions inline instead)
+├── CLAUDE.md           # thin `@AGENTS.md` import
 ├── .claude/skills/     # Claude Code reads skills here
 ├── .agents/skills/     # cross-client skills (Codex sidecar reads here; if --agents codex)
 └── .agent-kit.yaml     # wizard state — what was deployed, for `agent-kit update`
@@ -113,7 +108,7 @@ npm test
 # equivalent to: docker build -q -f test/Dockerfile.test -t my-agent-kits-test . && docker run --rm my-agent-kits-test
 ```
 
-Opt-in — run the suite on this machine (faster inner loop, but `--scope global` cases overwrite your real `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md` and may delete `~/.claude/plugins/`):
+Opt-in — run the suite on this machine (faster inner loop, but cases overwrite your real `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md` and may delete `~/.claude/plugins/`):
 
 ```bash
 npm run test:host
