@@ -4,6 +4,28 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.22.0] - 2026-06-11
+
+The global-only capstone. The kit no longer tracks per-repo state or supports a repo-scoped install — every artifact deploys to your global agent directories, and `agent-kit update` is now just a re-deploy. This release corrects all remaining documentation to describe that current behavior.
+
+### Removed
+
+- **Repo-scoped install and `--scope` support.** Bundles and skills always install globally; there is no `--scope` flag and no per-repo deploy target.
+- **Per-repo `.agent-kit.yaml` wizard state** (`writeState`). [lib/state.js](lib/state.js) now exports only `readKitVersion` — nothing writes a per-repo state file, so there is no last-deployed snapshot to diff against.
+- **CLAUDE.md merge strategies** — instructions are concatenated inline into `~/.claude/CLAUDE.md` / `~/.codex/AGENTS.md`, overwritten each run.
+- **The Codex personal layer** (`AGENTS.override.md`).
+- **The stale `promo/` demo artifact** (HyperFrames composition + rendered MP4) — a one-off fun artifact, unreferenced by any code or docs.
+
+### Changed
+
+- **`agent-kit update` is now a stateless global re-deploy.** It re-resolves preset/agents/primitives exactly as `init --default` would (honoring the same `--preset`/`--agents` overrides) and re-runs the idempotent deploy — no per-repo diff, and no `--content-only` / `--adopt-preset-defaults` / `--dry-run` ([lib/update.js](lib/update.js)).
+- **`added_in:` frontmatter is metadata only.** It records which kit version a primitive shipped in; the old update-time "new in preset" delta detection that read it is gone, so `agent-kit update` does not consult it ([lib/primitives.js](lib/primitives.js)).
+- **Docs corrected to global-only** across [README.md](README.md), the `update` help in [lib/cli.js](lib/cli.js), [docs/maintaining-bundles.md](docs/maintaining-bundles.md), and [.claude/skills/onboard-primitive/SKILL.md](.claude/skills/onboard-primitive/SKILL.md). The README "Spec & Plan" links are relabeled as dated design history.
+
+### Added
+
+- **Global Codex skill deployment** to `~/.agents/skills/<name>/`, each with a manual-only `~/.agents/skills/<name>/agents/openai.yaml` sidecar — now documented in [README.md](README.md) and [.claude/skills/onboard-primitive/SKILL.md](.claude/skills/onboard-primitive/SKILL.md).
+
 ## [0.21.0] - 2026-06-11
 
 ### Added
