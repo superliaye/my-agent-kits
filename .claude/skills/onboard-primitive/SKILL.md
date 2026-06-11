@@ -10,7 +10,7 @@ description: Walk through adding a new primitive (instruction / skill / plugin /
 | You want to add… | Primitive type | Lives at | Reaches consumers as |
 | --- | --- | --- | --- |
 | A repo-agnostic rule concatenated into `CLAUDE.md` / `AGENTS.md` | `instruction` | `.apm/instructions/<name>.instructions.md` | Block in `CLAUDE.md` / `AGENTS.md` |
-| A multi-step workflow + optional slash command | `skill` | `.apm/skills/<name>/SKILL.md` (folder) | `.claude/skills/<name>/` in the consumer repo |
+| A multi-step workflow + optional slash command | `skill` | `.apm/skills/<name>/SKILL.md` (folder) | `~/.claude/skills/<name>/` (and `~/.agents/skills/<name>/` for Codex, with a manual-only `agents/openai.yaml` sidecar) |
 | A Claude Code marketplace plugin pointer | `plugin` | `.apm/plugins/<name>.plugin.md` | `claude plugin install` (user scope) |
 | A wrapper around an external installer (e.g. gstack, hyperframes) | `bundle` | `.apm/bundles/<name>.bundle.md` | Installed by upstream installer; symlinked or copied into `~/.claude/skills/` |
 | A hook script | `hook` | `.apm/hooks/<name>.sh` | (Wiring is TODO — verify before relying) |
@@ -28,7 +28,7 @@ Copy the nearest neighbor of the same type. Don't write frontmatter from scratch
 - **Bundle (setup-script kind):** copy `.apm/bundles/gstack.bundle.md`. Fields: `source`, `pinned_commit` (40-char SHA), `installer.command`, `installer.flags`, `host_flag_map`, `requires`, `verify_paths`.
 - **Bundle (npx-skills kind):** copy `.apm/bundles/hyperframes.bundle.md`. Fields: `installer.kind: npx-skills`, `installer.package`, `requires`, `verify_paths`. The upstream `skills` CLI does the host-aware install; we just pass `--agent` and `--skill '*'`.
 
-**Always set** `added_in: <next-kit-version>` in the new primitive's frontmatter — this is what `agent-kit update` reads to detect "new in preset" deltas.
+**Always set** `added_in: <next-kit-version>` in the new primitive's frontmatter — it records which kit version the primitive shipped in. (Metadata only: `agent-kit update` is a stateless global re-deploy with no per-repo delta detection, so it does not read `added_in` to surface "new in preset.")
 
 **Unshipped assets (skills only):** if a skill folder carries heavy provenance/reproducibility files (evidence reports, source corpora) that an agent does NOT need at use-time, put them in an `_unshipped/` subdirectory inside the skill folder. `deploy.js` excludes any `_unshipped/` segment from the recursive copy, so those files stay in the kit repo but never bloat a consumer install. Point the SKILL.md/README references at `_unshipped/<file>` and note they aren't bundled into deployed installs.
 
@@ -40,7 +40,7 @@ If the primitive should ship by default with a preset, add its name to that pres
 # presets/<name>.yaml
 primitives:
   skills:
-    - my-new-skill        # already-deployed kit users will see this on `agent-kit update`
+    - my-new-skill        # ships with this preset; users get it on the next `agent-kit init`/`update`
 ```
 
 Omit the preset edit if the primitive is opt-in only (via `--primitives '+name'`).
@@ -63,7 +63,7 @@ For a feature add, this is **minor** (e.g. `0.8.0` → `0.9.0`). For a fix only,
 
 1. **`package.json`** — bump `version`, then run `npm install --package-lock-only` to sync `package-lock.json`'s `version` field. Skipping this leaves the lockfile stale, so the first `npm install` after any clone (e.g. `bootstrap.sh` during `agent-kit init`) rewrites it and produces a spurious diff.
 2. **`CHANGELOG.md`** — add a new top section under `## [X.Y.Z] - YYYY-MM-DD` with `### Added` / `### Changed` / `### Removed` sub-sections per [Keep a Changelog](https://keepachangelog.com). Lead with what *changed for consumers*, not internal refactors.
-3. **`added_in:`** in the new primitive's frontmatter must match the version you're bumping to (step 1). Without this, `agent-kit update` won't surface the primitive as "new in preset" to existing consumers.
+3. **`added_in:`** in the new primitive's frontmatter must match the version you're bumping to (step 1) so the frontmatter records which kit version it shipped in. It is metadata only — `agent-kit update` re-deploys the whole resolved working set and does not read `added_in` for any delta.
 
 ## 6. Verify
 
@@ -72,7 +72,7 @@ npm test            # Docker (default)
 npm run test:host   # this machine — touches real ~/.claude/
 ```
 
-Expected: full pass in Docker. Host mode passes the same case set when `~/.claude/` is in a clean enough state — but `--scope global` cases trip on pre-existing artifacts (e.g. `~/.claude/rules/`).
+Expected: full pass in Docker. Host mode passes the same case set when `~/.claude/` is in a clean enough state — but cases can trip on pre-existing global artifacts (e.g. `~/.claude/rules/`).
 
 ## 7. Commit
 
