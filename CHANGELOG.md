@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.23.0] - 2026-06-11
+
+### Removed
+
+- **The `build-feature-workflow` skill and preset, in full.** It is superseded by `loop-full-swe` (the architecture-aware research→plan→implement+review→retro loop), which covers the same ground. Deleted: the skill (`.apm/skills/build-feature-workflow/` — orchestrator, lib, 13 phase prompts, state template), its preset (`presets/build-feature-workflow.yaml`, also dropped from the wizard's default-selected set in [lib/init.js](lib/init.js)), its design docs (`docs/design/build-feature-workflow-{skill,state-machine}.md`), and its tests (`test/cases/build-feature-workflow-{preset,state-machine}.sh`, `test/lib/build-feature-workflow-fixture-runner.sh`). The shared supporting skills it used (`e2e-validate`, `improve-DDD-architecture`, `improve-codebase-architecture`, `diagnose`, `design-critique`, `web-visual-loop`) are retained — `feature-loop` and `loop-full-swe` still use them; their `/build-feature-workflow`-specific phrasing was scrubbed.
+
 ## [0.22.0] - 2026-06-11
 
 The global-only capstone. The kit no longer tracks per-repo state or supports a repo-scoped install — every artifact deploys to your global agent directories, and `agent-kit update` is now just a re-deploy. This release corrects all remaining documentation to describe that current behavior.

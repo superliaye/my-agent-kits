@@ -1,5 +1,5 @@
 ---
-description: Review code against domain-driven design and hexagonal architecture principles. Surfaces anemic models, infrastructure leaking into the domain, aggregate-boundary violations, ubiquitous-language drift, misplaced business logic, and missing anti-corruption layers. Use when the user wants a DDD review, asks whether code follows DDD/hexagonal/ports-and-adapters, or as the DDD reviewer in /build-feature-workflow Phase 6.
+description: Review code against domain-driven design and hexagonal architecture principles. Surfaces anemic models, infrastructure leaking into the domain, aggregate-boundary violations, ubiquitous-language drift, misplaced business logic, and missing anti-corruption layers. Use when the user wants a DDD review, asks whether code follows DDD/hexagonal/ports-and-adapters, or as the DDD reviewer leaf in an orchestrated review loop.
 added_in: 0.14.0
 upstream: https://github.com/Sairyss/domain-driven-hexagon
 ---
@@ -149,8 +149,8 @@ DDD is for complex domains. For simple CRUD, a thin slice, or a
 prototype, full layering is over-engineering — say so rather than
 inventing violations. "Use as many layers as the domain needs; it's
 easier to refactor over-design than no design." Calibrate findings to
-the repo's actual complexity (and to `architecture-impact.md` when run
-inside `/build-feature-workflow`).
+the repo's actual complexity (and to any architecture-impact notes the
+orchestrating loop provides).
 
 - **Classify the domain first.** *Rule-rich* domains (invariants,
   calculations, policy — e.g. billing, scheduling) reward **tactical**
@@ -177,10 +177,9 @@ inside `/build-feature-workflow`).
 
 - **Standalone:** present findings grouped by severity, each with
   `file:line` and the principle, then a short "top issues" summary.
-- **Inside `/build-feature-workflow` Phase 6:** write raw findings (no confidence
-  scores) to the review file the phase prompt specifies; Phase 7
-  triages. Do not mutate build-feature-workflow state — the lead reviewer does the
-  bookkeeping.
+- **As a reviewer leaf in an orchestrated loop:** return raw findings in
+  the structure the orchestrator expects and let it triage; don't do the
+  cross-finding bookkeeping yourself.
 
 ## References
 
