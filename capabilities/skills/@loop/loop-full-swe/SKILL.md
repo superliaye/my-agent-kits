@@ -191,7 +191,7 @@ audit them:
 ## Files
 
 ```
-capabilities/skills/loop-full-swe/
+loop-full-swe/
 ├── SKILL.md      ← this file
 └── loop-swe.js   ← the shared engine (also launched by the 3 stage skills)
 ```
