@@ -57,7 +57,8 @@ flowchart TD
     NeedH -->|yes| GPlan
 
     subgraph S2 ["/loop-build — implement + review · up to 3 rounds"]
-        Impl["implement +<br/>commit"]:::agent --> Val{"runs +<br/>passes?"}
+        Impl["implement +<br/>commit"]:::agent --> Eval
+        Eval["validate · e2e-validate<br/>runs? · meets success criteria?<br/>· screenshot if UI"]:::agent --> Val{"passing?"}
         Val -->|no| Impl
         Val -->|yes| Ra & Rd & Rg & Ro
         Ra["review:<br/>architecture"]:::agent --> Vfy
