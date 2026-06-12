@@ -1,0 +1,15 @@
+name: financial
+description: Financial research kit — core conduct rule + the serenity-chokepoint-market-research skill for source-grounded supply-chain chokepoint analysis. Research framework, not trading signals.
+default_agents: [claude]
+
+primitives:
+  instructions:
+    - core
+  skills:
+    - serenity-chokepoint-market-research
+  plugins: []
+  mcp: []
+  hooks: []
+  bundles: []
+
+apm_dependencies: []

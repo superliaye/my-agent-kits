@@ -30,6 +30,8 @@ Copy the nearest neighbor of the same type. Don't write frontmatter from scratch
 
 **Always set** `added_in: <next-kit-version>` in the new primitive's frontmatter — this is what `agent-kit update` reads to detect "new in preset" deltas.
 
+**Unshipped assets (skills only):** if a skill folder carries heavy provenance/reproducibility files (evidence reports, source corpora) that an agent does NOT need at use-time, put them in an `_unshipped/` subdirectory inside the skill folder. `deploy.js` excludes any `_unshipped/` segment from the recursive copy, so those files stay in the kit repo but never bloat a consumer install. Point the SKILL.md/README references at `_unshipped/<file>` and note they aren't bundled into deployed installs.
+
 ## 3. Optionally wire into a preset
 
 If the primitive should ship by default with a preset, add its name to that preset's `primitives.<type>` array:

@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.21.0] - 2026-06-11
+
+### Added
+
+- **`financial` preset** ([presets/financial.yaml](presets/financial.yaml)) — a research kit pairing the `core` conduct rule with one new skill: **`serenity-chokepoint-market-research`** ([.apm/skills/serenity-chokepoint-market-research/](.apm/skills/serenity-chokepoint-market-research/)). A source-grounded procedure for mapping a demand trend to the binding supply-chain chokepoint, scoring it, and stress-testing the thesis against current primary sources (it refuses stale data and outputs research, not trading signals). Ships `SKILL.md`, `README.md`, a 20-section `templates/theme_analysis.md`, and a worked `examples/example_power_transformers.md`. New test: [test/cases/financial-preset.sh](test/cases/financial-preset.sh).
+- **`_unshipped/` convention for skill assets** ([deploy.js](lib/deploy.js)). A skill folder may now carry an `_unshipped/` subdirectory for maintainer-only provenance/reproducibility files (evidence reports, source corpora) that an agent does not need at use-time. `deploy.js` excludes any `_unshipped/` segment from the recursive copy into consumer repos, so those files stay in the kit repo but never bloat an install. Documented in the `onboard-primitive` maintainer skill. The serenity skill uses it for its 5MB evidence report + cited-post corpus + full retrieved archive.
+
 ## [0.20.2] - 2026-06-11
 
 ### Fixed

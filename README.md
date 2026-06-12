@@ -60,7 +60,7 @@ Common variations — change exactly the flag(s) that differ:
 Flag reference:
 
 - `--default` — accept every wizard default (pre-checked presets, the preset's agents, global scope) and apply without prompting; explicit flags still override individual defaults
-- `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
+- `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, financial, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
 - `--scope {repo|global}` — repo-local or `~/.claude/` (and `~/.codex/`)
 - `--claude-md {overwrite|concat|skip}` — what to do if a `CLAUDE.md` already exists
