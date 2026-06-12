@@ -79,7 +79,7 @@ node lib/wizard.js update --preset engineering --agents claude  # re-deploy a sp
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `feature-loop`, `loop-full-swe`, `financial`, `none`). Multi-select via `--preset a,b` |
 | `capabilities/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
-| `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
+| `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. Skills may optionally sit one level under an `@`-prefixed grouping folder (e.g. `skills/@my/<name>/`, `skills/@matt-pocock/<name>/`) for source organization; deploy flattens them back to `<skillsRoot>/<name>/`, so consumption is unchanged. |
 | `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
 | `bin/agent-kit` | Bash convenience launcher (`./bin/agent-kit …`) that just execs `node lib/wizard.js`; the Node command works the same in any shell |

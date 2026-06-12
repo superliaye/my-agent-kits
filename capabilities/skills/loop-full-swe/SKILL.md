@@ -106,7 +106,7 @@ independent. Present all three paths with `AskUserQuestion` and let the user cho
   Lead with this when the breakdown looks like one coherent change split by file
   count rather than by genuine independence.
 - **Distribute to issues (the engine's recommendation).** Hand the returned
-  `issues` to [`/to-issues`](../to-issues/SKILL.md) and stop. Do not implement.
+  `issues` to `/to-issues` and stop. Do not implement.
 - **Build the whole breakdown now (opt-in).** Drive the sequenced chain in this
   session — see [Building the breakdown chain](#building-the-breakdown-chain-opt-in).
 
@@ -118,7 +118,7 @@ topo-sortable by id.
 
 1. **Default stays distribute-only.** The continue is **opt-in**. Unless the user
    asks to build the whole breakdown now, hand the returned `issues` to
-   [`/to-issues`](../to-issues/SKILL.md) and stop. Do not implement.
+   `/to-issues` and stop. Do not implement.
 
 2. **One human checkpoint.** If the user opts in, present the breakdown — each
    issue's `id` + `title` in topo order with its `dependsOn` ids — and ask the

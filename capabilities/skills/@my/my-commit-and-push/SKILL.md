@@ -9,7 +9,7 @@ Create a git commit and push, following best practices:
 
 1. Run git status and git diff to see changes
 2. Analyze all changes (not just latest)
-3. Create a consise one line commit message about the change
+3. Create a concise one line commit message about the change
 4. After successful commit, push to the remote tracking branch
 5. (optional) If this is the first push of the branch, follow these rules to generate a PR description:
 ```

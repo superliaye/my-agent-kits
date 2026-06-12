@@ -39,7 +39,7 @@ reach you. No code is written — it stops after planning.
    |---|---|---|
    | `plan-done` | Plan is clear, nothing needs you | Relay `plan.md` under the returned `artifactRoot` and the auto-resolved decisions; tell the user it's ready for [`/loop-build`](../loop-build/SKILL.md). |
    | `plan` | The digest kept open questions for you | Surface each `needsHuman` item (options + recommendation + reversibility) with `AskUserQuestion`, then **resume** (step 3). |
-   | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md); do not plan further here. |
+   | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to `/to-issues`; do not plan further here. |
 
 3. **Resolve and resume.** Collect answers into a map keyed by each item's `id`,
    then continue the same run:
