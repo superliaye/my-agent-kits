@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/to-prd/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Last synced**: 2026-06-12 (vendored at upstream HEAD `694fa30`)
 - **Files vendored**:
   - `SKILL.md`
 

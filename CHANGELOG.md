@@ -4,6 +4,16 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.26.0] - 2026-06-12
+
+Re-sync of the `@matt-pocock` vendored skills against upstream HEAD `694fa30` (2026-06-10). Content-only; no new files vendored, no `added_in` changes (these are re-syncs, not new capabilities). The other seven 1.1.0-era matt-pocock skills were unchanged upstream and left untouched.
+
+### Changed
+
+- **`to-prd`** — step 2 of the PRD process reworked from a "deep modules" framing to a "test seams" framing ("prefer existing seams, use the highest seam possible"). `upstream_version` → `2026-06-10 (694fa30)`.
+- **`grill-with-docs`** — `CONTEXT-FORMAT.md` Rules block cleaned up: dropped the three bullets that referenced sections upstream had already removed (`Flag conflicts explicitly`, `Show relationships`, `Write an example dialogue`). This resolves the "Known upstream inconsistency (1.1.0)" previously recorded in its `SOURCE.md`, which is now removed. `upstream_version` → `2026-06-10 (694fa30)`.
+- **`teach`** — `SKILL.md` refreshed: adds a "Fluency vs Storage Strength" subsection, splits Knowledge/Skills guidance (difficulty as enemy vs. tool), and adds mutable-mission handling and primary-source/anchor-link requirements per lesson. Local frontmatter mods preserved (no `name`, `disable-model-invocation` left unset, kit description). `upstream_version` `2026-06-08 (2bf7005)` → `2026-06-10 (694fa30)`.
+
 ## [0.25.0] - 2026-06-12
 
 De-APM and vocabulary cleanup. The kit never invoked APM — `.apm/` was only a directory name and `deploy.js` copied files directly — but the naming and dead config implied otherwise. This release renames the core concept to **capability**, removes every APM vestige, and drops the last repo-scoped artifacts.
