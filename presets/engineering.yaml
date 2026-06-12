@@ -12,9 +12,8 @@ capabilities:
     - my-commit-and-push
     - my-create-pr
     - my-summarize-changes
+    - my-process-pr-comments
     - my-fix-build
-    - my-explain
-    - my-clean-code
     - grill-me
     - grill-with-docs
     - diagnose
