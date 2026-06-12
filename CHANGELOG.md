@@ -4,6 +4,23 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.27.0] - 2026-06-12
+
+Durable install manifest. `init` establishes the selection (from the wizard defaults) and records it in `~/.agent-kit/manifest.json`; `update` is now where an existing install changes. This fixes the long-standing bug where `update` silently reverted a customized install back to the default presets (it resolved its working set from `DEFAULT_SELECTED_PRESETS`, never from what was actually installed), and it wires up the previously-orphaned bundle-pin skip so an unchanged bundle no longer re-runs its expensive installer on every `update`.
+
+### Added
+
+- **`~/.agent-kit/manifest.json`** ([lib/manifest.js](lib/manifest.js)) — the durable, agent-neutral (Claude + Codex) record of what agent-kit owns: selected skills, instructions, plugins, and bundles (with their installed pin). Lives in `HOME`, not under the disposable bundle cache root. It is the source of truth `update` replays and the ownership ledger that bounds what agent-kit may auto-remove.
+- **Two-mode `update`.** `agent-kit update` is an interactive adjust — the wizard pre-checks your current manifest selection ([lib/pickers.js](lib/pickers.js)) so you only toggle the on/off delta; unticking a capability removes it. `agent-kit update --current` is the non-interactive replay: re-apply the current selection at the new kit version. With no TTY (piped / CI) `update` falls back to replay so it never hangs on a prompt.
+- **Deletion reconciliation.** `init` removes the deployed dir of any skill dropped from the prior manifest's selection (re-running `init` resets to defaults); `update` removes any skill its final selection no longer deploys — an interactive untick or a capability the current kit no longer ships (the "removed-after-X" semantic, no `deleted_in` frontmatter needed). External installers (bundles, plugins) are never blind-deleted — they get an informed-manual hint.
+- **Bundle pin-skip.** A bundle whose manifest pin already matches the kit pin skips its installer entirely instead of re-cloning and re-running setup on every `update`; a stale pin (maintainer bump) re-runs it.
+- **Plugins are install-if-absent.** A plugin already present in `installed_plugins.json` is left untouched (Claude Code auto-updates plugins at startup), and `update` no longer forces a `claude plugin update`. Previously every `deploy()` re-ran `claude plugin marketplace add` + `claude plugin install` for each selected plugin, so an unchanged `update` reinstalled all plugins (e.g. `ui-ux-pro-max`, `superpowers`) over the network. Now an unchanged `update` only re-copies skills (cheap) and skips present plugins and pin-matched bundles.
+
+### Changed (breaking)
+
+- **`agent-kit update` no longer accepts selection flags** (`--preset` / `--agents` / `--capabilities`). Selection changes happen interactively or are replayed with `--current`. With no manifest it refuses with an actionable error — existing users must run `agent-kit init` once to establish the manifest.
+- **Ownership rule.** In the manifest → agent-kit may manage it. On disk but absent from the manifest → user-installed, left untouched.
+
 ## [0.26.0] - 2026-06-12
 
 Re-sync of the `@matt-pocock` vendored skills against upstream HEAD `694fa30` (2026-06-10). Content-only; no new files vendored, no `added_in` changes (these are re-syncs, not new capabilities). The other seven 1.1.0-era matt-pocock skills were unchanged upstream and left untouched.

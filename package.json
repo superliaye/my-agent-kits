@@ -1,6 +1,6 @@
 {
   "name": "my-agent-kits",
-  "version": "0.26.0",
+  "version": "0.27.0",
   "description": "Personal AI agent artifact wizard for Claude Code and Codex CLI",
   "private": true,
   "type": "module",
@@ -8,8 +8,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "init": "node lib/wizard.js init",
+    "init": "npm install && node lib/wizard.js init",
     "init-default": "npm install && node lib/wizard.js init --default",
+    "update": "npm install && node lib/wizard.js update",
+    "update-current": "npm install && node lib/wizard.js update --current",
     "test": "docker build -q -f test/Dockerfile.test -t my-agent-kits-test . && docker run --rm my-agent-kits-test",
     "test:host": "AGENT_KIT_TEST_HOST=1 bash test/run-tests.sh"
   },
