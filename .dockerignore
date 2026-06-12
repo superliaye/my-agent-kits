@@ -1,7 +1,6 @@
 node_modules/
 apm_modules/
 .claude/
-.agent-kit.yaml
 .git/
 .vscode/
 .idea/

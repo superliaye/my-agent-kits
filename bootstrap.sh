@@ -3,7 +3,7 @@
 # Idempotent: safe to re-run. Does NOT modify your PATH or shell rc files.
 #
 # After this completes, invoke the wizard via the launcher in this repo:
-#   ./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude --scope repo --claude-md overwrite
+#   ./bin/agent-kit init --preset engineering --agents claude
 
 set -e
 
