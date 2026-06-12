@@ -59,6 +59,14 @@ assert_file_exists "$HOME/.claude/skills/electron-visual-loop/SKILL.md" "electro
 assert_file_exists "$HOME/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
 assert_file_exists "$HOME/.claude/skills/to-issues/SKILL.md" "to-issues deployed"
 
+# SOURCE.md is maintainer-only upstream provenance — it must NOT deploy
+# (electron-visual-loop carries one, having been copied from an upstream repo).
+if [ -f "$HOME/.claude/skills/electron-visual-loop/SOURCE.md" ]; then
+  fail "SOURCE.md should be excluded from deployed skill"
+else
+  ok "SOURCE.md excluded from deployed skill"
+fi
+
 # Core instruction lives in the global CLAUDE.md.
 assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md generated"
 assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction in global CLAUDE.md"
