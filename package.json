@@ -8,6 +8,8 @@
     "node": ">=20"
   },
   "scripts": {
+    "init": "node lib/wizard.js init",
+    "init-default": "npm install && node lib/wizard.js init --default",
     "test": "docker build -q -f test/Dockerfile.test -t my-agent-kits-test . && docker run --rm my-agent-kits-test",
     "test:host": "AGENT_KIT_TEST_HOST=1 bash test/run-tests.sh"
   },

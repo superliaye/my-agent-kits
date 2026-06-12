@@ -7,34 +7,36 @@ Personal AI agent artifact wizard for Claude Code and Codex CLI. Bootstrap or up
 ```bash
 git clone https://github.com/superliaye/my-agent-kits.git ~/my-agent-kits
 cd ~/my-agent-kits
-bash bootstrap.sh
+npm install
 ```
 
-Requires Node 20+ and Git. `bootstrap.sh` only installs Node deps — it does **not** touch your PATH or shell rc files.
+Requires Node 20+ and Git. This only installs Node deps — it does **not** touch your PATH or shell rc files. (Bash/macOS/Linux users can run `bash bootstrap.sh` instead; it does the same `npm install` and additionally marks the `bin/agent-kit` launcher executable.)
 
 ## Usage
 
-Invoke the launcher from the kit directory (or anywhere via its absolute path) — every run deploys to your global agent directories, never into a repo:
+Invoke the Node entrypoint from the kit directory — this works identically in PowerShell, cmd, and bash. Every run deploys to your global agent directories, never into a repo:
 
-```bash
+```text
 cd ~/my-agent-kits
-./bin/agent-kit init --default   # install recommended defaults, no prompts
-./bin/agent-kit init             # interactive 5-step wizard
-./bin/agent-kit update           # re-deploy the kit to your global install
-./bin/agent-kit help
+node lib/wizard.js init --default   # install recommended defaults, no prompts
+node lib/wizard.js init             # interactive 5-step wizard
+node lib/wizard.js update           # re-deploy the kit to your global install
+node lib/wizard.js help
 ```
 
 You can also invoke it by absolute path from anywhere:
 
-```bash
-~/my-agent-kits/bin/agent-kit init
+```text
+node ~/my-agent-kits/lib/wizard.js init
 ```
+
+Bash/macOS/Linux users have a shorter convenience alias for the same thing: `./bin/agent-kit <command>` (e.g. `./bin/agent-kit init`).
 
 To skip every prompt and install the recommended defaults (the pre-checked presets and the preset's agents), pass `--default` — the "enter through everything" path. Explicit flags still override individual defaults:
 
 ```bash
-./bin/agent-kit init --default                       # zero prompts, all defaults
-./bin/agent-kit init --default --preset productivity # defaults, but a different preset
+node lib/wizard.js init --default                       # zero prompts, all defaults
+node lib/wizard.js init --default --preset productivity # defaults, but a different preset
 ```
 
 ### One-shot install (each flag is one decision)
@@ -42,7 +44,7 @@ To skip every prompt and install the recommended defaults (the pre-checked prese
 Passing `--preset` and `--agents` together is enough — the wizard treats it as "you've decided" and skips all prompts:
 
 ```bash
-./bin/agent-kit init --preset engineering --agents claude
+node lib/wizard.js init --preset engineering --agents claude
 ```
 
 That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `--agents codex`) `~/.codex/AGENTS.md`, and copies skills to `~/.claude/skills/` and `~/.agents/skills/`.
@@ -50,8 +52,8 @@ That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `
 Common variations — change exactly the flag(s) that differ:
 
 ```bash
-./bin/agent-kit init --preset engineering --agents claude,codex  # Codex too
-./bin/agent-kit init --preset productivity --agents claude        # productivity preset
+node lib/wizard.js init --preset engineering --agents claude,codex  # Codex too
+node lib/wizard.js init --preset productivity --agents claude        # productivity preset
 ```
 
 Flag reference:
@@ -67,8 +69,8 @@ Updating:
 `agent-kit update` is a stateless global re-deploy. There is no per-repo state to diff against — it re-resolves the working set the same way `init --default` does (same `--preset`/`--agents` shape) and re-runs the idempotent deploy, so the global install matches the current kit:
 
 ```bash
-./bin/agent-kit update                                  # re-resolve defaults, re-deploy globally
-./bin/agent-kit update --preset engineering --agents claude  # re-deploy a specific preset/agent set
+node lib/wizard.js update                                  # re-resolve defaults, re-deploy globally
+node lib/wizard.js update --preset engineering --agents claude  # re-deploy a specific preset/agent set
 ```
 
 ## What's in here
@@ -80,7 +82,7 @@ Updating:
 | `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
-| `bin/agent-kit` | Launcher — invoke as `./bin/agent-kit` from the kit dir, or via absolute path from anywhere |
+| `bin/agent-kit` | Bash convenience launcher (`./bin/agent-kit …`) that just execs `node lib/wizard.js`; the Node command works the same in any shell |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |
 
@@ -114,7 +116,7 @@ Opt-in — run the suite on this machine (faster inner loop, but cases overwrite
 ```bash
 npm run test:host
 # or via the CLI:
-./bin/agent-kit test --host
+node lib/wizard.js test --host
 ```
 
 Host mode is gated behind `AGENT_KIT_TEST_HOST=1` so direct `bash test/run-tests.sh` runs refuse without the env var; use the npm script or the `--host` flag.
