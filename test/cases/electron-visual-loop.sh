@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Opt-in primitive: electron-visual-loop is NOT in any preset by default.
-# Verify it deploys when added to a preset's primitives.skills list at init time.
+# Opt-in capability: electron-visual-loop is NOT in any preset by default.
+# Verify it deploys when added to a preset's capabilities.skills list at init time.
 # Pattern: temporarily rewrite `none.yaml` with the skill added, init, restore.
 # (Avoids the `node -e require(yaml)` Windows path-translation issue.)
 
@@ -24,7 +24,7 @@ name: none
 description: Empty starting point — pick everything in the customize step
 default_agents: [claude]
 
-primitives:
+capabilities:
   instructions: []
   skills:
     - electron-visual-loop
@@ -33,7 +33,6 @@ primitives:
   hooks: []
   bundles: []
 
-apm_dependencies: []
 EOF
 
 cd "$WORK"

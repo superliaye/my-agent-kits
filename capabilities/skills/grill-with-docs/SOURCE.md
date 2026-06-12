@@ -1,0 +1,31 @@
+# Source
+
+Vendored from an upstream repo. To sync with upstream, follow the steps below.
+
+## Upstream
+
+- **Repo**: <https://github.com/mattpocock/skills>
+- **Path**: `skills/engineering/grill-with-docs/`
+- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Files vendored**:
+  - `SKILL.md`
+  - `CONTEXT-FORMAT.md`
+  - `ADR-FORMAT.md`
+
+## Re-sync procedure
+
+1. Fetch the upstream files at the path above.
+2. Diff against the current vendored copy.
+3. Replay any local modifications (see below) on top of the new content.
+4. Bump `upstream_version` in `SKILL.md` frontmatter and `Last synced` above.
+5. Bump `package.json` version and `added_in` in `SKILL.md` if the content materially changed.
+
+## Local modifications
+
+- Dropped upstream's `name: grill-with-docs` field — the kit's capability loader derives the name from the folder.
+- Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
+- `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+
+## Known upstream inconsistency (1.1.0)
+
+Upstream commit `e7df78b` (2026-05-19) removed three sections from the `## Structure` template in `CONTEXT-FORMAT.md` (`## Relationships`, `## Example dialogue`, `## Flagged ambiguities`) but left the `## Rules` block still referencing them ("Flag conflicts explicitly" / "Write an example dialogue"). Vendored as-is to mirror upstream; revisit if upstream patches this.

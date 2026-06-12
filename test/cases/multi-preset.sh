@@ -10,7 +10,7 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-# --preset accepts a comma-separated list. The resulting primitive set is the
+# --preset accepts a comma-separated list. The resulting capability set is the
 # union of all named presets, deduped per type.
 export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 

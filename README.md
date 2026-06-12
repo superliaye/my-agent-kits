@@ -10,7 +10,7 @@ cd ~/my-agent-kits
 bash bootstrap.sh
 ```
 
-Requires Node 20+ and Git. No APM CLI dependency. `bootstrap.sh` only installs Node deps — it does **not** touch your PATH or shell rc files.
+Requires Node 20+ and Git. `bootstrap.sh` only installs Node deps — it does **not** touch your PATH or shell rc files.
 
 ## Usage
 
@@ -45,7 +45,7 @@ Passing `--preset` and `--agents` together is enough — the wizard treats it as
 ./bin/agent-kit init --preset engineering --agents claude
 ```
 
-That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `--agents codex`) `~/.codex/AGENTS.md`, and copies skills to `~/.claude/skills/` and `~/.agents/skills/`. No `apm.yml`, no `apm_modules/`.
+That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `--agents codex`) `~/.codex/AGENTS.md`, and copies skills to `~/.claude/skills/` and `~/.agents/skills/`.
 
 Common variations — change exactly the flag(s) that differ:
 
@@ -57,10 +57,10 @@ Common variations — change exactly the flag(s) that differ:
 Flag reference:
 
 - `--default` — accept every wizard default (pre-checked presets and the preset's agents) and apply without prompting; explicit flags still override individual defaults
-- `--preset NAME[,NAME2]` — one or more of `{engineering, experimenting-engineering, productivity, experimenting-productivity, feature-loop, loop-full-swe, financial, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
+- `--preset NAME[,NAME2]` — one or more of `{engineering, experimenting-engineering, productivity, experimenting-productivity, feature-loop, loop-full-swe, financial, none}`. Comma-separated names merge capabilities (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
-- `--primitives '+name,-name'` — tweak the preset's primitive set on the fly
-- `--bundles name1,name2` — external installers (e.g. `gstack`) to run after primitives deploy. Always install globally. Pass `--bundles ''` to skip all.
+- `--capabilities '+name,-name'` — tweak the preset's capability set on the fly
+- `--bundles name1,name2` — external installers (e.g. `gstack`) to run after capabilities deploy. Always install globally. Pass `--bundles ''` to skip all.
 
 Updating:
 
@@ -76,10 +76,10 @@ Updating:
 | Path | Purpose |
 |---|---|
 | `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `feature-loop`, `loop-full-swe`, `financial`, `none`). Multi-select via `--preset a,b` |
-| `.apm/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
-| `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
-| `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
-| `.apm/bundles/*.bundle.md` | External installers wrapped as deployable primitives (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
+| `capabilities/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
+| `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
+| `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
+| `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
 | `bin/agent-kit` | Launcher — invoke as `./bin/agent-kit` from the kit dir, or via absolute path from anywhere |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |
@@ -98,7 +98,7 @@ lands in any repo. There is no repo-local state file:
                         #   ~/.agents/skills/<name>/agents/openai.yaml sidecar.
 ```
 
-That's it. No `apm.yml`, no `apm_modules/`, no per-rule `.claude/rules/*.md` files, no per-repo state file, and no instructions or skills copied into the repo itself.
+That's it. No per-rule `.claude/rules/*.md` files, no per-repo state file, and no instructions or skills copied into the repo itself.
 
 ## Tests
 
@@ -118,10 +118,3 @@ npm run test:host
 ```
 
 Host mode is gated behind `AGENT_KIT_TEST_HOST=1` so direct `bash test/run-tests.sh` runs refuse without the env var; use the npm script or the `--host` flag.
-
-## Design history (dated archives)
-
-These are point-in-time records of the original installer design, kept for context. They describe the architecture as it stood when written (May 2026) and predate the global-only refactor — they are **not** a description of current behavior. For current behavior, see the sections above.
-
-- Design spec (2026-05-08): [`docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md`](docs/superpowers/specs/2026-05-08-agent-kit-installer-design.md)
-- Implementation plan (2026-05-08): [`docs/superpowers/plans/2026-05-08-agent-kit-installer.md`](docs/superpowers/plans/2026-05-08-agent-kit-installer.md)

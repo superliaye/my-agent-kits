@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       git ca-certificates curl bash \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI (used by the plugin primitive — `claude plugin install`)
+# Install Claude Code CLI (used by the plugin capability — `claude plugin install`)
 RUN npm install -g @anthropic-ai/claude-code --no-audit --no-fund --silent \
     && which claude && claude --version
 

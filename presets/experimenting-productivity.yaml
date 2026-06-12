@@ -3,7 +3,7 @@ description: Experimental add-on to productivity — bundles HyperFrames (HTML-b
 default_agents: [claude]
 extends: productivity
 
-primitives:
+capabilities:
   instructions: []
   skills: []
   plugins: []
@@ -11,5 +11,3 @@ primitives:
   hooks: []
   bundles:
     - hyperframes
-
-apm_dependencies: []

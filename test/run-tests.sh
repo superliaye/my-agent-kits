@@ -22,7 +22,7 @@ elif [ -n "${AGENT_KIT_TEST_HOST:-}" ]; then
 ================================================================
 HOST MODE — this run touches your real ~/.claude/ and ~/.codex/.
   global-deploy cases that don't isolate $HOME will overwrite CLAUDE.md /
-  AGENTS.md and may delete ~/.claude/plugins/ and ~/.apm/. Ctrl+C now if not intended.
+  AGENTS.md and may delete ~/.claude/plugins/ and ~/capabilities/. Ctrl+C now if not intended.
 For isolated runs use: npm test  (Docker)
 ================================================================
 BANNER

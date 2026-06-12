@@ -2,7 +2,7 @@ name: engineering
 description: Engineering coding kit — language-agnostic rules + reusable workflow skills
 default_agents: [claude]
 
-primitives:
+capabilities:
   instructions:
     - core
     - typescript
@@ -29,5 +29,3 @@ primitives:
   mcp: []
   hooks: []
   bundles: []
-
-apm_dependencies: []

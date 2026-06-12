@@ -2,12 +2,10 @@ name: none
 description: Empty starting point — pick everything in the customize step
 default_agents: [claude]
 
-primitives:
+capabilities:
   instructions: []
   skills: []
   plugins: []
   mcp: []
   hooks: []
   bundles: []
-
-apm_dependencies: []

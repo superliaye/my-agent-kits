@@ -43,7 +43,7 @@ fi
 assert_content_contains "$HOME/.claude/skills/loop-build/SKILL.md" "loop-full-swe/loop-swe.js" "loop-build references the shared engine path"
 assert_content_contains "$HOME/.claude/skills/loop-research-plan/SKILL.md" "stopAfter" "loop-research-plan launches the plan-only stage"
 
-# Frontmatter so the primitive catalog discovers each like every other skill
+# Frontmatter so the capability catalog discovers each like every other skill
 for s in loop-full-swe loop-research-plan loop-build loop-retro; do
   assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "added_in:" "$s frontmatter has added_in"
   assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "description:" "$s frontmatter has description"

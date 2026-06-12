@@ -98,7 +98,7 @@ Bundled **with the skill folder**, not as a preset-level bundle, and not install
 
 ## Registration
 
-- Add `desktop-app-loop` to `presets/experimenting-engineering.yaml` under `primitives.skills`.
+- Add `desktop-app-loop` to `presets/experimenting-engineering.yaml` under `capabilities.skills`.
 - One-line cross-reference added to `electron-visual-loop` and `web-visual-loop` ("for a foreign app you didn't launch, see `desktop-app-loop`").
 - Frontmatter: `added_in: 0.14.0`, `allowed-tools` whitelisting `agent-browser`, `python`, and the PowerShell discovery helper; model-invocable (no `disable-model-invocation`).
 - Bump `package.json` to 0.14.0 + CHANGELOG entry.
@@ -112,7 +112,7 @@ Bundled **with the skill folder**, not as a preset-level bundle, and not install
    - Tier 2: pywinauto force-activate Codex's renderer a11y tree → open theme dropdown → read `IsSelected`.
    - Tier 3: vision loop screenshots Codex → grounding model targets the dropdown → input synthesis → re-screenshot verify.
 4. **Finalize** once all three tiers are demonstrated working (or each tier's real-world limit is documented — e.g., Tier 1 unavailable if Codex's Electron ignores the flag, which is itself a valid recorded outcome that proves the fall-through).
-5. Deploy-path check: `agent-kit init … --primitives '+desktop-app-loop'` lands the full folder (incl. `helpers/`) in a target repo's `.claude/skills/`; `verify.js` confirms.
+5. Deploy-path check: `agent-kit init … --capabilities '+desktop-app-loop'` lands the full folder (incl. `helpers/`) in a target repo's `.claude/skills/`; `verify.js` confirms.
 
 ## Validation results (2026-05-29, Codex desktop, Windows)
 

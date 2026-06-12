@@ -2,7 +2,7 @@ name: feature-loop
 description: Autonomous feature-build orchestrator + every skill and plugin the loop calls. Main agent drives plan → implement → review → test → summary, delegating each phase to a sub-agent (depth=1). Ships the full toolkit out of the box — visual loops (Electron + web), design critique, and the Anthropic design/review plugins all included.
 default_agents: [claude]
 
-primitives:
+capabilities:
   instructions:
     - core
   skills:
@@ -19,5 +19,3 @@ primitives:
   mcp: []
   hooks: []
   bundles: []
-
-apm_dependencies: []

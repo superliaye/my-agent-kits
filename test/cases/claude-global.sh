@@ -21,6 +21,5 @@ assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core inst
 assert_dir_nonempty "$HOME/.claude/skills" "global skills deployed"
 assert_file_exists "$HOME/.claude/skills/my-commit/SKILL.md" "specific skill (my-commit) deployed"
 
-# Negative: no APM artifacts at user scope either
-if [ -f "$HOME/.apm/apm.yml" ]; then fail "~/.apm/apm.yml should not be written"; else ok "no ~/.apm/apm.yml created"; fi
+# Negative: global-only deploy writes nothing extra
 if [ -d "$HOME/.claude/rules" ]; then fail "~/.claude/rules/ should not be created"; else ok "no ~/.claude/rules/ created"; fi

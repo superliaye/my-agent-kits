@@ -2,7 +2,7 @@ name: loop-full-swe
 description: Autonomous architecture-aware SWE loop as 4 composable skills over one dynamic-workflow engine. /loop-full-swe runs scope -> survey/plan -> implement + multi-perspective review -> summary/retro in one self-digesting run that proceeds on its own and only breaks to you when a decision genuinely needs a human; /loop-research-plan, /loop-build, /loop-retro run the same engine's stages standalone. Native dynamic-workflow runtime, leaf-only orchestration (subagent-nesting safe), resumable.
 default_agents: [claude]
 
-primitives:
+capabilities:
   instructions:
     - core
   skills:
@@ -24,5 +24,3 @@ primitives:
   mcp: []
   hooks: []
   bundles: []
-
-apm_dependencies: []

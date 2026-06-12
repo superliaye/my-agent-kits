@@ -3,7 +3,7 @@ description: Experimental add-on to engineering — adds the desktop-app-loop sk
 default_agents: [claude]
 extends: engineering
 
-primitives:
+capabilities:
   instructions: []
   skills:
     - desktop-app-loop
@@ -12,5 +12,3 @@ primitives:
   mcp: []
   hooks: []
   bundles: []
-
-apm_dependencies: []

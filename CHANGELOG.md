@@ -4,6 +4,23 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.25.0] - 2026-06-12
+
+De-APM and vocabulary cleanup. The kit never invoked APM — `.apm/` was only a directory name and `deploy.js` copied files directly — but the naming and dead config implied otherwise. This release renames the core concept to **capability**, removes every APM vestige, and drops the last repo-scoped artifacts.
+
+### Changed (breaking)
+
+- **"primitive" → "capability"** everywhere the term means a deployable kit artifact. The preset key `primitives:` is now `capabilities:`, the CLI flag `--primitives` is now `--capabilities`, `lib/primitives.js` is now `lib/capabilities.js`, and the `onboard-primitive` maintainer skill is now `onboard-capability`. Domain uses of "primitive" inside skill content (DDD "primitive obsession", "testing primitives") are unchanged.
+- **`.apm/` directory renamed to `capabilities/`.** It holds the capability sources (`capabilities/skills/`, `capabilities/instructions/`, …) that `deploy.js` copies directly to your global agent directories. The name was the single biggest source of "is this APM-managed?" confusion.
+- **`agent-kit init`/`update` no longer accept a positional TARGET directory.** Deploy has been global-only since 0.22.0, so the argument did nothing. Re-run with flags only.
+
+### Removed
+
+- Every APM reference: the dead `apm_dependencies` preset field and `apmTarget` agent field (declared but never read), the `apm.yml`/`apm_modules/` ignore rules, the `"my-agent-kits": "file:"` self-dependency, and APM-framed comments/docs/test assertions.
+- The stale tracked `.agent-kit.yaml` repo-scope state file (referenced removed concepts: `scope: repo`, `claude_md_merge`, `codex_personal_layer`).
+- The dogfood copies of consumer skills under `.claude/skills/` (kept only the hand-written `onboard-capability` maintainer skill).
+- The two dated APM-era installer design docs under `docs/superpowers/` and the README "Design history" section that linked them.
+
 ## [0.24.0] - 2026-06-11
 
 Loop-SWE engine retro follow-ups: cut the over-decomposition cost driver and close the artifact-hygiene near-misses surfaced by the global-only refactor's own retrospective.

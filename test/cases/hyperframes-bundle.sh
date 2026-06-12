@@ -25,10 +25,6 @@ assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core inst
 assert_dir_nonempty "$HOME/.claude/skills" "skills deployed to global ~/.claude/skills"
 assert_file_exists "$HOME/.claude/skills/grill-me/SKILL.md" "productivity skill (grill-me) deployed globally"
 
-# Negative: APM artifacts should NOT exist
-if [ -f "$WORK/apm.yml" ]; then fail "apm.yml should not be written"; else ok "no apm.yml created"; fi
-if [ -d "$WORK/apm_modules" ]; then fail "apm_modules/ should not be created"; else ok "no apm_modules/ created"; fi
-
 # Bundles always install globally (~/.claude/skills/hyperframes/); assert nothing
 # hyperframes-shaped leaked into the consumer repo.
 if [ -d "$WORK/.claude/skills/hyperframes" ]; then

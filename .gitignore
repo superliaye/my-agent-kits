@@ -1,6 +1,4 @@
 node_modules/
-apm.lock.yaml
-apm_modules/
 .DS_Store
 Thumbs.db
 .vscode/

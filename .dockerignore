@@ -1,5 +1,4 @@
 node_modules/
-apm_modules/
 .claude/
 .git/
 .vscode/
