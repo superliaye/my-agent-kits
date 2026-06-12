@@ -60,7 +60,7 @@ other root: it launches the workflow and brokers the human gates between runs.
    | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). If `validation.status` is not `passing`, say so — the build settled without going green. |
    | `plan` | The plan has questions the digest could not resolve | Surface each `needsHuman` item (question + options + recommendation + reversibility). Resolve, then **resume** (step 4). |
    | `build` | A review round surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
-   | `distribute-to-issues` | Too large for one build | Default: hand the returned `issues` to [`/to-issues`](../to-issues/SKILL.md) and stop. To build the whole breakdown now, see [Continuing after decomposition (opt-in)](#continuing-after-decomposition-opt-in). |
+   | `distribute-to-issues` | The engine **recommends** splitting — it judged the request several independent features | This is a recommendation, not a verdict. Present the three paths and let the user pick (see [On `distribute-to-issues`, offer the override](#on-distribute-to-issues-offer-the-override)). |
 
 4. **Resolve and resume.** Present the `needsHuman` items with `AskUserQuestion`
    (the engine already gives you each option set + its own recommendation, so
@@ -82,14 +82,39 @@ other root: it launches the workflow and brokers the human gates between runs.
    engine rated `reversibility: hard`, surface it to the user anyway before
    continuing — a hard-to-undo choice is always worth a human glance.
 
-## Continuing after decomposition (opt-in)
+## On `distribute-to-issues`, offer the override
 
-When the engine returns `gate: 'distribute-to-issues'`, the feature was too large
-for one build and came back as a sequenced `issues[]` (each with a stable
-kebab-case `id`, `title`, `body`, and an optional `dependsOn` array of issue
-`id`s). The only engine touch for this is the `id` field added to the issue
-schema so the breakdown is topo-sortable by id; the build-out below is otherwise
-pure main-agent orchestration on top of the same gate.
+When the engine returns `gate: 'distribute-to-issues'`, it judged the request to
+be several independent features and came back with a sequenced `issues[]` (each
+with a stable kebab-case `id`, `title`, `body`, and an optional `dependsOn` array
+of issue `id`s). **This is a recommendation — never auto-accept it.** A coherent
+change that merely spans many files (a rename, refactor, or cleanup) is one loop's
+job, not a decomposition; the split is only worth it when the issues are genuinely
+independent. Present all three paths with `AskUserQuestion` and let the user choose:
+
+- **Run as ONE loop instead (override the split).** Re-launch the same engine with
+  `forceSingleRun: true` — it ignores the bail and proceeds through plan + build as
+  a single run:
+
+  ```
+  Workflow({
+    scriptPath: "<this-skill-dir>/loop-swe.js",
+    args: { feature: "<the original request>", forceSingleRun: true }
+  })
+  ```
+
+  Lead with this when the breakdown looks like one coherent change split by file
+  count rather than by genuine independence.
+- **Distribute to issues (the engine's recommendation).** Hand the returned
+  `issues` to [`/to-issues`](../to-issues/SKILL.md) and stop. Do not implement.
+- **Build the whole breakdown now (opt-in).** Drive the sequenced chain in this
+  session — see [Building the breakdown chain](#building-the-breakdown-chain-opt-in).
+
+## Building the breakdown chain (opt-in)
+
+The build-out below is pure main-agent orchestration on top of the same gate; the
+only engine touch is the `id` field on the issue schema so the breakdown is
+topo-sortable by id.
 
 1. **Default stays distribute-only.** The continue is **opt-in**. Unless the user
    asks to build the whole breakdown now, hand the returned `issues` to

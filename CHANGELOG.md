@@ -4,6 +4,29 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.24.0] - 2026-06-11
+
+Loop-SWE engine retro follow-ups: cut the over-decomposition cost driver and close the artifact-hygiene near-misses surfaced by the global-only refactor's own retrospective.
+
+### Changed
+
+- **`tooLargeForOneRun` now keys on genuine independence, not file count** ([.apm/skills/loop-full-swe/loop-swe.js](.apm/skills/loop-full-swe/loop-swe.js) scope prompt). The bounded-round build can touch many files in one run, so a coherent rename/refactor/cleanup spanning many files is no longer decomposed; the engine splits only when the request is several genuinely independent features. Fixes the root cause of the refactor that ran as 8 separate loop runs (~10.7M tokens) when one run would have done.
+- **Review weight matches the track.** A `trivial` change now runs a single **merged** reviewer covering the architecture + DDD + general-correctness lenses in one pass (still adversarially verified), instead of the 3-agent panel. `standard`/`architectural` tracks keep the full separate-reviewer panel; UI work keeps the design lens on every track. The 3-reviewer + per-finding-verify fan-out was the dominant per-run cost and added little when correctness is mechanically checkable by the `e2e-validate` that already runs.
+- **`distribute-to-issues` is surfaced as a recommendation, not a fait accompli** ([.apm/skills/loop-full-swe/SKILL.md](.apm/skills/loop-full-swe/SKILL.md)). On the decomposition gate the assistant now presents three paths — run as one loop (override), distribute to issues, or build the breakdown chain — and leads with the single-run override when the split looks like one coherent change cut by file count.
+
+### Added
+
+- **`forceSingleRun` engine arg.** Re-launching with `forceSingleRun: true` overrides the `tooLargeForOneRun` bail so the operator can run the whole request as one plan + build loop. Makes the new "run as one loop instead" choice executable rather than advisory.
+- **Engine artifact-hygiene guards** (retro near-misses):
+  - **Recycled round-dir reconciliation** (implement-round prompt): round dirs are reused across runs, so before trusting any existing `round-N` start-sha/status.md, the round agent checks `git merge-base --is-ancestor` against live HEAD and re-derives from source if the dir is stale. Prevents a status artifact from asserting a deleted function (e.g. a removed `writeState`) still exists.
+  - **Plan self-consistency gate** (plan prompt): a prescribed help/usage/doc string must agree with the plan's own file:line evidence block — a plan may not advertise flags its evidence says a command does not read. Prevents a full wasted churn round.
+  - **Summary written against live HEAD** (summary prompt): the commit list must end at live HEAD and the "flagged / not actioned" list is recomputed against the final diff, so the close-out never names itself after a commit it omits or flags items already fixed.
+- **Current-state verification rule** in [core.instructions.md](.apm/instructions/core.instructions.md) (and the repo [CLAUDE.md](CLAUDE.md)): the operational corollary to "docs describe current state" — a claim about what a command writes/reads must be confirmed against live source file:line in THIS tree, never carried forward from a prior run summary, status.md, or memory.
+
+### Fixed
+
+- **`financial-preset` test rewritten to the global-only contract** ([test/cases/financial-preset.sh](test/cases/financial-preset.sh)). It had been red since the 0.22.0 global-only merge: it still passed `--scope repo`, asserted repo-local `.claude/skills/`, and asserted a `.agent-kit.yaml` "preset recorded" line — all removed in 0.22.0. Now isolates HOME/USERPROFILE, deploys globally, and verifies the serenity skill + companions land in `~/.claude/skills/` (with `_unshipped/` excluded). Suite is green at 12/12 cases.
+
 ## [0.23.0] - 2026-06-11
 
 ### Removed

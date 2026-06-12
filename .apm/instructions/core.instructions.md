@@ -14,6 +14,10 @@ added_in: 0.1.0
 - Docs describe current state, not history. Rewrite, don't append.
   - Remove: "Last Updated: Jan 2025", "moved from old-file.md", "Update: we now also support..."
 
+- Verify current-state claims about runtime behavior against live source, never from memory or a prior artifact.
+  - A doc/help claim about what a command writes or reads (e.g. "update writes .agent-kit.yaml", "runUpdate honors --bundles") must be confirmed against the file:line in THIS tree before you assert it.
+  - Do NOT carry a "verified" fact forward from an earlier run summary, status.md, or scratch note — re-check at HEAD.
+
 - Git mutations (add/commit/push) need confirmation. Read-only (status/diff/log) are safe.
   - Ask before: `git commit -m "..."` -> Do without asking: `git diff`
 

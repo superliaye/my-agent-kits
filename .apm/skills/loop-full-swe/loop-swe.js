@@ -23,6 +23,8 @@
 //   startFrom    'scope'(default)|'plan'|'build'|'retro'  first phase to run
 //   stopAfter    'plan'|'build'|'retro'(default)          last phase to run
 //   resolutions  { [questionId]: humanAnswer }            injected on a gated resume
+//   forceSingleRun bool                                   override the scope decomposition bail and run
+//                                                          the whole request as ONE loop (plan + build)
 
 export const meta = {
   name: 'loop-full-swe',
@@ -36,6 +38,7 @@ const FEATURE = ARGS.feature ?? ''
 const START = ARGS.startFrom ?? 'scope'
 const STOP = ARGS.stopAfter ?? 'retro'
 const RES = ARGS.resolutions ?? {}
+const FORCE_SINGLE = ARGS.forceSingleRun ?? false
 const ORDER = ['scope', 'plan', 'build', 'retro']
 const runs = (p) => ORDER.indexOf(p) >= ORDER.indexOf(START) && ORDER.indexOf(p) <= ORDER.indexOf(STOP)
 const unresolved = (qs) => (qs ?? []).filter((q) => !(q.id in RES))
@@ -160,11 +163,16 @@ if (runs('plan') || runs('build')) {
   scope = await agent(
     `Scope this request: "${FEATURE}". Read the repo + project docs. Decide: track (trivial ~<5 files & no
 architectural impact | standard | architectural cross-cutting/new-boundary); uiWork (touches UI?);
-tooLargeForOneRun (really several features that should be separate issues?).${DISC}`,
+tooLargeForOneRun. For tooLargeForOneRun, judge INDEPENDENCE, not size: the build runs bounded rounds and a
+single run can touch many files across rounds, so a coherent change (e.g. a rename/refactor/cleanup spanning
+many files and tests) is NOT too large — set it false. Set it TRUE only when the request is genuinely
+several independent features that each warrant their own issue, plan, and review. File count alone is never
+the trigger; when in doubt, prefer one run.${DISC}`,
     { label: 'scope', phase: 'Scope', schema: SCOPE, agentType: 'Explore' })
   log(`track=${scope.track} ui=${scope.uiWork} tooLarge=${scope.tooLargeForOneRun}`)
-  // Only fresh planning runs may bail out to issue-distribution; a resumed build never does.
-  if (scope.tooLargeForOneRun && runs('plan')) {
+  // Only fresh planning runs may bail out to issue-distribution; a resumed build never does, and
+  // forceSingleRun overrides the bail so the operator can run the whole request as one loop.
+  if (scope.tooLargeForOneRun && !FORCE_SINGLE && runs('plan')) {
     const bd = await agent(
       `Too large for one build. Decompose "${FEATURE}" into independent, sequenced issues. Each issue needs a
 short stable kebab-case \`id\` (e.g. "auth-schema"), a \`title\`, a \`body\`, and an optional \`dependsOn\`
@@ -182,8 +190,13 @@ if (runs('plan')) {
   plan = await agent(
     `Survey-grade plan for: "${FEATURE}" (track=${scope.track}). Be more cautious than ordinary plan mode:
 map affected architecture with file:line evidence, give success criteria per item, and surface EVERY
-genuine open question (options + your recommendation + reversibility). Write ${A}/plan.md and, unless
-track=trivial, ${A}/architecture-impact.md.${DISC}`,
+genuine open question (options + your recommendation + reversibility). Self-consistency gate before you
+emit: if the plan prescribes any help string, usage line, or doc claim describing a command's flags or
+behavior, that prescription MUST agree with the flags/reads your own file:line evidence block documents.
+Concretely — if the evidence says a function reads only --preset/--agents, do NOT prescribe a help line
+advertising --default/--primitives/--bundles. Cross-check every behavior-describing string against the
+evidence; a plan that contradicts its own evidence guarantees a wasted churn round. Write ${A}/plan.md and,
+unless track=trivial, ${A}/architecture-impact.md.${DISC}`,
     { label: 'plan', phase: 'Plan', schema: PLAN })
   const digest = await agent(
     `Self-digest the plan's open questions. Human answers so far: ${JSON.stringify(RES)}. For each question:
@@ -209,12 +222,21 @@ if (STOP === 'plan') return { gate: 'plan-done', scope, plan, artifactRoot: A }
 // ---- Phase 2: Build = implement + multi-perspective review, budget-bounded -
 let buildOpen = [], lastVal = null
 if (runs('build')) {
-  const REVIEWERS = [
-    { key: 'architecture', skill: '/improve-codebase-architecture' },
-    { key: 'ddd', skill: '/improve-DDD-architecture' },
-    { key: 'general', skill: null },
-    ...(scope.uiWork ? [{ key: 'design', skill: '/design-critique' }] : []),
-  ]
+  // Review weight matches the track. A trivial change (correctness mechanically checkable by the
+  // e2e-validate that already ran) does not warrant a 3-agent fan-out: one MERGED reviewer carries the
+  // architecture + DDD + general-correctness lenses in a single pass, still adversarially verified. Standard
+  // and architectural tracks keep the full separate-reviewer panel. (UI work always keeps the design lens.)
+  const REVIEWERS = scope.track === 'trivial'
+    ? [
+      { key: 'merged', skill: null, guidance: 'Review the diff directly for architecture, domain-modeling (DDD), AND general correctness concerns in ONE merged pass — this is a trivial-track change, so a single reviewer replaces the full panel. Return the union of findings across all three lenses.' },
+      ...(scope.uiWork ? [{ key: 'design', skill: '/design-critique' }] : []),
+    ]
+    : [
+      { key: 'architecture', skill: '/improve-codebase-architecture' },
+      { key: 'ddd', skill: '/improve-DDD-architecture' },
+      { key: 'general', skill: null },
+      ...(scope.uiWork ? [{ key: 'design', skill: '/design-critique' }] : []),
+    ]
   const cap = budget.total ? Math.max(1, Math.min(3, Math.floor(budget.remaining() / 150_000))) : 3
   let round = 0, settled = false
   while (!settled && round < cap) {
@@ -224,9 +246,15 @@ if (runs('build')) {
       `Round ${round}: implement all still-pending items in ${A}/plan.md (read from disk). Items flagged as
 operator decisions are BINDING — implement them in full as written; do NOT reduce their scope citing
 minimalism, and if one is genuinely infeasible, record that as an open question rather than silently
-delivering less. Record the pre-change HEAD sha to ${A}/round-${round}/start-sha, commit per logical
-chunk, write ${A}/round-${round}/status.md. If a step is not unambiguously executable, do NOT invent —
-record it as an open question in ${A}/round-${round}/questions.md.${DISC}`,
+delivering less. The round-${round} dir is REUSED across separate runs of this engine, so it may already
+hold a start-sha + status.md/questions.md left by an EARLIER, unrelated run. Before trusting ANY existing
+content in ${A}/round-${round}/: read its start-sha and run \`git merge-base --is-ancestor <that-sha> HEAD\`.
+If that sha is NOT an ancestor of (or equal to) live HEAD, the dir is stale — its "verified facts" predate
+work that has since landed; ignore them entirely and re-derive every current-state fact from source at live
+HEAD, never copying a file:line claim forward from the stale artifact. Then record the pre-change HEAD sha
+to ${A}/round-${round}/start-sha (overwriting any stale value), commit per logical chunk, and OVERWRITE
+${A}/round-${round}/status.md afresh. If a step is not unambiguously executable, do NOT invent — record it
+as an open question in ${A}/round-${round}/questions.md.${DISC}`,
       { label: `implement-r${round}`, phase: `Build r${round}` })
     const val = await agent(
       `Round ${round}: invoke /e2e-validate (chunk mode) via Skill. Verify the code RUNS and meets the
@@ -239,7 +267,7 @@ plan's success criteria. Write ${A}/round-${round}/validation.md.${DISC}`,
     const reviews = await parallel(REVIEWERS.map((r) => () =>
       agent(
         `Round ${round} ${r.key} review of the diff since ${A}/round-${round}/start-sha.
-${r.skill ? `Invoke ${r.skill} via Skill.` : 'Review the diff directly.'} Return findings only.${DISC}`,
+${r.skill ? `Invoke ${r.skill} via Skill.` : (r.guidance || 'Review the diff directly.')} Return findings only.${DISC}`,
         { label: `review:${r.key}`, phase: `Build r${round}`, schema: FINDINGS })))
     // Index against the UNFILTERED reviews so REVIEWERS[i] stays aligned when a reviewer leaf died (null).
     // Anchor the finding id here (a cached step) so a gated resume matches it; the digest must not re-mint it.
@@ -293,10 +321,15 @@ if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoo
 phase('Retro')
 const summary = await agent(
   `Resolve a per-run folder RUN_DIR = ${A}/runs/<id>, where <id> is \`git rev-parse --short HEAD\` (append
-"-2", "-3", ... if that folder already exists, so successive runs at the same HEAD don't overwrite). Create
-it, then write RUN_DIR/summary.md: request, track, what was built, rounds taken, findings breakdown, status,
-and the list of decisions auto-resolved without the human (so they can be audited). Return the markdown and
-the absolute RUN_DIR as \`runDir\`.${DISC}`,
+"-2", "-3", ... if that folder already exists, so successive runs at the same HEAD don't overwrite). Write
+the summary against LIVE HEAD, not the last round you remember: re-read \`git rev-parse HEAD\` and the full
+\`git log\` of commits since the run's first commit — the commit list in the summary MUST end at live HEAD
+(include any commit that landed after the last round you tracked), and the run id is that final short sha.
+Recompute the "flagged / not actioned" list against the FINAL diff: an item flagged out-of-scope in an
+early round may have been actioned later, so re-check each against final HEAD before listing it as
+un-actioned. Create RUN_DIR, then write RUN_DIR/summary.md: request, track, what was built, rounds taken,
+findings breakdown, status, and the list of decisions auto-resolved without the human (so they can be
+audited). Return the markdown and the absolute RUN_DIR as \`runDir\`.${DISC}`,
   { label: 'summary', phase: 'Retro', schema: SUMMARY })
 await agent(
   `Retro: mine this run for stalls, repeated failures, avoidable escalations, token waste, and what worked.
