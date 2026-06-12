@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Iterate test/cases/*.sh, aggregate pass/fail.
 #
-# This runner writes to the host's real $HOME/.claude/ and $HOME/.codex/ when
-# the suite hits --scope global cases — by design, since those code paths
+# This runner can write to the host's real $HOME/.claude/ and $HOME/.codex/ for
+# any case that does not isolate $HOME — by design, since those code paths
 # write to those exact locations in production. Inside the Docker image
 # (test/Dockerfile.test) HOME is the container's clean HOME, so this is safe.
 # On a host machine it overwrites your live agent config.
@@ -21,8 +21,8 @@ elif [ -n "${AGENT_KIT_TEST_HOST:-}" ]; then
   cat <<'BANNER'
 ================================================================
 HOST MODE — this run touches your real ~/.claude/ and ~/.codex/.
-  --scope global cases will overwrite CLAUDE.md / AGENTS.md and may
-  delete ~/.claude/plugins/ and ~/.apm/. Ctrl+C now if not intended.
+  global-deploy cases that don't isolate $HOME will overwrite CLAUDE.md /
+  AGENTS.md and may delete ~/.claude/plugins/ and ~/.apm/. Ctrl+C now if not intended.
 For isolated runs use: npm test  (Docker)
 ================================================================
 BANNER
