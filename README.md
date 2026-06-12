@@ -14,28 +14,27 @@ Requires Node 20+ and Git. No APM CLI dependency. `bootstrap.sh` only installs N
 
 ## Usage
 
-Stay in `~/my-agent-kits` and invoke the launcher with the target repo as the first argument:
+Invoke the launcher from the kit directory (or anywhere via its absolute path) — every run deploys to your global agent directories, never into a repo:
 
 ```bash
 cd ~/my-agent-kits
-./bin/agent-kit init --default               # install recommended defaults
-./bin/agent-kit init ~/work/some-repo        # interactive 5-step wizard
-./bin/agent-kit update                       # re-deploy the kit to your global install
+./bin/agent-kit init --default   # install recommended defaults, no prompts
+./bin/agent-kit init             # interactive 5-step wizard
+./bin/agent-kit update           # re-deploy the kit to your global install
 ./bin/agent-kit help
 ```
 
-If you omit the target argument, the wizard deploys into the current directory — convenient when invoking via the absolute path from inside the consumer repo:
+You can also invoke it by absolute path from anywhere:
 
 ```bash
-cd ~/work/some-repo
 ~/my-agent-kits/bin/agent-kit init
 ```
 
 To skip every prompt and install the recommended defaults (the pre-checked presets and the preset's agents), pass `--default` — the "enter through everything" path. Explicit flags still override individual defaults:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --default                       # zero prompts, all defaults
-./bin/agent-kit init ~/work/some-repo --default --preset productivity # defaults, but a different preset
+./bin/agent-kit init --default                       # zero prompts, all defaults
+./bin/agent-kit init --default --preset productivity # defaults, but a different preset
 ```
 
 ### One-shot install (each flag is one decision)
@@ -43,7 +42,7 @@ To skip every prompt and install the recommended defaults (the pre-checked prese
 Passing `--preset` and `--agents` together is enough — the wizard treats it as "you've decided" and skips all prompts:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude
+./bin/agent-kit init --preset engineering --agents claude
 ```
 
 That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `--agents codex`) `~/.codex/AGENTS.md`, and copies skills to `~/.claude/skills/` and `~/.agents/skills/`. No `apm.yml`, no `apm_modules/`.
@@ -51,14 +50,14 @@ That concatenates the instructions inline into `~/.claude/CLAUDE.md` and (with `
 Common variations — change exactly the flag(s) that differ:
 
 ```bash
-./bin/agent-kit init ~/work/some-repo --preset engineering --agents claude,codex  # Codex too
-./bin/agent-kit init ~/work/some-repo --preset productivity --agents claude        # core + grill-me + hyperframes video
+./bin/agent-kit init --preset engineering --agents claude,codex  # Codex too
+./bin/agent-kit init --preset productivity --agents claude        # productivity preset
 ```
 
 Flag reference:
 
 - `--default` — accept every wizard default (pre-checked presets and the preset's agents) and apply without prompting; explicit flags still override individual defaults
-- `--preset NAME[,NAME2]` — one or more of `{engineering, productivity, financial, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
+- `--preset NAME[,NAME2]` — one or more of `{engineering, experimenting-engineering, productivity, experimenting-productivity, feature-loop, loop-full-swe, financial, none}`. Comma-separated names merge primitives (union, deduped per type); interactive form uses a multiselect prompt
 - `--agents claude[,codex]` — which agents to deploy to
 - `--primitives '+name,-name'` — tweak the preset's primitive set on the fly
 - `--bundles name1,name2` — external installers (e.g. `gstack`) to run after primitives deploy. Always install globally. Pass `--bundles ''` to skip all.
@@ -76,7 +75,7 @@ Updating:
 
 | Path | Purpose |
 |---|---|
-| `presets/*.yaml` | Bundled artifact selections (`engineering`, `productivity`, `none`). Multi-select via `--preset a,b` |
+| `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `feature-loop`, `loop-full-swe`, `financial`, `none`). Multi-select via `--preset a,b` |
 | `.apm/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
 | `.apm/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. |
 | `.apm/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
@@ -88,7 +87,7 @@ Updating:
 ## What lands where
 
 `agent-kit init` writes the artifacts to your global agent directories — nothing
-lands in the target repo. There is no repo-local state file:
+lands in any repo. There is no repo-local state file:
 
 ```text
 ~/.claude/CLAUDE.md     # instructions concatenated inline (overwritten each run)
