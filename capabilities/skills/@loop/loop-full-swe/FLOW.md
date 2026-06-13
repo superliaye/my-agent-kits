@@ -59,7 +59,8 @@ flowchart TD
     subgraph S2 ["/loop-build — implement + review · up to 3 rounds"]
         Impl["implement +<br/>commit"]:::agent --> Eval
         Eval["validate · e2e-validate<br/>runs? · meets success criteria?<br/>· screenshot if UI"]:::agent --> Val{"passing?"}
-        Val -->|no| Impl
+        Val -->|"no · rounds left<br/>(feed reason forward)"| Impl
+        Val -->|"no · cap hit"| GBuild
         Val -->|yes| Ra & Rd & Rg & Ro
         Ra["review:<br/>architecture"]:::agent --> Vfy
         Rd["review:<br/>DDD"]:::agent --> Vfy

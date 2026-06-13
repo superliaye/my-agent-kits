@@ -238,8 +238,8 @@ if (runs('build')) {
       ...(scope.uiWork ? [{ key: 'design', skill: '/design-critique' }] : []),
     ]
   const cap = budget.total ? Math.max(1, Math.min(3, Math.floor(budget.remaining() / 150_000))) : 3
-  let round = 0, settled = false
-  while (!settled && round < cap) {
+  let round = 0, settled = false, extraRounds = 0
+  while (!settled && round < cap + extraRounds) {
     round++
     phase(`Build r${round}`)
     await agent(
@@ -257,11 +257,37 @@ ${A}/round-${round}/status.md afresh. If a step is not unambiguously executable,
 as an open question in ${A}/round-${round}/questions.md.${DISC}`,
       { label: `implement-r${round}`, phase: `Build r${round}` })
     const val = await agent(
-      `Round ${round}: invoke /e2e-validate (chunk mode) via Skill. Verify the code RUNS and meets the
-plan's success criteria. Write ${A}/round-${round}/validation.md.${DISC}`,
+      `Round ${round}: invoke /e2e-validate (chunk mode) via Skill with ui_work=${scope.uiWork}. Verify the
+code RUNS and meets the plan's success criteria (read them from ${A}/plan.md). When ui_work is true you MUST
+screenshot and confirm each UI success-criterion is actually visible — a UI claim needs pixels. Put the
+specific unmet criteria and any screenshot path into ${A}/round-${round}/validation.md AND your returned
+\`detail\`.${DISC}`,
       { label: `validate-r${round}`, phase: `Build r${round}`, schema: VALIDATE })
     lastVal = val
-    if ((val.status === 'code-errors' || val.status === 'requirements-unmet') && round < cap) continue
+    const valFailing = val.status === 'code-errors' || val.status === 'requirements-unmet'
+    if (valFailing && round < cap + extraRounds) {
+      // Feed the failure forward: append the unmet criteria to plan.md so the next round implements against
+      // the finding instead of re-deriving blind — the same fold the review fixes use below.
+      await agent(
+        `Round ${round} e2e-validate returned ${val.status}. Read ${A}/round-${round}/validation.md and append a
+pending item to ${A}/plan.md naming exactly what failed and what must change to satisfy it.${DISC}`,
+        { label: `validate-feedback-r${round}`, phase: `Build r${round}` })
+      continue
+    }
+    if (valFailing) {
+      // Round budget (incl. operator-granted rounds) exhausted and still failing — a human decision, not a
+      // silent ship. Gate like the review escalations do; an operator answer grants one more round to run it.
+      const valId = `r${round}-validation`
+      if (!(valId in RES)) return { gate: 'build', scope, round, artifactRoot: A, validation: val,
+        needsHuman: [{ id: valId, question: `e2e-validate still ${val.status} after ${round} round(s): ${val.detail}. How do you want to proceed?`, recommendation: `inspect ${A}/round-${round}/validation.md`, reversibility: 'moderate' }],
+        note: 'Validation did not pass within the round budget; resolve then resume.' }
+      await agent(
+        `Operator directive for the failing round-${round} validation: "${RES[valId]}". Append it as a BINDING
+pending item to ${A}/plan.md so the next round implements it in full.${DISC}`,
+        { label: `validate-resolve-r${round}`, phase: `Build r${round}` })
+      extraRounds++
+      continue
+    }
 
     // multi-perspective review (parallel leaves) -> adversarial verify per finding (pipeline)
     const reviews = await parallel(REVIEWERS.map((r) => () =>
@@ -319,6 +345,9 @@ if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoo
 // creates the folder (suffixing on collision), and RETURNS it — the retro leaf reuses that exact path
 // instead of independently re-deriving it.
 phase('Retro')
+const valNote = lastVal
+  ? ` The build's final e2e-validate status was "${lastVal.status}"${lastVal.detail ? ` (${lastVal.detail})` : ''}; if it is non-passing (e.g. no-harness), state that prominently in the status line — the change may have shipped without full validation.`
+  : ''
 const summary = await agent(
   `Resolve a per-run folder RUN_DIR = ${A}/runs/<id>, where <id> is \`git rev-parse --short HEAD\` (append
 "-2", "-3", ... if that folder already exists, so successive runs at the same HEAD don't overwrite). Write
@@ -329,7 +358,7 @@ Recompute the "flagged / not actioned" list against the FINAL diff: an item flag
 early round may have been actioned later, so re-check each against final HEAD before listing it as
 un-actioned. Create RUN_DIR, then write RUN_DIR/summary.md: request, track, what was built, rounds taken,
 findings breakdown, status, and the list of decisions auto-resolved without the human (so they can be
-audited). Return the markdown and the absolute RUN_DIR as \`runDir\`.${DISC}`,
+audited).${valNote} Return the markdown and the absolute RUN_DIR as \`runDir\`.${DISC}`,
   { label: 'summary', phase: 'Retro', schema: SUMMARY })
 await agent(
   `Retro: mine this run for stalls, repeated failures, avoidable escalations, token waste, and what worked.

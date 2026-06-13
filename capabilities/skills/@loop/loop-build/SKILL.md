@@ -69,8 +69,8 @@ name, or the plan in the **current conversation** (see Pre-flight). Inside
 
    | `gate` | Meaning | Action |
    |---|---|---|
-   | `build-done` | Implemented + reviewed clean | Relay what was built and the auto-applied fixes; if `validation.status` isn't `passing`, flag that the build settled without going green. Then it's ready for [`/loop-retro`](../loop-retro/SKILL.md). |
-   | `build` | A review finding needs your decision | Surface each `needsHuman` item with `AskUserQuestion`, then **resume** (step 4). |
+   | `build-done` | Implemented + reviewed clean | Relay what was built and the auto-applied fixes; if `validation.status` is `no-harness`, flag that the change shipped with no e2e harness to validate it. Then it's ready for [`/loop-retro`](../loop-retro/SKILL.md). |
+   | `build` | A review finding, or e2e-validate still failing at the round cap, needs your decision | Surface each `needsHuman` item with `AskUserQuestion`, then **resume** (step 4). |
 
 4. **Resolve and resume.** Map answers by each item's `id` and continue (pass the
    same `feature` so cached phases replay):

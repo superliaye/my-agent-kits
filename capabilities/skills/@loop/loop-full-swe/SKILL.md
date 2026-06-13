@@ -57,9 +57,9 @@ other root: it launches the workflow and brokers the human gates between runs.
 
    | `gate` | What it means | What you do |
    |---|---|---|
-   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). If `validation.status` is not `passing`, say so — the build settled without going green. |
+   | `done` | Ran clean to retro | Relay `summaryMarkdown`; point to `summary.md` and `reflection.patch` under the returned `artifactRoot` (review-only — never auto-applied). If `validation.status` is `no-harness`, say so — the change shipped with no e2e harness to validate it. |
    | `plan` | The plan has questions the digest could not resolve | Surface each `needsHuman` item (question + options + recommendation + reversibility). Resolve, then **resume** (step 4). |
-   | `build` | A review round surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
+   | `build` | A review finding, or e2e-validate still failing at the round cap, surfaced a decision for you | Same as `plan` — surface, resolve, resume. |
    | `distribute-to-issues` | The engine **recommends** splitting — it judged the request several independent features | This is a recommendation, not a verdict. Present the three paths and let the user pick (see [On `distribute-to-issues`, offer the override](#on-distribute-to-issues-offer-the-override)). |
 
 4. **Resolve and resume.** Present the `needsHuman` items with `AskUserQuestion`
