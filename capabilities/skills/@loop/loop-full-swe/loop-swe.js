@@ -239,6 +239,14 @@ if (runs('build')) {
     ]
   const cap = budget.total ? Math.max(1, Math.min(3, Math.floor(budget.remaining() / 150_000))) : 3
   let round = 0, settled = false, extraRounds = 0
+  // Round-* dirs are reused across unrelated runs and accumulate cross-run sediment
+  // (-bak files, orphaned temp files, stray node_modules). Wipe them ONCE before the
+  // loop so this run starts from clean dirs — a leaf; the script can't touch the fs.
+  await agent(
+    `Delete every ${A}/round-* directory so this run starts clean: \`rm -rf "${A}"/round-*\`. This removes
+sediment (stale *-bak, abandoned temp files, stray node_modules) left by EARLIER unrelated runs of this
+engine. Write nothing else. You are a LEAF agent: do your one job and return; you may NOT spawn sub-agents.`,
+    { label: 'clean-rounds', phase: 'Build r1' })
   while (!settled && round < cap + extraRounds) {
     round++
     phase(`Build r${round}`)
@@ -246,14 +254,11 @@ if (runs('build')) {
       `Round ${round}: implement all still-pending items in ${A}/plan.md (read from disk). Items flagged as
 operator decisions are BINDING — implement them in full as written; do NOT reduce their scope citing
 minimalism, and if one is genuinely infeasible, record that as an open question rather than silently
-delivering less. The round-${round} dir is REUSED across separate runs of this engine, so it may already
-hold a start-sha + status.md/questions.md left by an EARLIER, unrelated run. Before trusting ANY existing
-content in ${A}/round-${round}/: read its start-sha and run \`git merge-base --is-ancestor <that-sha> HEAD\`.
-If that sha is NOT an ancestor of (or equal to) live HEAD, the dir is stale — its "verified facts" predate
-work that has since landed; ignore them entirely and re-derive every current-state fact from source at live
-HEAD, never copying a file:line claim forward from the stale artifact. Then record the pre-change HEAD sha
-to ${A}/round-${round}/start-sha (overwriting any stale value), commit per logical chunk, and OVERWRITE
-${A}/round-${round}/status.md afresh. If a step is not unambiguously executable, do NOT invent — record it
+delivering less. The ${A}/round-${round}/ dir was wiped clean at the start of this build, so trust nothing
+you did not write this round — re-derive every current-state fact from source at live HEAD, never copying a
+file:line claim forward from a prior artifact. Record the pre-change HEAD sha to ${A}/round-${round}/start-sha,
+commit per logical chunk, and write ${A}/round-${round}/status.md afresh. If a step is not unambiguously
+executable, do NOT invent — record it
 as an open question in ${A}/round-${round}/questions.md.${DISC}`,
       { label: `implement-r${round}`, phase: `Build r${round}` })
     const val = await agent(
@@ -351,9 +356,12 @@ const valNote = lastVal
 const summary = await agent(
   `Resolve a per-run folder RUN_DIR = ${A}/runs/<id>, where <id> is \`git rev-parse --short HEAD\` (append
 "-2", "-3", ... if that folder already exists, so successive runs at the same HEAD don't overwrite). Write
-the summary against LIVE HEAD, not the last round you remember: re-read \`git rev-parse HEAD\` and the full
-\`git log\` of commits since the run's first commit — the commit list in the summary MUST end at live HEAD
-(include any commit that landed after the last round you tracked), and the run id is that final short sha.
+the summary against LIVE HEAD, not the last round you remember. The RUN FLOOR is authoritative: this run's
+first commit is the child of the sha in ${A}/round-1/start-sha — read that file from disk (the engine wrote
+it with the pre-change HEAD when round 1 began). Do NOT reconstruct the floor by guessing; commits at or
+before it belong to EARLIER runs and MUST NOT be folded into this run's record. Re-read \`git rev-parse HEAD\`
+and \`git log <round-1 start-sha>..HEAD\`; the commit list MUST end at live HEAD and the run id is that final
+short sha.
 Recompute the "flagged / not actioned" list against the FINAL diff: an item flagged out-of-scope in an
 early round may have been actioned later, so re-check each against final HEAD before listing it as
 un-actioned. Create RUN_DIR, then write RUN_DIR/summary.md: request, track, what was built, rounds taken,
@@ -363,7 +371,13 @@ audited).${valNote} Return the markdown and the absolute RUN_DIR as \`runDir\`.$
 await agent(
   `Retro: mine this run for stalls, repeated failures, avoidable escalations, token waste, and what worked.
 Write ${summary.runDir}/reflection.md + ${summary.runDir}/reflection.patch (the run folder the summary leaf
-returned; proposals for CLAUDE.md / the skills / docs). Do NOT apply the patch.${DISC}`,
+returned; proposals for CLAUDE.md / the skills / docs). Do NOT apply the patch.
+CARRY FORWARD unapplied prior proposals so an ignored fix cannot silently keep recurring: scan the sibling
+${A}/runs/*/reflection.patch files from earlier runs; for each proposal they raised, re-check it against LIVE
+source (grep the proposed target file for the change). If it has NOT landed, re-emit it in THIS run's
+reflection.patch under an "UNAPPLIED FROM PRIOR RUNS" banner with a recurrence count and re-verified line
+anchors; drop any that have since landed. Match proposals by a stable id, not bare anchor text, so a reworded
+fix is not re-counted as unapplied.${DISC}`,
   { label: 'retro', phase: 'Retro' })
 
 return { gate: 'done', scope, artifactRoot: A, validation: lastVal, summaryMarkdown: summary.markdown, note: `Code committed; per-run reflection.patch under ${A}/runs/ (a user-folder cache outside the repo) left for review.` }
