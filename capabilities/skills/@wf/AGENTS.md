@@ -38,9 +38,24 @@ Cap fan-out (wf-research: T2 ≤ 3, T3 ≤ 1) — an unattended loop burns token
 Every recurring miss becomes a tighter checker, a sharper skill instruction, or a new line
 here — traceable to the run that caused it. Don't wait for a better model to fix it.
 
+**Route feedback through the shared protocol.**
+Separate task output from harness-gap and skill-improvement proposals; write proposals (never
+auto-applied) to the durable backlog under `~/.wf/<repo>/feedback/`. Defined once in the
+`wf-feedback-protocol` snippet and `ADR-feedback-protocol.md`.
+
+**Share one runId-keyed run dir.**
+A run gets one `runId`; every `@wf` workflow in that run works under the same
+`~/.wf/<repo>/runs/<runId>/`, each owning a `<skill>/` subfolder, so the run's artifacts are
+co-located and a downstream workflow reads an upstream one in place. A workflow takes `runDir`
+and mints a fresh one (shell `<slug>-<timestamp>-<pid>`) only when none is passed; `runId`, not
+the branch, gives collision isolation. `repoKey` is worktree-invariant (`git --git-common-dir`);
+branch is metadata. See `ADR-run-layout.md`.
+
 ## Skills
 
 - `wf-research` — codebase-first research → a "raw research" brief that grounds a grill/plan.
+- `wf-semiauto-grill` — semi-automated grill on a brief; auto-answers what the harness already
+  decides (citing the rule), pauses only for genuine human decisions, emits a feedback backlog.
 
 ## Testing
 

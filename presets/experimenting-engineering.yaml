@@ -8,6 +8,7 @@ capabilities:
   skills:
     - desktop-app-loop
     - wf-research
+    - wf-semiauto-grill
   plugins:
     - superpowers
   mcp: []
