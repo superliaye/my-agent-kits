@@ -4,6 +4,18 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.29.0] - 2026-06-15
+
+Skill grouping folders may now nest to any depth, and the `@loop` family is reorganized to use it. This is a source-layout change only — deploy still flattens every skill to `<skillsRoot>/<name>/`, so the installed result and how Claude/Codex consume the skills are unchanged.
+
+### Added
+
+- **Nested skill grouping folders.** A `capabilities/skills/` directory with no `SKILL.md` of its own is a grouping folder; the scanner ([lib/capabilities.js](lib/capabilities.js)) now descends through such folders recursively instead of exactly one level, so skills may sit under multiple nested namespaces (e.g. `@loop/@feedback-loops/<name>/`). By convention group folders at every level take an `@` prefix (cosmetic; detection is structural). The walk stops at the first `SKILL.md`, so a skill's own internal subdirs (`helpers/`, `recipes/`, `_unshipped/`) are never mistaken for nested skills. Leaf folder names must stay globally unique, since deploy flattens every skill to `<skillsRoot>/<name>/`.
+
+### Changed
+
+- **`@loop` reorganized into sub-namespaces.** `loop-check-readiness` moved to `@loop/@setup/`; the three visual/desktop feedback-loop skills (`desktop-app-loop`, `electron-visual-loop`, `web-visual-loop`) moved to `@loop/@feedback-loops/`. The SWE-engine skills (`feature-loop`, `loop-build`, `loop-full-swe`, `loop-research-plan`, `loop-retro`) stay at `@loop/` root. Skill names, presets, and deployed paths are unchanged.
+
 ## [0.28.0] - 2026-06-14
 
 Adds the `@wf` skill family and its first skill, `wf-research`, to the `experimenting-engineering` preset.
