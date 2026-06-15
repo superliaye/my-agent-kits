@@ -5,7 +5,8 @@ extends: productivity
 
 capabilities:
   instructions: []
-  skills: []
+  skills:
+    - prepare-peer-feedback
   plugins: []
   mcp: []
   hooks: []
