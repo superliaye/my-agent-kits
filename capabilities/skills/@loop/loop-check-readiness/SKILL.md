@@ -1,4 +1,5 @@
 ---
+name: loop-check-readiness
 description: Read-only audit of whether a coding agent can actually get a fast, deterministic, agent-runnable feedback loop in a repo — judging both what the repo affords (tests, build, type-check, lint, CI, and a reachable, drivable UI for visual checks) and whether the agent can close that loop unattended with the tools and skills it has (no interactive auth, human clicks, or non-headless steps). Reports gaps and opportunities with a remediation for each; it inspects and reports only, changing no files and building no loop. Use when starting work in an unfamiliar repo, when the user asks whether a project is set up for success or has a good feedback loop, or to audit or grade its feedback signals before relying on an agent loop.
 allowed-tools: Read, Grep, Glob, Bash
 added_in: 0.28.0
