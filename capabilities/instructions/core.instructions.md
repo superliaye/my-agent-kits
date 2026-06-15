@@ -1,5 +1,5 @@
 ---
-description: Core repo-agnostic conduct rules — no emojis, evergreen docs, ask before git mutations, research current-state claims
+description: Core repo-agnostic conduct rules — evergreen docs, ask before git mutations, research current-state claims
 applyTo: "**"
 added_in: 0.1.0
 ---
@@ -21,7 +21,7 @@ added_in: 0.1.0
 - Git mutations (add/commit/push) need confirmation. Read-only (status/diff/log) are safe.
   - Ask before: `git commit -m "..."` -> Do without asking: `git diff`
 
-- No emojis. No excessive praise. Direct and objective.
+- No excessive praise. Direct and objective.
   - Avoid: "Great question!" -> Prefer: "Here's how to fix it."
 
 ## Research current-state claims
