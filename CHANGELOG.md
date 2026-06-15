@@ -4,6 +4,14 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.30.0] - 2026-06-15
+
+Adds `calibrate-system-prompt`, a provider- and repo-agnostic skill for trimming an AI agent's system prompt and tool/function descriptions, to the `experimenting-engineering` preset.
+
+### Added
+
+- **`calibrate-system-prompt`** ([capabilities/skills/calibrate-system-prompt/](capabilities/skills/calibrate-system-prompt/)) — generalized from a project-specific `calibrate-system` skill into a portable one. It reads a target agent's full system prompt plus every tool/function definition, drafts surgical edits that **shrink net byte count** without weakening behavior, spawns two parallel reviewers (a Breakage Auditor and a Shrink Maximizer), then applies, re-measures against the size gate, and sweeps dependent artifacts. The generalization replaces hardcoded paths with a discovery phase (heuristics for both template files and in-code prompt strings across Anthropic / OpenAI / Copilot / Gemini / MCP shapes), makes production telemetry an opt-in `--telemetry` step instead of a mandatory Kusto pull, and verifies via the repo's own discovered lint/type-check rather than fixed tools. Ships in `experimenting-engineering`.
+
 ## [0.29.0] - 2026-06-15
 
 Skill grouping folders may now nest to any depth, and the `@loop` family is reorganized to use it. This is a source-layout change only — deploy still flattens every skill to `<skillsRoot>/<name>/`, so the installed result and how Claude/Codex consume the skills are unchanged.

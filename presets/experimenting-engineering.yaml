@@ -7,6 +7,7 @@ capabilities:
   instructions: []
   skills:
     - desktop-app-loop
+    - calibrate-system-prompt
     - wf-research
     - wf-semiauto-grill
   plugins:
