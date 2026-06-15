@@ -10,6 +10,7 @@ capabilities:
     - loop-research-plan
     - loop-build
     - loop-retro
+    - loop-check-readiness
     - e2e-validate
     - improve-codebase-architecture
     - improve-DDD-architecture
