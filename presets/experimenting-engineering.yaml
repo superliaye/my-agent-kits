@@ -7,6 +7,7 @@ capabilities:
   instructions: []
   skills:
     - desktop-app-loop
+    - wf-research
   plugins:
     - superpowers
   mcp: []

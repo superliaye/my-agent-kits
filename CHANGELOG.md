@@ -4,6 +4,14 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.28.0] - 2026-06-14
+
+Adds the `@wf` skill family and its first skill, `wf-research`, to the `experimenting-engineering` preset.
+
+### Added
+
+- **`wf-research`** ([capabilities/skills/@wf/wf-research/](capabilities/skills/@wf/wf-research/)) — a codebase-first research primitive that runs as a file-based dynamic Workflow. Given a feature request or a bug it maps the problem area (relevant code at `file:line`, how it works today, constraints, open questions) into a "raw research brief" with **no proposed directions**, to ground a downstream grill or plan. It does light web search inline and escalates to moderate/deep web research (reusing `/deep-research`) only for time-sensitive facts. Agents hand off only through write-once disk artifacts, each validated by a checker before the next step reads it. Ships in `experimenting-engineering`.
+
 ## [0.27.0] - 2026-06-12
 
 Durable install manifest. `init` establishes the selection (from the wizard defaults) and records it in `~/.agent-kit/manifest.json`; `update` is now where an existing install changes. This fixes the long-standing bug where `update` silently reverted a customized install back to the default presets (it resolved its working set from `DEFAULT_SELECTED_PRESETS`, never from what was actually installed), and it wires up the previously-orphaned bundle-pin skip so an unchanged bundle no longer re-runs its expensive installer on every `update`.
