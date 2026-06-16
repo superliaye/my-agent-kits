@@ -36,9 +36,10 @@ Tier 3  Vision computer-use (universal fallback) ......... any pixels, any OS
            re-screenshot and judge. Pluggable model (agent itself, or UI-TARS).
 ```
 
-**Invariant:** Tiers 1 and 2 are deterministic and need **no model**. Only Tier 3
-needs one, and even that is swappable (the agent itself, or UI-TARS) — no
-Claude/vendor lock-in.
+**Invariant:** tiers rank by *verification* fidelity, not driving ability. Vision
+(Tier 3) drives any UI fine — what drops is the oracle: Tiers 1–2 **assert** on
+structured state (**no model**); Tier 3 **judges a screenshot**. Prefer the highest
+tier that yields a structured read-back.
 
 **Validated against the Codex desktop app (MSIX, Chromium 148, Windows):** all
 three tiers work. Tier 1 needs the MSIX container relaunch; Tier 2 needs the
@@ -181,10 +182,10 @@ Filters: `--name-re`, `--control-type`, `--pid`, `--max`, `--max-depth`.
 
 ---
 
-## Tier 3 — Vision computer-use (universal fallback, model-agnostic)
+## Tier 3 — Vision computer-use (structure-blind channel, model-agnostic)
 
-When Tiers 1–2 are unavailable (no relaunch, widget invisible to a11y, or a
-non-Windows/macOS OS). Works on any pixels. Three layers:
+Reach here when no structured read-back exists — no relaunch, widget invisible to
+a11y, or a non-Windows/macOS OS. Three layers:
 
 1. **Executor** — bundled, no extra deps:
    - **Screenshot**: `pwsh helpers/capture_window.ps1 -ProcId <pid> -Out shot.png`
@@ -217,9 +218,7 @@ pwsh helpers/capture_window.ps1 -ProcId 49208 -Out after.png    # verify state c
 ```
 
 Verification here is **vision-based** (judge a screenshot), not assertion-based —
-add explicit waits/retries; there is no event to await. UI-TARS-desktop is a
-heavyweight GUI app → install it yourself per its README; this skill does not
-auto-install it.
+add explicit waits/retries; there is no event to await.
 
 ---
 
@@ -272,14 +271,9 @@ field in `dump` output. If neither is exposed, fall through to Tier 3.
 has a windowless CLI swarm + the GUI). Use `mainWindowPids` from
 `discover_exe.ps1` and pass `--pid` to the helper to pin the GUI window.
 
-## Relationship to other skills
-
-- **`electron-visual-loop`** — for an app **you** launch with a debug port. If you
-  control the launch, use it; this skill is the fallback when you don't.
-- **`web-visual-loop`** — same CDP transport against a local dev server.
-- **`design-critique`** — consumes screenshots this skill captures.
-
 ## Runtime requirements
+
+If you control the app's launch (can start it with a debug port), use `electron-visual-loop` instead — this skill is the fallback for a foreign app you can't relaunch debuggable.
 
 - Tier 1: `agent-browser` on PATH (or `npx agent-browser`); a way to relaunch
   (`Start-Process` for exe apps, `Invoke-CommandInDesktopPackage` for MSIX).

@@ -1,154 +1,59 @@
 ---
-description: Automate and visually verify web apps (Vite, Next, SvelteKit, Astro, plain HTML, etc.) running on a local dev server using agent-browser via Chrome DevTools Protocol. Use when the user is iterating on a browser-rendered UI and wants a visual feedback loop — agent edits code, HMR reloads, agent re-screenshots and judges the pixels. Triggers include "visual feedback loop for the web app", "screenshot the dev server", "verify the UI renders", "test this route", "iterate on the design".
+description: Automate and visually verify a browser-rendered web UI using agent-browser via Chrome DevTools Protocol. Built for the local edit→reload→re-verify dev loop, but the connect + verification spine work against any URL (local, staging, production). Use when iterating on a UI and wanting a visual feedback loop, or to verify that a route renders, a flow works, or a page didn't regress. Triggers include "visual feedback loop for the web app", "screenshot the dev server", "verify the UI renders", "test this route", "iterate on the design".
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*), Bash(google-chrome:*), Bash(chromium:*), Bash(open:*)
 added_in: 0.11.0
+metadata:
+  philosophy_reviewed: 2026-06
 ---
 
 # Web visual loop
 
-The web-stack counterpart to `electron-visual-loop`. Same transport (Chrome DevTools Protocol via the `agent-browser` CLI), pointed at a Chromium instance loading a local dev server.
+The web-stack counterpart to `electron-visual-loop` — same transport (Chrome DevTools Protocol via `agent-browser`), pointed at a Chromium instance loading a web page. Primary use is the **local dev loop** (edit code → HMR reload → re-verify), but the connect and verification steps work against **any URL** — only "boot the dev server" and "HMR reload" are dev-local.
 
-The inner loop:
+This skill owns the **iteration philosophy and the verification spine**. It does **not** re-document `agent-browser`'s commands — those drift between versions.
 
-1. **Boot the dev server** (if not already running).
-2. **Launch Chromium with CDP** enabled.
-3. **Connect** `agent-browser` to the CDP port.
-4. **Navigate** to the route under test.
-5. **Snapshot / screenshot** the rendered state.
-6. **Iterate** — agent edits code, HMR reloads the page, agent re-snapshots.
+## Load the command reference first
 
-## Boot the dev server
-
-Use whatever the project ships. Examples:
+`agent-browser` ships an agent-oriented guide that always matches the installed binary. Read it instead of relying on memorized flags:
 
 ```bash
-npm run dev        # Vite, Next, Astro, SvelteKit
-bun run dev
-python -m http.server 8000   # static HTML
+agent-browser --version              # need `diff`, `is`, `network`, `trace`
+agent-browser skills get core --full # version-matched command reference
 ```
 
-Run it in a background terminal or via `&`; capture the URL it prints (`http://localhost:5173`, etc.).
+If a command below is missing: `agent-browser upgrade` (or `doctor --fix`). Treat `skills get core` as the source of truth for *how* to call commands; this file for *what to verify, in what order*.
 
-## Launch Chromium with `--remote-debugging-port`
+## The loop
 
-### macOS
+1. **Boot the dev server** if iterating locally (`npm run dev`, `bun run dev`, `python -m http.server`); capture its URL. Skip for a remote/deployed URL.
+2. **Launch Chromium with CDP** and connect:
+   ```bash
+   # macOS:   open -a "Google Chrome" --args ...   |   Linux: google-chrome ...   |   Windows: chrome.exe ...
+   chrome --remote-debugging-port=9222 --user-data-dir=/tmp/agent-chrome http://localhost:5173
+   agent-browser connect 9222           # or: agent-browser --auto-connect
+   ```
+   A dedicated `--user-data-dir` is required — Chromium refuses CDP on a profile already open elsewhere.
+3. **Navigate + run the verification spine** (below).
+4. **Iterate** — edit code, HMR reloads, re-run the spine. (For a static URL, just re-run after a deploy.)
 
-```bash
-open -a "Google Chrome" --args \
-  --remote-debugging-port=9222 \
-  --user-data-dir=/tmp/agent-chrome \
-  http://localhost:5173
-```
+## The verification spine
 
-### Linux
+**A bare "LLM looks at the screenshot and judges it" is not a reliable gate** — it passes broken UIs too often to be ground truth. Gate on deterministic signals first; reserve pixel judgment for genuinely aesthetic questions. `agent-browser batch --bail "…" "…"` chains these and stops on first failure.
 
-```bash
-google-chrome \
-  --remote-debugging-port=9222 \
-  --user-data-dir=/tmp/agent-chrome \
-  http://localhost:5173 &
-```
+1. **State — deterministic.** `agent-browser is visible "#checkout"` · `is enabled "#submit"` · `get count ".item"`. Pair with `wait <sel>` / `wait --load networkidle` so you assert after the page settles, not during hydration.
+2. **A11y-tree regression — deterministic.** `snapshot -i > good.txt` once, then `diff snapshot --baseline good.txt`. Resists styling churn, unlike pixel diffs. (No `--baseline` → diffs against the session's last snapshot: "did this edit change the tree at all".)
+3. **Console + network gating.** `errors` · `console` · `network requests --status 400-499` (and `500-599`). A clean screenshot can sit on a failed request.
+4. **Visual regression — deterministic pixels.** `screenshot home.png` once, then `diff screenshot --baseline home.png --threshold 0.1`. Loop breakpoints with `set viewport <w> <h>`.
+5. **Aesthetic judgment — last, structured.** Only here does screenshot-and-judge belong, and only for what has no deterministic answer (spacing, hierarchy, brand). Use `screenshot --annotate` and hand to `design-critique` — not a free-form "looks good?".
+6. **Trace for forensics.** When a flow fails, `trace start trace.json` → drive → `trace stop` instead of reconstructing from screenshots.
 
-### Windows
+## Notes
 
-```bash
-"C:\Program Files\Google\Chrome\Application\chrome.exe" \
-  --remote-debugging-port=9222 \
-  --user-data-dir=%TEMP%\agent-chrome \
-  http://localhost:5173
-```
+- **Dark mode:** default CDP scheme is `light`; use `--color-scheme dark` or `AGENT_BROWSER_COLOR_SCHEME=dark`.
+- **Page won't reload after an edit:** HMR isn't running — check the dev-server terminal for build errors; `agent-browser reload` forces a full reload.
+- **CDP "connection refused":** confirm `--remote-debugging-port=9222`; a pre-existing instance on the same `--user-data-dir` refuses CDP. Windows: `netstat -ano | findstr :9222`.
+- Stale-ref / hydration / synthetic-input issues: see `agent-browser skills get core --full`.
 
-**Why `--user-data-dir`:** isolates the agent's session from your normal browser profile. Chromium refuses CDP on the default profile when another instance is running.
+## Requirements
 
-If you already have a Chromium-compatible browser open with debugging enabled, `agent-browser --auto-connect` finds it.
-
-## Connect and drive
-
-```bash
-agent-browser connect 9222
-agent-browser snapshot -i              # discover interactive elements (@e1, @e2, …)
-agent-browser screenshot home.png
-agent-browser click @e5
-agent-browser snapshot -i              # re-snapshot after navigation
-```
-
-After the first `connect`, subsequent commands target the same session — no `--cdp` flag needed.
-
-## Common patterns
-
-### Screenshot every breakpoint
-```bash
-for w in 360 768 1280; do
-  agent-browser viewport "${w}x800"
-  agent-browser screenshot "home-${w}.png"
-done
-```
-
-### Test a flow on the dev server
-```bash
-agent-browser navigate http://localhost:5173/checkout
-agent-browser snapshot -i
-agent-browser fill @e3 "test@example.com"
-agent-browser click @e7
-agent-browser wait 1000
-agent-browser screenshot after-submit.png
-```
-
-### Read console errors after a code edit
-HMR has reloaded the page in the connected tab. Capture console state:
-```bash
-agent-browser console --since-last 100   # last 100 messages since last call
-```
-(If your `agent-browser` version doesn't have `--since-last`, fall back to `agent-browser console`.)
-
-### Multi-route visual sweep
-```bash
-for route in / /about /pricing /docs; do
-  agent-browser navigate "http://localhost:5173${route}"
-  agent-browser wait 500
-  agent-browser screenshot "page$(echo $route | tr / _).png"
-done
-```
-
-## Multi-tab / multi-window
-
-`agent-browser tab` lists every open page (and webview). Switch with `agent-browser tab <index>` or `agent-browser tab --url "*settings*"`.
-
-## Dark mode preservation
-
-Default scheme through CDP is `light`. To honour the user's dark preference:
-```bash
-agent-browser --color-scheme dark snapshot -i
-# or globally:
-AGENT_BROWSER_COLOR_SCHEME=dark agent-browser connect 9222
-```
-
-## Troubleshooting
-
-### "Connection refused" / "Cannot connect"
-- Confirm Chromium launched with `--remote-debugging-port=9222`.
-- A pre-existing Chromium instance on the same `--user-data-dir` will refuse CDP — use a dedicated `--user-data-dir`.
-- Windows: `netstat -ano | findstr :9222` to confirm a process is listening.
-
-### Page never reloads after code change
-- HMR isn't running — check the dev server's terminal for build errors.
-- Some frameworks require a full reload on certain file types; `agent-browser reload` forces it.
-
-### Elements not in snapshot
-- The page may still be hydrating. `agent-browser wait 500 && agent-browser snapshot -i`.
-
-### Cannot type in input fields
-- Custom React/Vue inputs may swallow synthetic key events. Try `agent-browser keyboard inserttext "text"` instead of `fill`.
-
-## Runtime requirements
-
-- `agent-browser` CLI on PATH (or use `npx agent-browser`). Same dep as `electron-visual-loop` — install once for both.
-- A Chromium-based browser (Google Chrome, Chromium, Brave, Edge) on PATH. The agent does not auto-install one.
-- A running dev server. The agent doesn't manage server lifecycle; that's part of the repo's existing tooling.
-
-## Relationship to other skills
-
-- **`electron-visual-loop`** — same transport (agent-browser CDP), different target (an Electron app launched with `--remote-debugging-port` vs. a Chromium instance loading a local URL). Use one or the other depending on the project type.
-- **`desktop-app-loop`** — for a *foreign* desktop app you did **not** launch (no debug port); tiered CDP-relaunch / OS-accessibility / vision automation.
-- **`design-critique`** — consumes the screenshots this skill produces; runs the qualitative judgment pass.
-- **`feature-loop`** — Phase 5a invokes this skill for web stacks to capture screenshots of the just-implemented UI.
+`agent-browser` on PATH (or `npx agent-browser`); a Chromium-based browser on PATH (not auto-installed); a reachable URL. For an Electron app rather than a web page, use `electron-visual-loop` (same transport, different target).
