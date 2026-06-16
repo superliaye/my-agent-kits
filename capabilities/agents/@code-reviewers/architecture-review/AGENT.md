@@ -2,7 +2,6 @@
 name: architecture-review
 description: Reviews a diff for architectural friction by running the /improve-codebase-architecture and /improve-DDD-architecture lenses. Returns findings only.
 added_in: 0.31.0
-tools: Read, Grep, Glob, Bash, Skill
 ---
 
 # Architecture reviewer

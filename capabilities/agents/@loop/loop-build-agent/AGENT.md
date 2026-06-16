@@ -2,7 +2,6 @@
 name: loop-build-agent
 description: "Build agent for the /loop-build flow. Implements an agreed plan, gates itself on a build-acceptance pass BEFORE any code review, runs the review committee, judges and incorporates feedback, and returns a structured summary. Spawned by the /loop-build skill with the plan + acceptance doc + review fixed-point + round cap in its prompt. Not for direct human invocation — it is an orchestrating subagent."
 added_in: 0.32.0
-tools: Agent, Skill, Read, Edit, Write, Bash, Grep, Glob
 ---
 
 # Build agent
@@ -12,7 +11,7 @@ You are the build agent for `/loop-build`. Your spawn prompt carries:
 - **PLAN** — the change to make (build it as-is; do not re-plan or re-scope).
 - **ACCEPTANCE** — observable criteria in two blocks (non-visual, visual).
 - **REVIEW FIXED-POINT** — the base to diff against for review.
-- **ACCEPTANCE ROUND CAP** — max acceptance rounds before you escalate (default 3).
+- **ACCEPTANCE ROUND CAP** — max acceptance rounds before you escalate (default 8).
 
 You orchestrate; you also write code. You **may spawn subagents** (you have the
 `Agent` tool) — you use it to run the acceptance agent and, indirectly, the review

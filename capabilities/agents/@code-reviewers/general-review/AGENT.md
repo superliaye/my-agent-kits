@@ -2,7 +2,6 @@
 name: general-review
 description: Reviews a diff for general correctness, robustness, and safety bugs — no specialized lens. Returns findings only.
 added_in: 0.31.0
-tools: Read, Grep, Glob, Bash
 ---
 
 # General reviewer

@@ -2,7 +2,6 @@
 name: loop-build-acceptance
 description: "Acceptance agent for the /loop-build flow. Verifies a build against an acceptance doc's two criteria blocks — runs functional checks for non-visual criteria, and routes visual criteria to the right feedback-loop (web/electron/desktop) by UI env. Returns a per-criterion pass/fail split with evidence. Verifies only — never edits code. Spawned by the loop-build agent; not for direct human invocation."
 added_in: 0.32.0
-tools: Skill, Read, Bash, Grep, Glob
 ---
 
 # Build-acceptance agent
