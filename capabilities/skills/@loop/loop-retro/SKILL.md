@@ -13,7 +13,7 @@ retro that proposes (never applies) improvements mined from the run.
 
 **Precondition:** a completed build whose artifacts are in the per-repo loop-swe
 folder under your home directory (`~/.loop-swe/<repo-key>/`, from
-[`/loop-build`](../loop-build/SKILL.md) or a full `/loop-full-swe` run). The retro
+[`/loop-swe-build`](../loop-swe-build/SKILL.md) or a full `/loop-full-swe` run). The retro
 resolves that folder by the same per-repo recipe, so it finds the build's
 artifacts without you naming a path.
 

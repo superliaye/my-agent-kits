@@ -37,7 +37,7 @@ reach you. No code is written — it stops after planning.
 
    | `gate` | Meaning | Action |
    |---|---|---|
-   | `plan-done` | Plan is clear, nothing needs you | Relay `plan.md` under the returned `artifactRoot` and the auto-resolved decisions; tell the user it's ready for [`/loop-build`](../loop-build/SKILL.md). |
+   | `plan-done` | Plan is clear, nothing needs you | Relay `plan.md` under the returned `artifactRoot` and the auto-resolved decisions; tell the user it's ready for [`/loop-swe-build`](../loop-swe-build/SKILL.md). |
    | `plan` | The digest kept open questions for you | Surface each `needsHuman` item (options + recommendation + reversibility) with `AskUserQuestion`, then **resume** (step 3). |
    | `distribute-to-issues` | Too large for one build | Hand the returned `issues` to `/to-issues`; do not plan further here. |
 
@@ -58,10 +58,10 @@ reach you. No code is written — it stops after planning.
 The plan lands at `<artifactRoot>/plan.md` (plus `architecture-impact.md` for
 non-trivial tracks) — a per-repo folder under your home directory
 (`~/.loop-swe/<repo-key>/`, host-neutral), not the working tree, so nothing
-dirties git. `/loop-build` resolves the same folder and picks it up.
+dirties git. `/loop-swe-build` resolves the same folder and picks it up.
 
 ## Dependencies
 
 Shipped via [`presets/loop-full-swe.yaml`](../../../presets/loop-full-swe.yaml).
 This stage uses `to-issues` (for oversized work) and the project docs; the
-heavier review/validate skills are used by [`/loop-build`](../loop-build/SKILL.md).
+heavier review/validate skills are used by [`/loop-swe-build`](../loop-swe-build/SKILL.md).

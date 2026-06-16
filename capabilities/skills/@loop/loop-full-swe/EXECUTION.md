@@ -101,7 +101,7 @@ executes. It has a small fixed set of runtime-provided powers, and nothing else:
 
 | Power | What it is | Notes |
 |---|---|---|
-| `agent(prompt, opts)` | Spawn **one** sub-agent ("leaf"), wait, get its result back | With `schema:` the leaf is forced to return a validated JSON object; without it, raw text. A leaf may **never** spawn its own sub-agents (depth = 1). |
+| `agent(prompt, opts)` | Spawn **one** sub-agent ("leaf"), wait, get its result back | With `schema:` the leaf is forced to return a validated JSON object; without it, raw text. A leaf does its one job and does **not** spawn its own sub-agents — fan-out stays in the script by design (nested spawning is supported, just unused here). |
 | `parallel([thunks])` | Run several leaves at once, **barrier**: wait for all | A leaf that errors becomes `null` in the result array. |
 | `pipeline(items, ...stages)` | Run each item through all stages independently, **no barrier** | Item A can be in stage 2 while item B is still in stage 1. A throwing stage drops that item to `null`. |
 | `phase()` / `log()` | Label progress groups / emit a narrator line | Cosmetic — drives the `/workflows` live view only. |
@@ -110,9 +110,9 @@ executes. It has a small fixed set of runtime-provided powers, and nothing else:
 
 Two consequences drive the entire design:
 
-1. **All fan-out lives in this script.** Because a leaf cannot spawn sub-agents,
-   any "spread this across N workers" logic is lifted up into the orchestrator.
-   Every `agent()` call below is a single-job worker.
+1. **All fan-out lives in this script.** Because the engine keeps every agent a leaf
+   by design, any "spread this across N workers" logic is lifted up into the
+   orchestrator. Every `agent()` call below is a single-job worker.
 2. **A `return` is the human break.** The script never blocks waiting for a human.
    When it needs a decision it cannot make, it `return`s a `gate` object and the
    run *ends*. The main chat (the skill that launched the workflow) reads the gate,
@@ -153,7 +153,7 @@ four skills:
 |---|---|---|---|
 | `/loop-full-swe` | `scope` | `retro` | Scope → Plan → Build → Retro (all) |
 | `/loop-research-plan` | `scope` | `plan` | Scope → Plan |
-| `/loop-build` | `build` | `retro`* | Build → Retro |
+| `/loop-swe-build` | `build` | `retro`* | Build → Retro |
 | `/loop-retro` | `retro` | `retro` | Retro only |
 
 \* The chain-builder in SKILL.md launches per-issue runs with `stopAfter: 'build'`
@@ -184,7 +184,7 @@ These steps execute on **every** invocation, regardless of `startFrom`:
      **lowercased**, with every character outside `[a-z0-9]` replaced by `-`
      (e.g. `D:/Repos/My-App` → `d--repos-my-app`). A deterministic slug, **no
      hashing** — the other loop skills reproduce this exact rule character-for-
-     character, so a later `/loop-build` or `/loop-retro` resolves the *same*
+     character, so a later `/loop-swe-build` or `/loop-retro` resolves the *same*
      folder.
    - `A` = `<HOME>/.loop-swe/<KEY>`, created with `mkdir -p`.
    - It lives **outside the repo and outside `~/.claude` / `~/.codex`** on purpose:
@@ -208,7 +208,7 @@ These steps execute on **every** invocation, regardless of `startFrom`:
 ## 4. Phase 0 — Scope
 
 **Runs when:** `runs('plan') || runs('build')`. In other words, Scope runs
-whenever Plan *or* Build will run, so even a standalone `/loop-build` knows the
+whenever Plan *or* Build will run, so even a standalone `/loop-swe-build` knows the
 `track` and `uiWork` it needs. It is **skipped only for a retro-only run.**
 
 ### 4.1 The scope leaf
@@ -521,7 +521,7 @@ items are flagged as operator decisions to implement in full. Then `log` and loo
 > (`round === cap + extraRounds`), `incorporate-r` still appends them to
 > `A/plan.md`, but the `while` condition is now false, so the loop exits and they
 > are **NOT implemented this run** — they remain as pending items in `A/plan.md`.
-> There is no post-loop drain step; a later `/loop-build` over the same artifact
+> There is no post-loop drain step; a later `/loop-swe-build` over the same artifact
 > root would pick them up, and they get no final re-validation this run.
 >
 > Note: `extraRounds` is incremented **only** by the validation-failure
@@ -535,7 +535,7 @@ items are flagged as operator decisions to implement in full. Then `log` and loo
 if (STOP === 'build') return { gate: 'build-done', scope, buildOpen, artifactRoot: A, validation: lastVal }
 ```
 
-Terminal success for `/loop-build` and for each per-issue run in a decomposition
+Terminal success for `/loop-swe-build` and for each per-issue run in a decomposition
 chain (which launch with `stopAfter: 'build'` to skip per-issue retros).
 
 `buildOpen` is **always `[]` at this return.** Its only assignment is
@@ -697,8 +697,9 @@ Everything lives under the artifact root `A = <HOME>/.loop-swe/<repo-slug>/`,
 
 ## 11. Design invariants worth remembering
 
-- **One root, leaf workers.** All fan-out is in the script; no leaf ever spawns a
-  sub-agent. This is forced by the runtime (depth = 1).
+- **One root, leaf workers.** All fan-out is in the script; no leaf spawns a
+  sub-agent. This is a design choice (determinism + resumability), not a runtime
+  limit — nested spawning is supported as of Claude Code v2.1.172, just unused here.
 - **Autonomous by default; a `return` is the only human break.** The self-digest is
   the gatekeeper — the run pauses only when a question is genuinely unresolved and
   consequential.

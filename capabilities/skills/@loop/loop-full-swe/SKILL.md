@@ -1,6 +1,6 @@
 ---
 name: loop-full-swe
-description: Autonomous, architecture-aware end-to-end SWE loop. Runs scope -> survey/plan -> implement + multi-perspective review -> summary/retro as ONE dynamic-workflow run that proceeds on its own and only breaks to you when a self-digest finds a decision that genuinely needs a human. Use when the user says "/loop-full-swe <feature>" or wants the full research-to-retro loop in one go. The three stage skills (/loop-research-plan, /loop-build, /loop-retro) run segments of this same engine.
+description: Autonomous, architecture-aware end-to-end SWE loop. Runs scope -> survey/plan -> implement + multi-perspective review -> summary/retro as ONE dynamic-workflow run that proceeds on its own and only breaks to you when a self-digest finds a decision that genuinely needs a human. Use when the user says "/loop-full-swe <feature>" or wants the full research-to-retro loop in one go. The three stage skills (/loop-research-plan, /loop-swe-build, /loop-retro) run segments of this same engine.
 added_in: 0.17.0
 ---
 
@@ -14,16 +14,19 @@ only pauses (returns a `gate`) when something genuinely needs you.
 
 `loop-swe.js` is the **shared engine** behind all four loop skills. This skill
 owns it; [`/loop-research-plan`](../loop-research-plan/SKILL.md),
-[`/loop-build`](../loop-build/SKILL.md), and [`/loop-retro`](../loop-retro/SKILL.md)
+[`/loop-swe-build`](../loop-swe-build/SKILL.md), and [`/loop-retro`](../loop-retro/SKILL.md)
 launch the same file with different `startFrom`/`stopAfter` args.
 
 ## Spawn topology (why it is built this way)
 
-Subagents cannot spawn subagents (`depth=1`,
-[docs](https://code.claude.com/docs/en/sub-agents)). So **all fan-out lives in
-the script** (a root orchestrator); every `agent()` it spawns is a LEAF that
-does one job and never spawns. The main agent (you, running this skill) is the
-other root: it launches the workflow and brokers the human gates between runs.
+**All fan-out lives in the script** (a root orchestrator); every `agent()` it
+spawns is a LEAF that does one job and never spawns its own children. This is a
+**deliberate design choice**, not a platform limit — keeping every agent a leaf is
+what makes the run deterministic, resumable, and budget-scaled, with one place that
+owns concurrency. (Nested sub-agent spawning is supported as of Claude Code
+v2.1.172; the engine simply does not rely on it.) The main agent (you, running this
+skill) is the other root: it launches the workflow and brokers the human gates
+between runs.
 
 ## How to invoke
 
@@ -184,7 +187,9 @@ audit them:
   agent checks `~/.claude/CLAUDE.md`, `<repo>/CLAUDE.md`, `CONTEXT.md`,
   `docs/adr/`, `docs/`, and prior run artifacts. Only genuinely unanswered
   questions reach you.
-- **Leaf-only.** No agent spawns another agent.
+- **Leaf-only.** Every phase agent does its one job and returns; fan-out stays in
+  the script by design (not a platform limit — nested spawning is supported, just
+  unused here).
 - **Adversarial verification.** Every review finding is independently verified
   against the diff before it can cost an implement round.
 

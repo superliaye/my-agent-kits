@@ -1,5 +1,5 @@
 ---
-description: Autonomous E2E feature-build orchestrator. Use when the user says "add feature X", "implement Y", or any other request that requires planning, coding, reviewing, and verifying changes end-to-end. The main agent drives the loop, delegating each phase to a sub-agent (depth=1) so the main context stays clean enough to judge and drill in. Loop terminates on success criteria, iteration cap, or user abort. Skips UI-specific phases automatically when no UI files are in scope.
+description: Autonomous E2E feature-build orchestrator. Use when the user says "add feature X", "implement Y", or any other request that requires planning, coding, reviewing, and verifying changes end-to-end. The main agent drives the loop, delegating each phase to a sub-agent (one level deep, by design) so the main context stays clean enough to judge and drill in. Loop terminates on success criteria, iteration cap, or user abort. Skips UI-specific phases automatically when no UI files are in scope.
 allowed-tools: Task, Read, Edit, Write, Glob, Grep, Bash
 added_in: 0.10.0
 ---
@@ -10,7 +10,7 @@ Protocol for autonomous E2E feature build. Main agent drives; each phase delegat
 
 ## Constraints
 
-- **Sub-agent depth = 1.** Fan-out happens at main, never inside a sub-agent.
+- **Sub-agent depth = 1 by design.** Fan-out happens at main, not inside a sub-agent — a deliberate choice to keep the main context clean enough to judge, not a platform limit (nested spawning is supported as of Claude Code v2.1.172).
 - **Compact returns.** End every sub-agent prompt with a word cap and bullet-only format.
 - **Plan owns mechanism; Design owns aesthetics.** On conflict: design wins on aesthetics, plan wins on architecture. Main resolves silently.
 - **Missing verification harness is a Phase 7 finding, never a silent skip.**

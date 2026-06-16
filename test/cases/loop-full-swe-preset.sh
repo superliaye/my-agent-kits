@@ -24,7 +24,7 @@ AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
 # All 4 loop skills land (full recursive folder copy)
 assert_file_exists "$HOME/.claude/skills/loop-full-swe/SKILL.md" "loop-full-swe SKILL.md deployed"
 assert_file_exists "$HOME/.claude/skills/loop-research-plan/SKILL.md" "loop-research-plan SKILL.md deployed"
-assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "loop-build SKILL.md deployed"
+assert_file_exists "$HOME/.claude/skills/loop-swe-build/SKILL.md" "loop-swe-build SKILL.md deployed"
 assert_file_exists "$HOME/.claude/skills/loop-retro/SKILL.md" "loop-retro SKILL.md deployed"
 
 # The shared engine ships ONCE, inside the uber skill's folder (single source of truth)
@@ -33,18 +33,18 @@ assert_content_contains "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "export
 assert_content_contains "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "needsHuman" "engine implements the self-digest gate"
 
 # ...and NOT duplicated into the stage skills' folders
-if [ -f "$HOME/.claude/skills/loop-build/loop-swe.js" ]; then
-  fail "loop-swe.js should NOT be duplicated into loop-build (single source of truth)"
+if [ -f "$HOME/.claude/skills/loop-swe-build/loop-swe.js" ]; then
+  fail "loop-swe.js should NOT be duplicated into loop-swe-build (single source of truth)"
 else
-  ok "engine not duplicated into loop-build (references the uber's copy)"
+  ok "engine not duplicated into loop-swe-build (references the uber's copy)"
 fi
 
 # Stage skills reference the shared engine by sibling path
-assert_content_contains "$HOME/.claude/skills/loop-build/SKILL.md" "loop-full-swe/loop-swe.js" "loop-build references the shared engine path"
+assert_content_contains "$HOME/.claude/skills/loop-swe-build/SKILL.md" "loop-full-swe/loop-swe.js" "loop-swe-build references the shared engine path"
 assert_content_contains "$HOME/.claude/skills/loop-research-plan/SKILL.md" "stopAfter" "loop-research-plan launches the plan-only stage"
 
 # Frontmatter so the capability catalog discovers each like every other skill
-for s in loop-full-swe loop-research-plan loop-build loop-retro; do
+for s in loop-full-swe loop-research-plan loop-swe-build loop-retro; do
   assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "added_in:" "$s frontmatter has added_in"
   assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "description:" "$s frontmatter has description"
 done

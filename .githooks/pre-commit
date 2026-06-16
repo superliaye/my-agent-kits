@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Block a commit whose package-lock.json version is out of sync with package.json
+# (the common "bumped the version, forgot to regenerate the lock" case). Hermetic:
+# no npm, no network. Bypass with `git commit --no-verify` if you really must.
+#
+# Active when core.hooksPath points here — set automatically by the npm `prepare`
+# script, or once by hand: git config core.hooksPath .githooks
+
+pj=$(node -e "process.stdout.write(require('./package.json').version)" 2>/dev/null) || exit 0   # no node / no package.json -> don't block
+lk=$(node -e "try{process.stdout.write(String(require('./package-lock.json').version||''))}catch(e){}" 2>/dev/null)
+lk0=$(node -e "try{process.stdout.write(String(require('./package-lock.json').packages['']?.version||''))}catch(e){}" 2>/dev/null)
+
+if [ "$pj" != "$lk" ] || [ "$pj" != "$lk0" ]; then
+  echo "✗ pre-commit: package-lock.json is out of sync (package.json=$pj, lock=$lk/$lk0)." >&2
+  echo "  Fix: run 'npm install' (or bump via 'npm version'), then stage package-lock.json." >&2
+  exit 1
+fi

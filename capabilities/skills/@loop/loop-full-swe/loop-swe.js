@@ -1,16 +1,17 @@
 // loop-swe — the shared dynamic-workflow engine behind 4 skills:
 //   /loop-full-swe       full run (scope -> retro), brokers conditional gates
 //   /loop-research-plan  this engine with {stopAfter:'plan'}
-//   /loop-build          this engine with {startFrom:'build'}
+//   /loop-swe-build      this engine with {startFrom:'build'}
 //   /loop-retro          this engine with {startFrom:'retro'}
 // All four launch THIS file via Workflow({scriptPath, args}); it is the single
 // source of truth. The 3 sub-skills resolve it at ../loop-full-swe/loop-swe.js.
 //
-// Design rules (forced by the runtime):
-//  * Subagents cannot spawn subagents (depth=1, per code.claude.com/docs/en/sub-agents).
-//    So ALL fan-out lives in THIS script (a root orchestrator). Every agent() below
-//    is a LEAF: one job, schema return, never spawns. Nested fan-out is lifted up
-//    here, never pushed into a worker.
+// Design rules:
+//  * Leaf-only fan-out BY DESIGN (not a platform limit). ALL fan-out lives in THIS
+//    script (a root orchestrator). Every agent() below is a LEAF: one job, schema
+//    return, never spawns. Keeping the tree flat is what makes the run deterministic,
+//    resumable, and budget-scaled. (Nested sub-agent spawning is supported as of
+//    Claude Code v2.1.172; the engine deliberately does not use it.)
 //  * Autonomous by default. A self-digest agent splits every open question into
 //    auto-resolved vs genuinely-needs-human. The run only STOPS (returns a `gate`)
 //    when needsHuman is non-empty; otherwise it proceeds on its own.
@@ -28,7 +29,7 @@
 
 export const meta = {
   name: 'loop-full-swe',
-  description: 'Autonomous architecture-aware SWE loop: scope-gate -> survey/plan -> implement + multi-perspective review -> summary/retro. Self-digesting (only surfaces decisions that need a human); leaf-only orchestration (subagent-nesting safe); budget-scaled; resumable.',
+  description: 'Autonomous architecture-aware SWE loop: scope-gate -> survey/plan -> implement + multi-perspective review -> summary/retro. Self-digesting (only surfaces decisions that need a human); leaf-only orchestration (all fan-out in the script by design); budget-scaled; resumable.',
   phases: [{ title: 'Scope' }, { title: 'Plan' }, { title: 'Build' }, { title: 'Retro' }],
 }
 
@@ -129,7 +130,7 @@ const SUMMARY = { type: 'object', additionalProperties: false, required: ['markd
 // so a run never dirties git or needs a .gitignore entry. Host-neutral on purpose (NOT under
 // ~/.claude or ~/.codex): the kit targets multiple hosts, and run-scratch is not agent config.
 // The script can't touch the fs (no Date/random/git), so one leaf resolves the path ONCE and we
-// thread it through every later prompt. The recipe is deterministic per repo, so loop-build's
+// thread it through every later prompt. The recipe is deterministic per repo, so loop-swe-build's
 // pre-write step and a later /loop-retro resolve the SAME folder (see each SKILL.md's note).
 const rootRes = await agent(
   `Resolve and create the loop-swe artifact root, then return it. It is a per-repo folder under the
@@ -156,7 +157,7 @@ let scope = { track: 'standard', uiWork: false, tooLargeForOneRun: false }
 let plan = null
 
 // ---- Phase 0: Scope gate (read-only Explore leaf) -------------------------
-// Runs whenever plan OR build will run, so a standalone /loop-build still knows
+// Runs whenever plan OR build will run, so a standalone /loop-swe-build still knows
 // track + uiWork. Skipped only for a retro-only run.
 if (runs('plan') || runs('build')) {
   phase('Scope')

@@ -1,94 +1,102 @@
 ---
 name: loop-build
-description: Implement + multi-perspective-review stage of the loop SWE engine. Implements the plan in bounded rounds, runs parallel cross-discipline reviews (architecture, DDD, general, and design when UI), adversarially verifies each finding, and autonomously incorporates the confirmed ones — surfacing ONLY review decisions that genuinely need you. Use when the user says "/loop-build" and a plan already exists — in the conversation, a file they name, or a previously saved loop-swe plan — to start the implement+review stage directly, without running /loop-research-plan first.
-added_in: 0.17.0
+description: "Day-to-day build flow. The resident agent confirms the work is ready to build (an agreed plan + acceptance criteria), then spawns a build agent that implements the plan, gates itself on a build-acceptance pass BEFORE any code review, runs the review committee, incorporates feedback, and returns a structured summary. Two entry modes — A: a prior plan/QA session already produced the artifacts, so it builds with no further questions; B: invoked cold, the resident drafts plan + acceptance from context and confirms only the genuine gaps with you. Use when the user says \"/loop-build\", asks to build/implement an agreed plan, or resumes after a previous research/plan session."
+added_in: 0.32.0
 ---
 
 # /loop-build
 
-The implement + review segment of the shared loop engine
-([`loop-swe.js`](../loop-full-swe/loop-swe.js), owned by
-[`/loop-full-swe`](../loop-full-swe/SKILL.md)). It implements the pending items
-in the run's `plan.md` in bounded rounds, fans out parallel cross-discipline
-reviewers, **adversarially verifies** each finding against the diff, and
-autonomously folds the confirmed `auto-apply` fixes back in. Only review
-decisions the digest cannot resolve reach you.
+The everyday build loop. You (the **resident agent**) settle *what ready means*,
+hand it to a **build agent**, and broker the few decisions that genuinely need the
+human. The build agent owns the loop itself — implement → **acceptance gate** →
+review committee → incorporate → return.
 
-**Plan source:** `/loop-build` builds from a plan you **already have** — it does
-NOT require `/loop-research-plan` to have run. It resolves the plan in order: an
-existing saved `plan.md` (in the artifact root, see step 1), a plan file you
-name, or the plan in the **current conversation** (see Pre-flight). Inside
-`/loop-full-swe` the plan carries in-run automatically.
+This is **not** a segment of the `loop-swe.js` engine (that is the deprecated
+[`/loop-swe-build`](../loop-swe-build/SKILL.md)). It is a thin resident-facing entry
+over two nested agents: [`loop-build-agent`](../../../agents/@loop/loop-build-agent/AGENT.md) and
+[`loop-build-acceptance`](../../../agents/@loop/loop-build-acceptance/AGENT.md).
 
-## How to invoke
+## The contract: a plan + an acceptance doc
 
-```
-/loop-build
-```
+Two things must exist before building. Neither has an enforced path — you resolve
+them from context and pass them **in the build agent's spawn prompt**.
 
-## What the assistant does
+1. **Plan / PRD** — the change to make, with per-item intent.
+2. **Acceptance doc** — observable criteria in two blocks:
 
-1. **Resolve the artifact root, then resolve the plan and write it to
-   `<root>/plan.md`.** The loop-swe artifact root is a per-repo folder under your
-   home directory (host-neutral — **not** under `~/.claude` or `~/.codex`, and
-   **not** in the repo, so nothing here dirties git or needs a `.gitignore`
-   entry). Resolve it with the same recipe the engine uses (so the build phase
-   reads the same file): `<HOME>/.loop-swe/<key>`, where `<HOME>` is `$HOME` (or
-   `%USERPROFILE%` on Windows) and `<key>` is the absolute path from `git rev-parse
-   --show-toplevel`, trimmed, lowercased, with every character outside `[a-z0-9]`
-   replaced by `-` (e.g. `D:/Repos/My-App` -> `d--repos-my-app`). Create it
-   (`mkdir -p`) if missing. Then resolve the plan, in order:
-   - If `<root>/plan.md` already exists, use it as-is.
-   - Else if the user named a plan file (e.g. `docs/some-plan.md`), write its
-     content to `<root>/plan.md`.
-   - Else take the plan from the **current conversation** and write it to
-     `<root>/plan.md` as a checklist of still-pending items, each with its
-     success criteria where known.
-   - Only if there is genuinely no plan anywhere: say "no plan found — planning
-     first, then building" and launch with `{ startFrom: "plan", stopAfter: "build" }`
-     instead of the call in step 2.
+   ```markdown
+   ## Non-visual acceptance     (present whenever behaviour changes)
+   - [ ] <observable behavioural outcome> — verify: <cmd / test / assertion>
 
-   Also confirm the working tree is clean enough — this stage commits code.
-   Building from your own plan loses nothing: the review gate (multi-perspective
-   review → adversarial verify → `needsHuman` digest) runs on the implementation
-   regardless of where the plan came from.
+   ## Visual acceptance          (REQUIRED when the change involves visuals)
+   - [ ] <observable UI outcome> — env: web|electron|desktop — at: <route/state>
+   ```
 
-2. **Launch the engine from the build phase:**
+   A style-only change carries visual criteria and few non-visual ones; a
+   pure-logic change is the reverse. If there is genuinely nothing observable to
+   verify, the acceptance step is skipped — but say so explicitly, never silently.
+
+## What the assistant (resident) does
+
+1. **Readiness gate — pick the entry mode.**
+   - **Mode A — artifacts exist.** A prior research/plan session (e.g.
+     [`/loop-research-plan`](../loop-research-plan/SKILL.md)) already produced the
+     plan and the acceptance doc. Confirm both are present and current → go to
+     step 2 with **no user interaction**.
+   - **Mode B — invoked cold.** Draft the plan + acceptance doc by reasoning over
+     the session context. Resolve as much as you can yourself; use
+     `AskUserQuestion` **only** for genuine gaps (an ambiguous requirement, a
+     missing acceptance threshold, an irreversible choice). Get the user's nod on
+     the drafted plan + acceptance, then go to step 2.
+
+   If you cannot assemble a plan at all, stop and say so — do not spawn a build
+   with nothing to build.
+
+2. **Spawn the build agent**, baking the contract into its prompt:
 
    ```
-   Workflow({
-     scriptPath: "<skills-dir>/loop-full-swe/loop-swe.js",
-     args: { feature: "<one-line summary of the plan, for the scope/uiWork check>", startFrom: "build", stopAfter: "build" }
+   Agent({
+     subagent_type: "loop-build-agent",
+     description: "build <one-line feature>",
+     prompt: `
+       PLAN:
+       <the agreed plan / PRD>
+
+       ACCEPTANCE:
+       <the acceptance doc — both blocks>
+
+       REVIEW FIXED-POINT: <base to diff against — e.g. HEAD, main, or the commit before this build>
+       ACCEPTANCE ROUND CAP: 3
+     `
    })
    ```
 
-   Record the Run ID; tell the user to watch via `/workflows`. (Scope re-runs
-   read-only so the reviewer panel still knows whether the change is UI work.)
+   The build agent runs **foreground** (you block on it), so its own nested spawns
+   (acceptance, reviewers) are unconstrained by the background depth cap.
 
-3. **Branch on the returned `gate`:**
+3. **Broker escalations.** If the build agent returns **at the round cap with
+   failing acceptance** (or any genuine blocker — missing creds, an ambiguous
+   requirement it could not resolve, an irreversible choice), surface each item
+   with `AskUserQuestion` — lead with the agent's own recommendation — then
+   re-spawn the build agent with the resolutions folded into the prompt (and a note
+   of what already landed, so it continues rather than restarts).
 
-   | `gate` | Meaning | Action |
-   |---|---|---|
-   | `build-done` | Implemented + reviewed clean | Relay what was built and the auto-applied fixes; if `validation.status` is `no-harness`, flag that the change shipped with no e2e harness to validate it. Then it's ready for [`/loop-retro`](../loop-retro/SKILL.md). |
-   | `build` | A review finding, or e2e-validate still failing at the round cap, needs your decision | Surface each `needsHuman` item with `AskUserQuestion`, then **resume** (step 4). |
+4. **Relay the structured summary** the build agent returns:
 
-4. **Resolve and resume.** Map answers by each item's `id` and continue (pass the
-   same `feature` so cached phases replay):
-
-   ```
-   Workflow({
-     scriptPath: "<skills-dir>/loop-full-swe/loop-swe.js",
-     resumeFromRunId: "<Run ID from step 2>",
-     args: { feature: "<same summary>", startFrom: "build", stopAfter: "build", resolutions: { "<id>": "<answer>", ... } }
-   })
-   ```
-
-   Prior rounds replay from cache. Repeat until `gate` is `build-done`. Never
-   silently accept a `reversibility: hard` item — surface it.
+   | Field | Relay as |
+   |---|---|
+   | `executed` | What was implemented — diff summary, commits, files touched. |
+   | `achieved` | Acceptance criteria now passing, with evidence. |
+   | `still-missing` | Failing/unaddressed criteria + why; anything escalated. |
+   | `dismissed-feedback` | Committee findings the build agent chose not to apply + its rationale — **always surface these**, the human may disagree. |
+   | `harness-improvements` | Gaps in the acceptance doc, a missing test/visual harness, or friction in the skills/agents/loop itself. |
 
 ## Dependencies
 
-Shipped via [`presets/loop-full-swe.yaml`](../../../presets/loop-full-swe.yaml).
-The reviewer leaves invoke `e2e-validate`, `improve-codebase-architecture`,
-`improve-DDD-architecture`, and (for UI work) `design-critique` via the `Skill`
-tool.
+- **Agents** (spawned): `loop-build-agent`, `loop-build-acceptance`.
+- **Skills** (used by those agents via `Skill`): `loop-review-committee`,
+  `e2e-validate`, `web-visual-loop`, `electron-visual-loop`, `desktop-app-loop`.
+- **Review agents** (via `loop-review-committee`): `architecture-review`,
+  `rules-enforcer`, `general-review`.
+
+Shipped via [`presets/loop-full-swe.yaml`](../../../../presets/loop-full-swe.yaml).

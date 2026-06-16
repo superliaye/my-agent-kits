@@ -4,6 +4,25 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.32.0] - 2026-06-15
+
+Rebuilds the day-to-day build flow as a new **`/loop-build`** skill over two nested agents, and **renames the old `/loop-build`** (the loop-swe engine segment) to **`/loop-swe-build`**, marking it deprecated.
+
+### Added
+
+- **`/loop-build`** (new, [capabilities/skills/@loop/loop-build/](capabilities/skills/@loop/loop-build/)) — a resident-facing entry for the everyday "build from an agreed plan" flow. The resident confirms readiness (Mode A: a prior plan/QA session already produced the artifacts → build with no questions; Mode B: invoked cold → draft plan + acceptance from context and confirm only genuine gaps), then spawns the build agent and relays a structured summary. The plan + acceptance criteria travel **in the build agent's spawn prompt** — no enforced artifact path. This is **not** a segment of `loop-swe.js`.
+- **`loop-build-agent`** ([capabilities/agents/@loop/loop-build-agent/](capabilities/agents/@loop/loop-build-agent/)) — implements the plan, then runs the loop with a **hard acceptance gate before any code review** ("don't review code on an experience that isn't built right"): implement → spawn `loop-build-acceptance` → iterate to a full pass, bounded to a round cap → only then run `/loop-review-committee` (non-interactive, with concrete invocation instructions) → judge findings directly and incorporate → return. Bounded-loop-then-escalate on non-convergence. Carries the `Agent` tool so it can spawn its own children (Claude Code v2.1.172+ nested sub-agents). Named `loop-build-agent` to stay distinct from the `loop-build` skill.
+- **`loop-build-acceptance` agent** ([capabilities/agents/@loop/loop-build-acceptance/](capabilities/agents/@loop/loop-build-acceptance/)) — verifies a build against one acceptance doc with two criteria blocks: runs functional checks (incl. `e2e-validate`) for **non-visual** criteria, and routes **visual** criteria to the right feedback-loop by UI env (`web-visual-loop` / `electron-visual-loop` / `desktop-app-loop`). Verify-only (no `Edit`/`Agent`); returns a per-criterion pass/fail split with evidence. No silent pass — a criterion with no runnable signal is reported `no-harness`, not a pass.
+- **`.githooks/pre-commit`** — a hermetic pre-commit hook (no npm, no network) that blocks a commit whose `package.json` version is out of sync with `package-lock.json`'s version fields, wired via `core.hooksPath` (set by the npm `prepare` script). Closes the gap that let a version bump ship with a stale lockfile (`npm ci` checks the dependency tree, not the root version — npm/cli#7000). Runs locally at commit time — no agent/token cost.
+
+### Changed
+
+- **`/loop-build` (old) renamed to `/loop-swe-build` and deprecated.** It remains the implement+review *segment of the `loop-swe.js` engine* (still driven by `/loop-full-swe`, `/loop-research-plan`, `/loop-retro`); only its name moved. Every inbound reference was repointed to the renamed skill — the `loop-full-swe` SKILL/EXECUTION/FLOW/`loop-swe.js`, `loop-research-plan`, `loop-retro`, `presets/loop-full-swe.yaml`, and `test/cases/loop-full-swe-preset.sh`. The new `/loop-build` does **not** inherit those references.
+- **`/loop-review-committee` defaults to the local change set.** With no fixed point named it no longer asks — it reviews the uncommitted working tree (else this branch vs its base), so an orchestrating agent (the build agent) can drive it non-interactively and consume the grouped findings.
+- **Corrected the stale `depth=1` claim across the loop docs.** Nested sub-agent spawning is supported as of Claude Code v2.1.172; the `loop-swe.js` engine and `feature-loop` keep their leaf-only/single-level topology **by design** (determinism, resumability, clean main context), not because the runtime forbids nesting. Updated `loop-full-swe` SKILL/EXECUTION/`loop-swe.js`, both loop presets, and `feature-loop`. Historical CHANGELOG entries are left as-is.
+
+Ships the new skill + two agents and all loop-related capabilities (the committee + reviewer agents + feedback/e2e deps) in the **`loop-full-swe`** preset.
+
 ## [0.31.0] - 2026-06-15
 
 Adds a new **`agents`** capability type — deployable subagent definitions authored once and emitted to both Claude Code (`~/.claude/agents/<name>.md`) and Codex (`~/.codex/agents/<name>.toml`) — and ships a code-review committee built on it.
