@@ -4,6 +4,23 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.31.0] - 2026-06-15
+
+Adds a new **`agents`** capability type — deployable subagent definitions authored once and emitted to both Claude Code (`~/.claude/agents/<name>.md`) and Codex (`~/.codex/agents/<name>.toml`) — and ships a code-review committee built on it.
+
+### Added
+
+- **`agents` capability type.** A fourth folder-based capability (`capabilities/agents/<name>/AGENT.md`, with the same `@`-grouping support as skills). Each agent is authored once in Claude subagent format (frontmatter + system-prompt body); deploy emits the Claude `.md` verbatim (snippet includes expanded) and **translates** it to a Codex custom-agent `.toml` (`name` / `description` / `developer_instructions`). Threaded through the scanner, presets, wizard pickers, manifest, and init/update orphan reconciliation parallel to `skills`.
+- **Three code-review agents** under `capabilities/agents/@code-reviewers/` — `architecture-review` (module-depth + DDD/hexagonal, leveraging `/improve-codebase-architecture` and `/improve-DDD-architecture`), `rules-enforcer` (the repo's own written rules), and `general-review` (correctness & robustness). Each returns findings in the loop's shared `FINDINGS` shape.
+- **`loop-review-committee`** skill — spawns the three review agents in parallel on the current diff and presents their findings grouped by reviewer (the axes stay separate). Deliberately concise: the agents carry the criteria.
+- **`review-finding-contract` snippet** — the shared finding contract, inlined into the review agents at deploy via `<!-- include: -->`.
+
+### Changed
+
+- **Snippet inliner generalized.** `expandSkillIncludes` (SKILL.md-only) became `expandIncludes` + `expandFolderIncludes`. A deployed skill folder now has `<!-- include: NAME -->` markers expanded in **every shipped `.md`** — strict for `SKILL.md` (an unknown marker fails the deploy), lenient for other bundled `.md` (unknown markers left verbatim so docs can show the syntax). Each agent's `AGENT.md` is expanded strictly.
+
+Ships the agents + committee skill in `experimenting-engineering`.
+
 ## [0.30.0] - 2026-06-15
 
 Adds `calibrate-system-prompt`, a provider- and repo-agnostic skill for trimming an AI agent's system prompt and tool/function descriptions, to the `experimenting-engineering` preset.
