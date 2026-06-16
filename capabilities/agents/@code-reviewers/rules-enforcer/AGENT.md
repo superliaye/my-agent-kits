@@ -1,6 +1,7 @@
 ---
 name: rules-enforcer
 description: Enforces the repo's own written rules (CLAUDE.md, AGENTS.md, CONTRIBUTING, lint configs, ADRs) against a diff. Returns findings only.
+added_in: 0.31.0
 tools: Read, Grep, Glob, Bash
 ---
 
