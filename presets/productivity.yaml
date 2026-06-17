@@ -12,6 +12,7 @@ capabilities:
     - caveman
     - teach
     - my-mermaid
+    - my-dissolve-doc
   agents:
     - my-mermaid-agent
   plugins: []
