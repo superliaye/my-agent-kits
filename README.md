@@ -82,6 +82,7 @@ node lib/wizard.js update --preset engineering --agents claude  # re-deploy a sp
 | `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `loop`, `financial`, `none`). Multi-select via `--preset a,b` |
 | `capabilities/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
 | `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. Skills may optionally sit under one or more nested `@`-prefixed grouping folders (e.g. `skills/@my/<name>/`, `skills/@loop/@feedback-loops/<name>/`) for source organization; deploy flattens them back to `<skillsRoot>/<name>/`, so consumption is unchanged. |
+| `capabilities/agents/<name>/AGENT.md` | Spawnable sub-agents. Authored in Claude format; deployed as `~/.claude/agents/<name>.md` (source) and `~/.codex/agents/<name>.toml` (translated). Same optional `@`-grouping-folder layout as skills, flattened to `<name>` at deploy. |
 | `capabilities/snippets/*.md` | Reusable skill snippets. Authored once and inlined into each deployed `SKILL.md` at `<!-- include: <name> -->` markers, so the source stays DRY while deployed skills are self-contained (Claude Code has no runtime skill-to-skill composition). Not a capability type; never deployed standalone. |
 | `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
 | `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities (e.g., gstack — 30+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <pkg>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
@@ -97,7 +98,9 @@ lands in any repo. There is no repo-local state file:
 ```text
 ~/.claude/CLAUDE.md     # instructions concatenated inline (overwritten each run)
 ~/.claude/skills/       # Claude Code reads skills here
+~/.claude/agents/       # Claude Code reads sub-agents here (<name>.md)
 ~/.codex/AGENTS.md      # instructions concatenated inline (if --agents codex)
+~/.codex/agents/        # Codex reads sub-agents here (<name>.toml; if --agents codex)
 ~/.agents/skills/       # cross-client skills (Codex reads here; if --agents codex).
                         #   Each Codex skill also gets a manual-only
                         #   ~/.agents/skills/<name>/agents/openai.yaml sidecar.
