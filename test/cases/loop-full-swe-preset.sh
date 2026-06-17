@@ -49,6 +49,20 @@ for s in loop-full-swe loop-research-plan loop-swe-build loop-retro; do
   assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "description:" "$s frontmatter has description"
 done
 
+# loop-plan family — the two plan skills + the reusable committee grill + the
+# grill-with-docs it builds on. Their SKILL.md includes (research-fan-out,
+# draft-to-loop-build-format, artifact-review) are strict, so a missing snippet
+# would have failed the init above; here we also assert the markers expanded.
+for s in loop-plan-manual loop-plan-semiauto grill-with-committee grill-with-docs; do
+  assert_file_exists "$HOME/.claude/skills/$s/SKILL.md" "$s SKILL.md deployed"
+done
+for s in loop-plan-manual loop-plan-semiauto; do
+  sm="$HOME/.claude/skills/$s/SKILL.md"
+  if grep -qF "<!-- include:" "$sm"; then fail "$s: literal include marker remains after deploy"; else ok "$s: includes expanded"; fi
+  assert_content_contains "$sm" "Draft \`plan.md\` + \`acceptance.md\`" "$s draft snippet expanded"
+  assert_content_contains "$sm" "Artifact review (the three lenses" "$s artifact-review snippet expanded"
+done
+
 # Supporting skills the preset includes
 assert_file_exists "$HOME/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
 assert_file_exists "$HOME/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"

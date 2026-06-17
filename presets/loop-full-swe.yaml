@@ -11,6 +11,10 @@ capabilities:
     - loop-swe-build
     - loop-retro
     - loop-build
+    - loop-plan-manual
+    - loop-plan-semiauto
+    - grill-with-committee
+    - grill-with-docs
     - loop-review-committee
     - loop-check-readiness
     - e2e-validate

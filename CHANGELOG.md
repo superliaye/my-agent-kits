@@ -4,6 +4,25 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.33.0] - 2026-06-16
+
+Adds the **loop-plan** family — a plan/PRD + acceptance authoring flow that runs *before* `/loop-build`, so the build step consumes ready artifacts instead of drafting them from session context. Renames the review-agent namespace and generalises the three reviewers to review or answer *anything*, not just code.
+
+### Added
+
+- **`/loop-plan-manual`** (new, [capabilities/skills/@loop/loop-plan-manual/](capabilities/skills/@loop/loop-plan-manual/)) — a human-in-the-loop planner. The resident drives four phases: a parallel **research fan-out** (codebase + web sub-agents, `deep-research` for time-sensitive facts) → **`/grill-with-docs`** (every question to the human) → **draft** `plan.md` + `acceptance.md` in `/loop-build`'s exact two-block acceptance format under `~/.loop-plan/<repo-key>/` (overridable; host-neutral, never dirties git) → **artifact review** by the three lens agents (resident judges + revises, ~2 rounds, surfaces dismissals). It then **stops and points at `/loop-build`** (Mode A) — no auto-handoff.
+- **`/loop-plan-semiauto`** (new, [capabilities/skills/@loop/loop-plan-semiauto/](capabilities/skills/@loop/loop-plan-semiauto/)) — the minimal-human planner ("if lucky, no human"). Identical pipeline to `-manual`, except the grill is **`/grill-with-committee`**: the three lenses vote on each batched question, a unanimous enumerated answer is accepted silently, and only a split or an `"Other"` vote escalates to the user.
+- **`/grill-with-committee`** (new, [capabilities/skills/@loop/grill-with-committee/](capabilities/skills/@loop/grill-with-committee/)) — a reusable semiauto grill built on `/grill-with-docs`. Per round: select a batch of **mutually-independent** questions, frame each with **2–4 options + "Other"**, spawn the three lens agents to vote per `committee-answer-contract`, then apply the consensus rule (all three same enumerated option → accept silently; any split or any `"Other"` → escalate). Standalone it writes a `grill.md` digest with per-decision provenance (`committee` | `human`). Usable on its own or embedded as the `-semiauto` grill phase.
+- **Three shared-phase snippets** — `research-fan-out`, `draft-to-loop-build-format`, `artifact-review` — inlined by **both** plan skills via `<!-- include: -->`, so the only real difference between `-manual` and `-semiauto` is the grill phase.
+- **`committee-answer-contract` snippet** — the grill-committee vote contract (`{ choice, rationale, evidence, proposed? }`), sibling of `review-finding-contract`. Consensus is mechanical: string-equality on `choice` with no `"other"` present.
+
+### Changed
+
+- **`@code-reviewers` → `@reviews`.** The three review agents moved to `capabilities/agents/@reviews/` for a namespace that reads right: they now review/answer about *anything*, not only code. Their `name:` fields (`architecture-review`, `rules-enforcer`, `general-review`) and `added_in` are unchanged, so every `subagent_type` reference, preset entry, and manifest `agentDef` stays wired. Live references to the old folder path were rewired; historical records (this changelog, dated specs) are left as-is.
+- **The three review agents are generalised to lens + task.** Each `AGENT.md` now fixes a **lens** (architecture = structure/design, rules-enforcer = rules/constraints, general-review = first-principles) and supports two **tasks** set by the spawn prompt: **(a) review an artifact** → findings per `review-finding-contract`, and **(b) answer a grilled question** → a vote per `committee-answer-contract`. For code artifacts the lenses behave exactly as before (`architecture-review` still runs `/improve-codebase-architecture` + `/improve-DDD-architecture`); for a plan/PRD or a grill question the lens generalises. One set of agents now serves both the grill committee and artifact review.
+
+Ships the loop-plan skills (`loop-plan-manual`, `loop-plan-semiauto`, `grill-with-committee`, plus `grill-with-docs` for the manual grill) and the renamed/generalised `@reviews` agents in the **`loop-full-swe`** preset.
+
 ## [0.32.0] - 2026-06-15
 
 Rebuilds the day-to-day build flow as a new **`/loop-build`** skill over two nested agents, and **renames the old `/loop-build`** (the loop-swe engine segment) to **`/loop-swe-build`**, marking it deprecated.

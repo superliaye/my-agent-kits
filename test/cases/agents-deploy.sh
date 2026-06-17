@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # The `agents` capability type: experimenting-engineering deploys the three
-# @code-reviewers agents to Claude (~/.claude/agents/<name>.md) and Codex
+# @reviews agents to Claude (~/.claude/agents/<name>.md) and Codex
 # (~/.codex/agents/<name>.toml), with the shared review-finding-contract snippet
 # expanded, and NOT as skills.
 

@@ -3,10 +3,13 @@
 // case (test/cases/snippet-includes.sh) maps those lines to ok/fail. Pure functions,
 // temp-dir fixtures — no wizard deploy, no $HOME writes.
 
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { expandIncludes, expandFolderIncludes } from "../../lib/deploy.js";
+import { join, dirname, basename } from "node:path";
+import { fileURLToPath } from "node:url";
+import { expandIncludes, expandFolderIncludes, loadSnippets } from "../../lib/deploy.js";
+
+const KIT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const results = [];
 const check = (label, fn) => {
@@ -62,6 +65,51 @@ check("folder sweep: unknown marker in SKILL.md fails the deploy", () => {
     try { expandFolderIncludes(dir, snippets, "Skill 'fixture'"); } catch { threw = true; }
     assert(threw, "expected throw on unknown marker in SKILL.md");
   } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+// Real-kit guard: every `<!-- include: NAME -->` marker in a shipped SKILL.md /
+// AGENT.md must resolve to an actual snippet in capabilities/snippets/. A strict
+// expand over the live tree catches a dangling include before deploy does (the
+// loop-plan plan skills + the @reviews agents both lean on this). The snippet map
+// comes from deploy's own `loadSnippets`, so the guard can't drift from what
+// deploy actually loads.
+function walkMd(dir, out = []) {
+  for (const ent of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, ent.name);
+    if (ent.isDirectory()) walkMd(full, out);
+    else if (ent.name === "SKILL.md" || ent.name === "AGENT.md") out.push(full);
+  }
+  return out;
+}
+
+check("kit: every SKILL.md/AGENT.md include resolves to a real snippet", () => {
+  const kitSnippets = loadSnippets(KIT_ROOT);
+  const roots = [join(KIT_ROOT, "capabilities", "skills"), join(KIT_ROOT, "capabilities", "agents")];
+  for (const root of roots) {
+    if (!statSync(root).isDirectory()) continue;
+    for (const file of walkMd(root)) {
+      const src = readFileSync(file, "utf8");
+      if (!src.includes("<!-- include:")) continue;
+      // strict — throws on any unknown marker, exactly as deploy would
+      expandIncludes(src, kitSnippets, { strict: true, label: `${basename(dirname(file))}/${basename(file)}` });
+    }
+  }
+});
+
+check("kit: the four loop-plan snippets exist", () => {
+  const kitSnippets = loadSnippets(KIT_ROOT);
+  for (const n of ["committee-answer-contract", "research-fan-out", "draft-to-loop-build-format", "artifact-review"]) {
+    assert(kitSnippets.has(n), `snippet '${n}' missing from capabilities/snippets/`);
+  }
+});
+
+check("kit: both plan skills include all three shared-phase snippets", () => {
+  for (const skill of ["loop-plan-manual", "loop-plan-semiauto"]) {
+    const src = readFileSync(join(KIT_ROOT, "capabilities", "skills", "@loop", skill, "SKILL.md"), "utf8");
+    for (const n of ["research-fan-out", "draft-to-loop-build-format", "artifact-review"]) {
+      assert(new RegExp(`<!--\\s*include:\\s*${n}\\s*-->`).test(src), `${skill} missing include ${n}`);
+    }
+  }
 });
 
 for (const r of results) console.log(r);
