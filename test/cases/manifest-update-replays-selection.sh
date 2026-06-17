@@ -3,9 +3,9 @@
 # init'd a narrow preset and later runs `update` must keep that narrow selection
 # — not get silently reverted to DEFAULT_SELECTED_PRESETS.
 #
-# Discriminator: the `loop-full-swe` skill ships in the loop-full-swe preset
+# Discriminator: the `loop-build` skill ships in the loop preset
 # (one of the pre-checked defaults) but NOT in `engineering`. If update replayed
-# defaults it would deploy loop-full-swe; replaying the engineering manifest
+# defaults it would deploy loop-build; replaying the engineering manifest
 # must not.
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -23,10 +23,10 @@ export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 "$KIT_ROOT/bin/agent-kit" init --preset engineering --agents codex \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 assert_file_exists "$HOME/.agents/skills/my-commit/SKILL.md" "engineering skill present after init"
-if [ -d "$HOME/.agents/skills/loop-full-swe" ]; then
-  fail "init engineering must not deploy loop-full-swe"
+if [ -d "$HOME/.agents/skills/loop-build" ]; then
+  fail "init engineering must not deploy loop-build"
 else
-  ok "loop-full-swe absent after engineering init (baseline)"
+  ok "loop-build absent after engineering init (baseline)"
 fi
 
 # --current replays the manifest non-interactively (no selection prompts).
@@ -36,10 +36,10 @@ fi
 # Engineering selection preserved...
 assert_file_exists "$HOME/.agents/skills/my-commit/SKILL.md" "engineering skill preserved by update"
 # ...and the defaults were NOT pulled in.
-if [ -d "$HOME/.agents/skills/loop-full-swe" ]; then
-  fail "update reverted to defaults (loop-full-swe appeared)"
+if [ -d "$HOME/.agents/skills/loop-build" ]; then
+  fail "update reverted to defaults (loop-build appeared)"
 else
-  ok "update replayed manifest, not defaults (loop-full-swe still absent)"
+  ok "update replayed manifest, not defaults (loop-build still absent)"
 fi
 
 # Manifest rewritten with the same selection + a kitVersion.

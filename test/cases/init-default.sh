@@ -26,5 +26,5 @@ AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --default < /dev/
 assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md written by --default"
 assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction present"
 assert_dir_nonempty "$HOME/.claude/skills" "global skills deployed"
-# loop-full-swe is in the default pre-checked preset set, so its engine lands.
-assert_file_exists "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "default preset set deployed (loop-full-swe)"
+# the `loop` preset is in the default pre-checked set, so its loop-build skill lands.
+assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "default preset set deployed (loop)"

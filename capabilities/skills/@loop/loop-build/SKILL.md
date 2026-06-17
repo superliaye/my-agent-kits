@@ -11,9 +11,8 @@ hand it to a **build agent**, and broker the few decisions that genuinely need t
 human. The build agent owns the loop itself — implement → **acceptance gate** →
 review committee → incorporate → return.
 
-This is **not** a segment of the `loop-swe.js` engine (that is the deprecated
-[`/loop-swe-build`](../loop-swe-build/SKILL.md)). It is a thin resident-facing entry
-over two nested agents: [`loop-build-agent`](../../../agents/@loop/loop-build-agent/AGENT.md) and
+It is a thin resident-facing entry over two nested agents:
+[`loop-build-agent`](../../../agents/@loop/loop-build-agent/AGENT.md) and
 [`loop-build-acceptance`](../../../agents/@loop/loop-build-acceptance/AGENT.md).
 
 ## The contract: a plan + an acceptance doc
@@ -40,7 +39,7 @@ them from context and pass them **in the build agent's spawn prompt**.
 
 1. **Readiness gate — pick the entry mode.**
    - **Mode A — artifacts exist.** A prior research/plan session (e.g.
-     [`/loop-research-plan`](../loop-research-plan/SKILL.md)) already produced the
+     [`/loop-plan-semiauto`](../loop-plan-semiauto/SKILL.md)) already produced the
      plan and the acceptance doc. Confirm both are present and current → go to
      step 2 with **no user interaction**.
    - **Mode B — invoked cold.** Draft the plan + acceptance doc by reasoning over
@@ -90,13 +89,3 @@ them from context and pass them **in the build agent's spawn prompt**.
    | `still-missing` | Failing/unaddressed criteria + why; anything escalated. |
    | `dismissed-feedback` | Committee findings the build agent chose not to apply + its rationale — **always surface these**, the human may disagree. |
    | `harness-improvements` | Gaps in the acceptance doc, a missing test/visual harness, or friction in the skills/agents/loop itself. |
-
-## Dependencies
-
-- **Agents** (spawned): `loop-build-agent`, `loop-build-acceptance`.
-- **Skills** (used by those agents via `Skill`): `loop-review-committee`,
-  `e2e-validate`, `web-visual-loop`, `electron-visual-loop`, `desktop-app-loop`.
-- **Review agents** (via `loop-review-committee`): `architecture-review`,
-  `rules-enforcer`, `general-review`.
-
-Shipped via [`presets/loop-full-swe.yaml`](../../../../presets/loop-full-swe.yaml).

@@ -1,9 +1,9 @@
 # loop-build — flow diagram
 
 **The resident settles *what ready means*; the build agent owns the loop.** This is
-a thin resident-facing entry over two nested agents — it is **not** a segment of the
-`loop-swe.js` engine. The resident agent picks the entry mode (artifacts already
-exist, or it drafts them cold), confirms the work is ready, and spawns the build
+a thin resident-facing entry over two nested agents. The resident agent picks the
+entry mode (artifacts already exist, or it drafts them cold), confirms the work
+is ready, and spawns the build
 agent foreground. From there the build agent runs the loop on its own behind one
 hard rule — **acceptance gates review, always** — and only the few decisions a human
 owns come back up: a genuine gap before the build, an escalation at the round cap.
@@ -75,7 +75,7 @@ flowchart TD
 ## The two entry modes
 
 The readiness gate is the resident's only real fork. **Mode A** — a prior
-research/plan session (e.g. [`/loop-research-plan`](../loop-research-plan/SKILL.md))
+research/plan session (e.g. [`/loop-plan-semiauto`](../loop-plan-semiauto/SKILL.md))
 already produced the plan and the acceptance doc; the resident confirms both are
 current and spawns with **no user interaction**. **Mode B** — invoked cold; the
 resident drafts the plan + acceptance from session context, then uses

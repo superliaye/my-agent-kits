@@ -4,6 +4,16 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.34.0] - 2026-06-16
+
+Hard-deletes the dead `loop-swe.js` engine family and all `@wf` workflow skills. The `/loop-build` + `/loop-plan-*` flow supersedes them, so the old engine and its stages carried only dead weight. The `loop-full-swe` preset — the only one shipping the new flow — is repurposed (renamed to `loop`), not removed.
+
+### Removed
+
+- **The loop-swe engine family** — the `loop-full-swe`, `loop-research-plan`, `loop-swe-build`, and `loop-retro` skills and the shared `loop-swe.js` dynamic-workflow engine they ran. The everyday flow is now `/loop-build` (acceptance-gated build over two nested agents) with `/loop-plan-manual` / `/loop-plan-semiauto` authoring its plan + acceptance artifacts.
+- **All `@wf` skills** — `wf-research` and `wf-semiauto-grill`, plus the `wf-feedback-protocol` snippet they shared. Codebase-first research and the semiauto grill now live in the loop-plan family (`research-fan-out` snippet, `/grill-with-committee`).
+- **The `loop-full-swe` preset is renamed to `loop`** (survivor-only): it ships `loop-build`, the loop-plan family, the grill/review/readiness leaves, and the architecture/DDD/visual supporting skills — the four dead skills are dropped. `DEFAULT_SELECTED_PRESETS` and the deploy tests track the rename. The deleted `@wf` skills are also dropped from the `experimenting-engineering` preset.
+
 ## [0.33.0] - 2026-06-16
 
 Adds the **loop-plan** family — a plan/PRD + acceptance authoring flow that runs *before* `/loop-build`, so the build step consumes ready artifacts instead of drafting them from session context. Renames the review-agent namespace and generalises the three reviewers to review or answer *anything*, not just code.

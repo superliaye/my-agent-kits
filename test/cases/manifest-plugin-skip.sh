@@ -17,10 +17,10 @@ git init -q .
 
 export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
-# Seed a manifest selecting plugins (loop-full-swe ships ui-ux-pro-max +
+# Seed a manifest selecting plugins (the loop preset ships ui-ux-pro-max +
 # frontend-design). The plugin-skip env lets init record them without a real
 # install on a box that has no claude CLI.
-AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --preset loop-full-swe --agents claude \
+AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --preset loop --agents claude \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 assert_content_contains "$HOME/.agent-kit/manifest.json" "ui-ux-pro-max" "manifest records selected plugin"
 

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Verify the `loop-full-swe` preset deploys all 4 loop skills + the single shared
-# engine (loop-swe.js, which lives only in the uber skill's folder and is launched
-# by all four), plus the supporting skills.
+# Verify the `loop` preset deploys its survivor skills: the loop-build entry, the
+# loop-plan family (loop-plan-manual/-semiauto + the grill-with-committee /
+# grill-with-docs they build on) with their <!-- include: --> markers expanded,
+# and the supporting skills (e2e-validate, the architecture/DDD reviews, diagnose,
+# the visual loops, to-issues).
 #
 # AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude Code plugin set.
 
@@ -18,36 +20,11 @@ cd "$WORK"
 git init -q .
 
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
-  --preset loop-full-swe --agents claude \
-  || { fail "agent-kit init --preset loop-full-swe exited non-zero"; exit 1; }
+  --preset loop --agents claude \
+  || { fail "agent-kit init --preset loop exited non-zero"; exit 1; }
 
-# All 4 loop skills land (full recursive folder copy)
-assert_file_exists "$HOME/.claude/skills/loop-full-swe/SKILL.md" "loop-full-swe SKILL.md deployed"
-assert_file_exists "$HOME/.claude/skills/loop-research-plan/SKILL.md" "loop-research-plan SKILL.md deployed"
-assert_file_exists "$HOME/.claude/skills/loop-swe-build/SKILL.md" "loop-swe-build SKILL.md deployed"
-assert_file_exists "$HOME/.claude/skills/loop-retro/SKILL.md" "loop-retro SKILL.md deployed"
-
-# The shared engine ships ONCE, inside the uber skill's folder (single source of truth)
-assert_file_exists "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "shared engine loop-swe.js deployed in uber skill folder"
-assert_content_contains "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "export const meta" "engine is a real dynamic-workflow script (export const meta)"
-assert_content_contains "$HOME/.claude/skills/loop-full-swe/loop-swe.js" "needsHuman" "engine implements the self-digest gate"
-
-# ...and NOT duplicated into the stage skills' folders
-if [ -f "$HOME/.claude/skills/loop-swe-build/loop-swe.js" ]; then
-  fail "loop-swe.js should NOT be duplicated into loop-swe-build (single source of truth)"
-else
-  ok "engine not duplicated into loop-swe-build (references the uber's copy)"
-fi
-
-# Stage skills reference the shared engine by sibling path
-assert_content_contains "$HOME/.claude/skills/loop-swe-build/SKILL.md" "loop-full-swe/loop-swe.js" "loop-swe-build references the shared engine path"
-assert_content_contains "$HOME/.claude/skills/loop-research-plan/SKILL.md" "stopAfter" "loop-research-plan launches the plan-only stage"
-
-# Frontmatter so the capability catalog discovers each like every other skill
-for s in loop-full-swe loop-research-plan loop-swe-build loop-retro; do
-  assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "added_in:" "$s frontmatter has added_in"
-  assert_content_contains "$HOME/.claude/skills/$s/SKILL.md" "description:" "$s frontmatter has description"
-done
+# loop-build is the survivor entry skill.
+assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "loop-build SKILL.md deployed"
 
 # loop-plan family — the two plan skills + the reusable committee grill + the
 # grill-with-docs it builds on. Their SKILL.md includes (research-fan-out,

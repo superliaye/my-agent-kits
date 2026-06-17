@@ -9,8 +9,6 @@ capabilities:
     - desktop-app-loop
     - calibrate-system-prompt
     - loop-review-committee
-    - wf-research
-    - wf-semiauto-grill
   agents:
     - architecture-review
     - rules-enforcer

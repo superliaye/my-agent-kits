@@ -74,7 +74,7 @@ A skill that writes artifacts for a later step to consume must assume **concurre
 leftover artifacts** in the same repo. Write under a **per-run key** (a topic slug, made
 unique) — never a fixed path — so parallel and prior runs don't collide, and **print the
 exact path** so the consumer (the user, a later skill) targets *this* run's output instead
-of guessing a default. (`@wf` does this as `~/.wf/<repo>/runs/<runId>/`.)
+of guessing a default. (`/loop-plan-semiauto` does this as `~/.loop-plan/<repo-key>/<run-key>/`.)
 
 ## Verify by deploying, not by reading
 
