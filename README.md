@@ -2,15 +2,17 @@
 
 Personal AI agent artifact wizard for Claude Code and Codex CLI. Bootstrap or update any repo's agent setup with one command.
 
-## Install (one time per machine)
+## Quick start
 
 ```bash
 git clone https://github.com/superliaye/my-agent-kits.git ~/my-agent-kits
 cd ~/my-agent-kits
-npm install
+npm run init-default
 ```
 
-Requires Node 20+ and Git. This only installs Node deps — it does **not** touch your PATH or shell rc files. (Bash/macOS/Linux users can run `bash bootstrap.sh` instead; it does the same `npm install` and additionally marks the `bin/agent-kit` launcher executable.)
+`npm run init-default` installs Node deps and then deploys the recommended defaults (the pre-checked presets and the preset's agents) to your global agent directories — no prompts. Requires Node 20+ and Git. It does **not** touch your PATH or shell rc files; nothing lands in any repo.
+
+Want to choose presets and agents yourself? Run `npm run init` for the interactive wizard, or see [Usage](#usage) for the one-shot flag form.
 
 ## Usage
 
