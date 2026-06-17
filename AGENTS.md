@@ -55,6 +55,16 @@ description of its lens or its output contract is dead weight that drifts the mo
 capability changes (a named agent already carries its own job; only an unspecialised
 `general-purpose` agent needs its instructions injected).
 
+## Interactive flows are resident-driven; spawned agents are autonomous leaves
+
+A spawned sub-agent (`Agent(...)`) **returns once and cannot hold a multi-turn dialogue with
+the user** — so any flow that interrogates the human (a grill, a readiness gate) must be
+driven by the **resident** skill, which fans sub-agents out only for the autonomous leaves
+(parallel research, a voting committee, a review pass). Don't model an interactive flow as a
+spawned orchestrator agent; it can't pause to ask. And an agent that spawns others must list
+**`Agent` in its tools** — without it the spawns **silently no-op** (no error), so the
+orchestration just doesn't happen.
+
 ## Names are the wiring; folders are cosmetic
 
 A skill/agent resolves by its frontmatter `name:`, not its folder. **Renaming or moving a
