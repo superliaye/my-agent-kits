@@ -15,7 +15,7 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"; git init -q .
 
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
-  --preset experimenting-engineering --agents claude,codex \
+  --preset loop --agents claude,codex \
   || { fail "init exited non-zero"; exit 1; }
 
 for a in architecture-review rules-enforcer general-review; do
@@ -28,8 +28,8 @@ const fs=require("fs"), os=require("os"), path=require("path");
 const m=JSON.parse(fs.readFileSync(path.join(os.homedir(),".agent-kit","manifest.json"),"utf8"));
 const hostsOk=Array.isArray(m.agents)&&m.agents.every(x=>typeof x==="string");
 const defs=(m.agentDefs||[]).map(x=>x.name).sort().join(",");
-process.exit(hostsOk && defs==="architecture-review,general-review,rules-enforcer" ? 0 : 1);
-' && ok "manifest: agents=hosts, agentDefs=the 3 capabilities" || fail "manifest host/capability split wrong"
+process.exit(hostsOk && defs==="architecture-review,general-review,loop-build-acceptance,loop-build-agent,rules-enforcer" ? 0 : 1);
+' && ok "manifest: agents=hosts, agentDefs=the loop preset's 5 capabilities" || fail "manifest host/capability split wrong"
 
 # The regression: update --current must succeed and keep the agents deployed.
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" update --current >/tmp/akit-update.log 2>&1 \

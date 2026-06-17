@@ -29,5 +29,5 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Notes
 
-- Model-invocable — `disable-model-invocation` is deliberately NOT set so `feature-loop`'s Phase 5b can route here.
-- Tied into `feature-loop`'s Phase 5b — consumes the screenshots produced by `web-visual-loop` or `electron-visual-loop` and produces a structured critique against the design brief from Phase 2.
+- Model-invocable — `disable-model-invocation` is deliberately NOT set so the `/loop-build` flow can route here.
+- Consumes the screenshots produced by `web-visual-loop` or `electron-visual-loop` and produces a structured critique against the design brief.

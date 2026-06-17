@@ -4,6 +4,20 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.35.0] - 2026-06-17
+
+Consolidates the build/plan flow onto a single **`loop`** preset and stops shipping the Anthropic `code-review` and `superpowers` plugins by default. The `feature-loop` preset and its orchestrator skill are retired — `loop` already covered everything they did except the older single-agent orchestrator — and the experimental engineering add-on drops back to opt-in.
+
+### Removed
+
+- **The `feature-loop` preset and the `/feature-loop` skill** — retired in favour of the `loop` toolset (`/loop-build` over two nested agents, with `/loop-plan-manual` / `/loop-plan-semiauto` authoring its plan + acceptance). `loop` already shipped every supporting skill `feature-loop` carried (architecture, diagnose, the web/electron visual loops, design-critique); only the older single-agent orchestrator is dropped. The preset's deploy test (`test/cases/feature-loop.sh`) is removed.
+- **The `code-review` plugin pointer** (`capabilities/plugins/code-review.plugin.md`) — listed only by the `feature-loop` preset, so retiring that preset leaves it unreferenced. Anthropic's `/code-review` plugin is no longer installed by default; in-loop multi-lens review is covered by `/loop-review-committee`.
+
+### Changed
+
+- **`DEFAULT_SELECTED_PRESETS` is now `engineering, productivity, loop`** ([lib/init.js](lib/init.js)). `feature-loop` is removed (retired) and `experimenting-engineering` is demoted to opt-in, so the **superpowers** plugin is no longer default-installed — select `experimenting-engineering` to get it.
+- **`experimenting-engineering` slimmed to its unique add-ons.** It now ships only `calibrate-system-prompt` + the `superpowers` plugin; the `desktop-app-loop` and `loop-review-committee` skills and the three `@reviews` agents (`architecture-review`, `rules-enforcer`, `general-review`) it used to carry are consolidated into the `loop` preset, which already listed them. The agent deploy/roundtrip tests now exercise the `loop` preset.
+
 ## [0.34.0] - 2026-06-16
 
 Hard-deletes the dead `loop-swe.js` engine family and all `@wf` workflow skills. The `/loop-build` + `/loop-plan-*` flow supersedes them, so the old engine and its stages carried only dead weight. The `loop-full-swe` preset — the only one shipping the new flow — is repurposed (renamed to `loop`), not removed.

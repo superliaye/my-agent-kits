@@ -38,5 +38,5 @@ it resolves the default below without prompting and returns the grouped findings
    are deliberately separate so the user can see each independently.
 
 Before spawning, check all three `subagent_type`s resolve. If any is missing, stop before
-spawning any agent and report which agent(s) are uninstalled (they install with the
-`experimenting-engineering` preset) — don't run a partial committee silently.
+spawning any agent and report which agent(s) are uninstalled — don't run a partial
+committee silently.

@@ -28,5 +28,5 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Notes
 
-- The body's two-branch routing (LOGIC for state/data questions, UI for visual-design questions) makes this complementary to the `feature-loop` preset's visual-loop skills: prototype answers "what's the shape?" before feature-loop builds the production version.
+- The body's two-branch routing (LOGIC for state/data questions, UI for visual-design questions) makes this complementary to the `loop` preset's visual-loop skills: prototype answers "what's the shape?" before the `/loop-build` flow builds the production version.
 - Pairs with vendored `to-prd` / `to-issues`: prototype outputs may produce small decision-encoding snippets that get inlined verbatim into a PRD or issue body (both upstream templates carry an explicit exception for this case).

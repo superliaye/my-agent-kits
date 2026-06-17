@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The `agents` capability type: experimenting-engineering deploys the three
-# @reviews agents to Claude (~/.claude/agents/<name>.md) and Codex
+# The `agents` capability type: the loop preset deploys the three @reviews
+# agents to Claude (~/.claude/agents/<name>.md) and Codex
 # (~/.codex/agents/<name>.toml), with the shared review-finding-contract snippet
 # expanded, and NOT as skills.
 
@@ -15,7 +15,7 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"; git init -q .
 
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
-  --preset experimenting-engineering --agents claude,codex \
+  --preset loop --agents claude,codex \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Claude: each agent lands as ~/.claude/agents/<name>.md
