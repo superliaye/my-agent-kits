@@ -20,6 +20,8 @@ assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md (instructions con
 assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction in global CLAUDE.md"
 assert_dir_nonempty "$HOME/.claude/skills" "global skills deployed"
 assert_file_exists "$HOME/.claude/skills/my-commit/SKILL.md" "specific skill (my-commit) deployed"
+assert_file_exists "$HOME/.claude/skills/my-aggressive-clean-up/SKILL.md" "my-aggressive-clean-up skill deployed"
+assert_content_contains "$HOME/.claude/skills/my-aggressive-clean-up/SKILL.md" "Pin the surviving branch" "my-aggressive-clean-up marker phrase present"
 
 # Negative: global-only deploy writes nothing extra
 if [ -d "$HOME/.claude/rules" ]; then fail "~/.claude/rules/ should not be created"; else ok "no ~/.claude/rules/ created"; fi

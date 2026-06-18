@@ -14,6 +14,7 @@ capabilities:
     - my-summarize-changes
     - my-process-pr-comments
     - my-fix-build
+    - my-aggressive-clean-up
     - grill-me
     - grill-with-docs
     - diagnose

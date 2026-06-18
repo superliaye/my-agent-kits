@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.36.0] - 2026-06-17
+
+### Added
+
+- **`/my-aggressive-clean-up`** (new, [capabilities/skills/@my/my-aggressive-clean-up/](capabilities/skills/@my/my-aggressive-clean-up/)) — a tool-agnostic cleanup skill that captures the aggressive-cleanup philosophy: after a feature flag, killswitch, experiment flight, or any conditional code path collapses to one surviving branch, it removes the orphaned state, types, variables, imports, styles, comments, dead tests, and the repo-wide footprint (duplicate flag checks, now-constant arguments, consumer-side dead reads, the flag's own declaration) the removed branch left behind. Headlines the wrong-branch hazard — which side survives depends on the flag's polarity and terminal value — and builds to zero errors/warnings before stopping for review. Ships in the **engineering** preset.
+
 ## [0.35.0] - 2026-06-17
 
 Consolidates the build/plan flow onto a single **`loop`** preset and stops shipping the Anthropic `code-review` and `superpowers` plugins by default. The `feature-loop` preset and its orchestrator skill are retired — `loop` already covered everything they did except the older single-agent orchestrator — and the experimental engineering add-on drops back to opt-in.
