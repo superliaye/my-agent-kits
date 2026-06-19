@@ -4,6 +4,26 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.37.0] - 2026-06-18
+
+Splits the single blended `/design-critique` skill into two soft-isolated, findings-only critic agents on separate lenses — **design-critic** (how it looks) and **product-critic** (how it's used) — each with a thin wrapper skill, fronted by a **`/critique-committee`** that runs both in parallel and keeps the axes separate. The critics share a critique-finding-contract (findings carry a user-impact line) and a visual-env-routing snippet (how a UI is reached), the latter also now sourced by the loop-build acceptance agent.
+
+### Added
+
+- **design-critic + product-critic agents** ([capabilities/agents/@reviews/design-critic/](capabilities/agents/@reviews/design-critic/), [capabilities/agents/@reviews/product-critic/](capabilities/agents/@reviews/product-critic/)) — findings-only critics in the `@reviews` family. design-critic is dual-mode (rendered pixels when a UI is reachable, static markup/CSS otherwise, stating which mode produced each finding); product-critic works only from the running product — it walks the live flow and stops to ask for a reachable UI rather than guessing from code. Both end with the shared critique-finding-contract.
+- **`/product-critique` + `/critique-committee` skills** ([capabilities/skills/product-critique/](capabilities/skills/product-critique/), [capabilities/skills/critique-committee/](capabilities/skills/critique-committee/)) — thin wrappers. `/product-critique` spawns product-critic; `/critique-committee` runs both critics in parallel — each owns its own capture and flow, since the two lenses look at different aspects — then presents findings grouped by lens.
+- **critique-finding-contract + visual-env-routing snippets** ([capabilities/snippets/critique-finding-contract.md](capabilities/snippets/critique-finding-contract.md), [capabilities/snippets/visual-env-routing.md](capabilities/snippets/visual-env-routing.md)) — the shared findings-only output contract (each finding states why it matters to the user) and the single source of truth for the env→loop routing table + env-inference fallback.
+
+### Changed
+
+- **`/design-critique` reworked from a blended Apache-2.0 import into a thin wrapper** over the original-authored design-critic agent ([capabilities/skills/design-critique/SKILL.md](capabilities/skills/design-critique/SKILL.md)). The slash name and `added_in: 0.11.0` are retained; the inline Critique Framework + Accessibility sections and the `upstream:`/`license:`/`upstream_version:` frontmatter are dropped.
+- **loop-build-acceptance now sources its env-routing table from the visual-env-routing snippet** ([capabilities/agents/@loop/loop-build-acceptance/AGENT.md](capabilities/agents/@loop/loop-build-acceptance/AGENT.md)) — a behavior-preserving extraction. The verification-spine ordering rule stays inline in the acceptance agent (a findings-only critic must not inherit it).
+
+### Removed
+
+- **Accessibility coverage (contrast / touch targets / alt text) from `/design-critique`** — out of scope for the two lens critics, which judge looks and use, not WCAG conformance. Until a dedicated WCAG/a11y skill ships, **no** kit capability covers contrast / touch-target / alt-text checks (the visual loops' deterministic a11y-tree check is a different thing). This is a known hole, stated explicitly rather than left silent.
+- **`capabilities/skills/design-critique/SOURCE.md`** — the stale Apache-2.0 upstream-provenance file. Now that SKILL.md is original-authored, it was a false provenance claim; deleted so the two files no longer contradict.
+
 ## [0.36.0] - 2026-06-17
 
 ### Added

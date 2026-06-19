@@ -19,7 +19,7 @@ AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Claude: each agent lands as ~/.claude/agents/<name>.md
-for a in architecture-review rules-enforcer general-review; do
+for a in architecture-review rules-enforcer general-review design-critic product-critic; do
   assert_file_exists "$HOME/.claude/agents/$a.md" "Claude agent $a deployed"
 done
 assert_content_contains "$HOME/.claude/agents/architecture-review.md" "name: architecture-review" "Claude agent keeps frontmatter"
@@ -30,7 +30,7 @@ assert_content_contains "$af" "Precision over recall" "shared finding-contract s
 if grep -qF "<!-- include:" "$af"; then fail "literal include marker remains in deployed agent"; else ok "no literal include marker in deployed agent"; fi
 
 # Codex: each agent is translated to ~/.codex/agents/<name>.toml
-for a in architecture-review rules-enforcer general-review; do
+for a in architecture-review rules-enforcer general-review design-critic product-critic; do
   assert_file_exists "$HOME/.codex/agents/$a.toml" "Codex agent $a deployed (.toml)"
 done
 tf="$HOME/.codex/agents/architecture-review.toml"

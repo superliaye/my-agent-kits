@@ -17,6 +17,8 @@ capabilities:
     - improve-codebase-architecture
     - improve-DDD-architecture
     - design-critique
+    - product-critique
+    - critique-committee
     - diagnose
     - electron-visual-loop
     - web-visual-loop
@@ -28,6 +30,8 @@ capabilities:
     - architecture-review
     - rules-enforcer
     - general-review
+    - design-critic
+    - product-critic
   plugins:
     - ui-ux-pro-max
     - frontend-design

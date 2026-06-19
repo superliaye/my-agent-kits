@@ -45,6 +45,8 @@ assert_file_exists "$HOME/.claude/skills/e2e-validate/SKILL.md" "e2e-validate de
 assert_file_exists "$HOME/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"
 assert_file_exists "$HOME/.claude/skills/improve-DDD-architecture/SKILL.md" "improve-DDD-architecture deployed"
 assert_file_exists "$HOME/.claude/skills/design-critique/SKILL.md" "design-critique deployed"
+assert_file_exists "$HOME/.claude/skills/product-critique/SKILL.md" "product-critique deployed"
+assert_file_exists "$HOME/.claude/skills/critique-committee/SKILL.md" "critique-committee deployed"
 assert_file_exists "$HOME/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
 assert_file_exists "$HOME/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
 assert_file_exists "$HOME/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
