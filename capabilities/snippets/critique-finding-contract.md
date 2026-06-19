@@ -18,7 +18,7 @@ standalone, emit the same):
   the target state ("the primary action should read first", "a first-timer reaches value in ≤3
   steps") and leave *how* to whoever implements it. Don't name a code change you didn't analyse.
 - Every finding MUST cite concrete evidence — a `file:line` and verbatim quote, or a screenshot
-  path and what is on screen. State which mode produced it where the lens is dual-mode.
+  path and what is on screen.
 - Precision over recall. A few sharp, well-evidenced findings beat a long padded list. An **empty
   `findings` array is a valid, good result** — say so plainly when the experience holds up.
 - Do NOT edit code, write inline patches, or rank findings against each other — the caller owns

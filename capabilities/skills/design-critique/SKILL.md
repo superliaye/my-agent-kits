@@ -30,17 +30,16 @@ lens and the capture, so don't re-derive them here. (For the **usability** axis 
      subagent_type: "design-critic",
      description: "design-critique <target>",
      prompt: `
-       TARGET: <Figma URL | reachable UI | static markup>
-       SCREENSHOT: <pre-captured PNG path, or "none — capture it yourself / static">
+       TARGET: <Figma URL | reachable UI | screenshot path>
+       SCREENSHOT: <pre-captured PNG path, or "none — capture it yourself">
        CONTEXT: <what it is, who it's for, what stage>
-       HOW TO REACH THE UI: <route / launch command, or "static — no live UI">
+       HOW TO REACH THE UI: <route / launch command>
      `
    })
    ```
 
-3. **Relay its findings** — grouped as the agent returned them, each with its mode (pixels vs
-   static markup). An empty findings array is a valid result; report it as "no visual issues found"
-   rather than inventing problems.
+3. **Relay its findings** — grouped as the agent returned them. An empty findings array is a valid
+   result; report it as "no visual issues found" rather than inventing problems.
 
 If `design-critic` isn't installed, say so and stop — don't critique inline; the lens and capture
 mechanics live in the agent.

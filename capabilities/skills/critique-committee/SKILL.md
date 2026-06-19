@@ -13,9 +13,11 @@ instructions minimal. The two axes — looks (design-critic) and use (product-cr
 
 ## Steps
 
-1. **Resolve the target once** — the UI / flow / screenshot to critique, who it's for, and
-   **how to reach the UI** (route/state + launch command, or "static / code-only" if it doesn't
-   run live). You resolve this a single time and hand the same target + reach info to both critics.
+1. **Resolve the target once** — the UI / flow to critique, who it's for, and **how to reach the
+   UI** (route/state + launch command, plus a screenshot for the visual lens if you already hold
+   one). Both critics work from the running product — if nothing is reachable, they will say what
+   they need rather than guess, so surface that. You resolve this once and hand the same reach info
+   to both critics.
 
 2. **Spawn both at once** (one message, two Agent calls), foreground. **Each critic owns its own
    capture and flow** — the looks lens and the use lens deliberately look at different aspects, so
