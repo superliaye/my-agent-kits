@@ -61,7 +61,8 @@ node lib/wizard.js init --preset productivity --agents claude        # productiv
 Flag reference:
 
 - `--default` — accept every wizard default (pre-checked presets and the preset's agents) and apply without prompting; explicit flags still override individual defaults
-- `--preset NAME[,NAME2]` — one or more of `{engineering, experimenting-engineering, productivity, experimenting-productivity, loop, financial, none}`. Comma-separated names merge capabilities (union, deduped per type); interactive form uses a multiselect prompt
+- `--preset NAME[,NAME2]` — one or more of `{engineering, experimenting-engineering, productivity, experimenting-productivity, loop, financial}`. Comma-separated names merge capabilities (union, deduped per type); interactive form uses a multiselect prompt
+- `--no-preset` — start from an empty base and pick capabilities via `--capabilities` (or the interactive customize step). Cannot be combined with `--preset`. Interactively, selecting zero presets does the same
 - `--agents claude[,codex]` — which agents to deploy to
 - `--capabilities '+name,-name'` — tweak the preset's capability set on the fly
 - `--bundles name1,name2` — external installers (e.g. `gstack`) to run after capabilities deploy. Always install globally. Pass `--bundles ''` to skip all.
@@ -79,7 +80,7 @@ node lib/wizard.js update --preset engineering --agents claude  # re-deploy a sp
 
 | Path | Purpose |
 |---|---|
-| `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `loop`, `financial`, `none`). Multi-select via `--preset a,b` |
+| `presets/*.yaml` | Bundled artifact selections (`engineering`, `experimenting-engineering`, `productivity`, `experimenting-productivity`, `loop`, `financial`). Multi-select via `--preset a,b`; `--no-preset` starts empty |
 | `capabilities/instructions/*.instructions.md` | Always-loaded rules, concatenated at deploy into `~/.claude/CLAUDE.md` (inline) and `~/.codex/AGENTS.md` |
 | `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. Skills may optionally sit under one or more nested `@`-prefixed grouping folders (e.g. `skills/@my/<name>/`, `skills/@loop/@feedback-loops/<name>/`) for source organization; deploy flattens them back to `<skillsRoot>/<name>/`, so consumption is unchanged. |
 | `capabilities/agents/<name>/AGENT.md` | Spawnable sub-agents. Authored in Claude format; deployed as `~/.claude/agents/<name>.md` (source) and `~/.codex/agents/<name>.toml` (translated). Same optional `@`-grouping-folder layout as skills, flattened to `<name>` at deploy. |

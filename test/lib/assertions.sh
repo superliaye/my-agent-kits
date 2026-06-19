@@ -29,6 +29,15 @@ assert_dir_nonempty() {
   fi
 }
 
+assert_dir_empty_or_absent() {
+  local path="$1"; local label="${2:-$path}"
+  if [ ! -e "$path" ] || { [ -d "$path" ] && [ -z "$(ls -A "$path" 2>/dev/null)" ]; }; then
+    ok "$label empty or absent"
+  else
+    fail "$label exists and is non-empty ($path)"
+  fi
+}
+
 assert_content_contains() {
   local path="$1"; local needle="$2"; local label="${3:-content match}"
   if [ -f "$path" ] && grep -q -F "$needle" "$path"; then

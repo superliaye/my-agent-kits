@@ -4,6 +4,18 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.38.0] - 2026-06-19
+
+Removes the `none` preset and reproduces its "empty starting point" role in code: an interactive empty selection (pick zero presets) and a non-interactive `--no-preset` flag both start from a synthesized empty base. The preset name is never persisted to the manifest, so prior installs need no migration.
+
+### Added
+
+- **`--no-preset` flag + interactive empty selection** ([lib/init.js](lib/init.js), [lib/presets.js](lib/presets.js)) — `init --no-preset` starts from an empty base and picks capabilities via `--capabilities` (or the interactive customize step); paired with `--agents` it runs non-interactively. Interactively, the preset multiselect now accepts zero selections (`required: false`) and synthesizes the same empty base. An `emptyPreset()` helper in `lib/presets.js` builds the shape with capability slots reduced over `CAPABILITY_TYPES`. `--no-preset` combined with `--preset` hard-errors ("Cannot combine --no-preset with --preset").
+
+### Removed
+
+- **`presets/none.yaml`** — the empty-base role is now synthesized in code (see `emptyPreset()`), so the file is no longer needed. No manifest migration required: the preset name was never persisted.
+
 ## [0.37.0] - 2026-06-18
 
 Splits the single blended `/design-critique` skill into two soft-isolated, findings-only critic agents on separate lenses — **design-critic** (how it looks) and **product-critic** (how it's used) — each with a thin wrapper skill, fronted by a **`/critique-committee`** that runs both in parallel and keeps the axes separate. The critics share a critique-finding-contract (findings carry a user-impact line) and a visual-env-routing snippet (how a UI is reached), the latter also now sourced by the loop-build acceptance agent.
