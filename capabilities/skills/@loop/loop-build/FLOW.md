@@ -9,7 +9,9 @@ hard rule — **acceptance gates review, always** — and only the few decisions
 owns come back up: a genuine gap before the build, an escalation at the round cap.
 Roles are colored: the resident (blue) brokers and never builds; the build agent
 (lavender) implements and orchestrates; the acceptance agent (green) verifies and
-never fixes; the three reviewers (purple) run in parallel.
+never fixes; the three reviewers (purple) run in parallel; and on a UI build the two
+critics (design + product) run first — right after acceptance — so the review committee
+covers their changes too.
 
 ```mermaid
 flowchart TD
@@ -31,7 +33,7 @@ flowchart TD
 
     Spawn --> Impl
 
-    subgraph BUILD ["build agent — owns the loop · implement first, gate, then review"]
+    subgraph BUILD ["build agent — owns the loop · implement · gate · critique (UI) · review"]
       direction TB
       Impl["implement plan as-is<br/>commit coherent slices"]:::agent --> Acc
       Acc["spawn acceptance agent"]:::agent
@@ -39,8 +41,14 @@ flowchart TD
       AccA --> Split{"acceptance<br/>result?"}
       Split -->|"some fail · rounds left<br/>(fix from not-working[])"| Impl
       Split -->|"cap hit · still failing<br/>(incl. no-harness)"| Esc
-      Split -->|"all pass"| Review
+      Split -->|"all pass"| Crit
       Split -->|"nothing-to-verify<br/>(both blocks empty)"| Review
+      Crit{"a UI worth<br/>critiquing? (your call)"}
+      Crit -->|"yes · UI build"| Critique["/critique-committee —<br/>design + product critics"]:::critic
+      Crit -->|"no · pure logic"| Review
+      Critique --> CJudge["judge critique with full plan context ·<br/>fix within intent + commit ·<br/>borderline → committee vote · split → human"]:::agent
+      CJudge --> Review
+      CJudge -.->|"re-validate if<br/>a fix regressed"| Acc
       Review["/loop-review-committee —<br/>non-interactive, vs fixed-point"]:::agent --> Fan
       Fan>"fan out 3 reviewers<br/>in parallel"]:::agent
       Fan --> Ra["architecture-<br/>review"]:::review
@@ -49,8 +57,8 @@ flowchart TD
       Ra --> Judge
       Re --> Judge
       Rg --> Judge
-      Judge["judge each finding self ·<br/>apply + commit, or<br/>decline → dismissed-feedback"]:::agent --> Regress{"a fix could<br/>regress acceptance?"}
-      Regress -->|"yes · re-run"| Acc
+      Judge["judge review with full plan context ·<br/>fix within intent + commit ·<br/>borderline → committee vote · split → human"]:::agent --> Regress{"a fix could<br/>regress acceptance?"}
+      Regress -->|"yes · re-validate"| Acc
       Regress -->|no| Ret
       Ret["return structured summary:<br/>executed · achieved · still-missing<br/>dismissed-feedback · harness-improvements"]:::agent
     end
@@ -67,6 +75,7 @@ flowchart TD
     classDef agent fill:#eef0ff,stroke:#5b5bd6,color:#111;
     classDef accept fill:#e3f6e3,stroke:#27ae60,color:#111;
     classDef review fill:#f3e8ff,stroke:#8b5cf6,color:#111;
+    classDef critic fill:#ffe8f3,stroke:#c026d3,color:#111;
     classDef pause fill:#fff3d6,stroke:#c08a00,color:#111;
     classDef stop fill:#fde2e2,stroke:#c0392b,color:#111;
     classDef done fill:#e3f6e3,stroke:#27ae60,color:#111;
@@ -87,22 +96,30 @@ nothing to build.
 ## Acceptance gates review — always
 
 Inside the build agent, the hard rule is the order: **implement → acceptance →
-review**, never review first. The acceptance agent verifies each criterion with
-evidence and **never fixes** (it spawns nothing). Its result fans into four:
+critique → review**, never review first. The acceptance agent verifies each criterion
+with evidence and **never fixes** (it spawns nothing). Its result fans into four:
 
-- **all pass** or **nothing-to-verify** (both criteria blocks empty) → proceed to
-  review.
+- **all pass** → critique if there's a UI worth it, then review; **nothing-to-verify**
+  (both criteria blocks empty) → straight to review.
 - **some fail, rounds left** → fix from the `not-working[]` evidence and loop back
   to implement.
 - **cap hit, still failing** (including a `no-harness` criterion with no runnable
   signal) → **escalate**, do not proceed to review.
 
-Only past that gate does the review committee run: `/loop-review-committee`
-non-interactively against the review fixed-point, fanning out
-**architecture-review**, **rules-enforcer**, and **general-review** in parallel.
-The build agent judges each finding itself — applies and commits the ones it
-accepts, records the rest with a rationale for `dismissed-feedback` — and if a fix
-could regress acceptance, **re-runs acceptance** before returning.
+Past that gate, when the build agent judges there's a UI worth critiquing — a passed
+visual acceptance criterion is the usual signal, and the source of a known-good launch
+path — `/critique-committee` runs the **design** and **product** critics, reaching the UI
+via the visual block's env + route/state and the launch command from the build agent's
+spawn input; it runs **before** review, so the committee sees the critique-driven changes. From there the build agent **judges every finding itself**, with the full plan and
+acceptance in hand: it fixes what improves the increment within the plan's intent and
+commits, re-validates when a change could have left earlier feedback stale, and puts a
+genuinely controversial call — including a product decision the plan didn't make — to a vote
+by the three review agents, acting on a unanimous verdict and **escalating only a split** to
+the human. The review committee then runs the same way:
+`/loop-review-committee` non-interactively against the review fixed-point, fanning out
+**architecture-review**, **rules-enforcer**, and **general-review** in parallel, judged by
+the same philosophy. If a fix could regress acceptance, the build agent **re-runs
+acceptance** before returning.
 
 ## Escalation is brokered, then resumed
 

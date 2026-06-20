@@ -4,6 +4,14 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.39.0] - 2026-06-19
+
+Wires the design/product critics into the `/loop-build` loop and reframes the build agent's loop as **judgment, not a script**. After acceptance passes, the build agent decides — with the full plan and acceptance in hand — when to gather feedback (critique on a UI build, then the review committee) and what to do with it: fix what improves the increment within the plan's intent, re-validate when a change could have gone stale, and defer the rest (out of scope, needs a product decision, or not worth the cost) to its summary for the human. Critique runs before review so the committee sees the critique-driven changes; direct incorporation was chosen over the earlier advisory-only stance — which left obvious in-scope improvements unmade and pushed routine polish onto the human — so a build doesn't ship a needlessly worse product just because the plan never spelled out an empty state or a clear primary action.
+
+### Changed
+
+- **loop-build's build agent judges feedback with full plan context** ([capabilities/agents/@loop/loop-build-agent/AGENT.md](capabilities/agents/@loop/loop-build-agent/AGENT.md), [capabilities/skills/@loop/loop-build/FLOW.md](capabilities/skills/@loop/loop-build/FLOW.md), [capabilities/skills/@loop/loop-build/SKILL.md](capabilities/skills/@loop/loop-build/SKILL.md)) — once acceptance is green, when the build agent judges there's a UI worth critiquing (a passed visual criterion is the usual signal, and the source of a known-good way to reach the UI), it runs `/critique-committee` before the review committee, then judges every finding itself: fixing what's within the plan's intent and committing, re-validating when a change could have gone stale, and putting a genuinely controversial call — including a product decision the plan didn't make — to a unanimous vote by the three review agents (escalating only a split to the human), flagging every committee-greenlit change in its summary. The build agent **re-reaches** the UI rather than inheriting a live session because the acceptance agent is verify-only and persists no live UI handle — "reuse the running UI rather than relaunch" was the original aim, but with no handle to inherit, re-reach via the recorded `env` + route/state + launch command is the realized behavior. The loop is written as guidance, not a scripted decision tree; the FLOW.md diagram + prose and the SKILL.md relay table follow, and a new `test/cases/loop-critique-wiring.sh` asserts the wiring after deploy.
+
 ## [0.38.0] - 2026-06-19
 
 Removes the `none` preset and reproduces its "empty starting point" role in code: an interactive empty selection (pick zero presets) and a non-interactive `--no-preset` flag both start from a synthesized empty base. The preset name is never persisted to the manifest, so prior installs need no migration.

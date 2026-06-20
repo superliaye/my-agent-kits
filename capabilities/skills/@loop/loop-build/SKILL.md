@@ -1,6 +1,6 @@
 ---
 name: loop-build
-description: "Day-to-day build flow. The resident agent confirms the work is ready to build (an agreed plan + acceptance criteria), then spawns a build agent that implements the plan, gates itself on a build-acceptance pass BEFORE any code review, runs the review committee, incorporates feedback, and returns a structured summary. Two entry modes — A: a prior plan/QA session already produced the artifacts, so it builds with no further questions; B: invoked cold, the resident drafts plan + acceptance from context and confirms only the genuine gaps with you. Use when the user says \"/loop-build\", asks to build/implement an agreed plan, or resumes after a previous research/plan session."
+description: "Day-to-day build flow. The resident agent confirms the work is ready to build (an agreed plan + acceptance criteria), then spawns a build agent that implements the plan, gates itself on a build-acceptance pass BEFORE any code review, runs the review committee (and, on a UI build, the design/product critics), incorporates feedback, and returns a structured summary. Two entry modes — A: a prior plan/QA session already produced the artifacts, so it builds with no further questions; B: invoked cold, the resident drafts plan + acceptance from context and confirms only the genuine gaps with you. Use when the user says \"/loop-build\", asks to build/implement an agreed plan, or resumes after a previous research/plan session."
 added_in: 0.32.0
 ---
 
@@ -9,7 +9,7 @@ added_in: 0.32.0
 The everyday build loop. You (the **resident agent**) settle *what ready means*,
 hand it to a **build agent**, and broker the few decisions that genuinely need the
 human. The build agent owns the loop itself — implement → **acceptance gate** →
-review committee → incorporate → return.
+critique (on a UI build) → review committee → incorporate → return.
 
 It is a thin resident-facing entry over two nested agents:
 [`loop-build-agent`](../../../agents/@loop/loop-build-agent/AGENT.md) and
@@ -86,6 +86,6 @@ them from context and pass them **in the build agent's spawn prompt**.
    |---|---|
    | `executed` | What was implemented — diff summary, commits, files touched. |
    | `achieved` | Acceptance criteria now passing, with evidence. |
-   | `still-missing` | Failing/unaddressed criteria + why; anything escalated. |
-   | `dismissed-feedback` | Committee findings the build agent chose not to apply + its rationale — **always surface these**, the human may disagree. |
+   | `still-missing` | Failing/unaddressed criteria + why; anything deferred for you to decide; anything escalated. |
+   | `dismissed-feedback` | Feedback the build agent judged and chose not to apply, from any source, + its rationale — **always surface these**, the human may disagree. |
    | `harness-improvements` | Gaps in the acceptance doc, a missing test/visual harness, or friction in the skills/agents/loop itself. |
