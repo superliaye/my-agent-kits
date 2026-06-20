@@ -4,6 +4,14 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.40.0] - 2026-06-19
+
+Adds an experimental `grill-to-design-doc` skill: a design-phase grill that delegates the interrogation to `/grill-with-docs`, then writes a feature design document from the resolved decisions. Opt-in via the `experimenting-engineering` preset.
+
+### Added
+
+- **`grill-to-design-doc` skill** ([capabilities/skills/@my/grill-to-design-doc/SKILL.md](capabilities/skills/@my/grill-to-design-doc/SKILL.md), [capabilities/skills/@my/grill-to-design-doc/DESIGN-DOC-FORMAT.md](capabilities/skills/@my/grill-to-design-doc/DESIGN-DOC-FORMAT.md)) — stress-tests a feature/architecture design before building. It composes `/grill-with-docs` for the interrogation (seeding a design-focused agenda and declining ADR offers so design decisions land in the doc, not separate ADRs), then fills a full feature-design template and writes it to `~/.design-doc/<repo-key>/<feature-slug>.md` (overridable to any path the user names, e.g. the repo's `docs/design/`). Re-grilling the same feature updates the doc in place and appends a Version History row. The companion `DESIGN-DOC-FORMAT.md` carries the language-agnostic template (Overview, Requirements, Architecture + Key Design Decisions, Data Models, Interface/API, Workflow Sequences, Integration, Configuration, phased Implementation Checklist, File Structure, Self-Critique + Open Questions + Alternatives Considered, Dependencies, Examples). Ships only via the opt-in `experimenting-engineering` preset; a new `test/cases/grill-to-design-doc.sh` asserts it and its `grill-with-docs` dependency co-deploy.
+
 ## [0.39.0] - 2026-06-19
 
 Wires the design/product critics into the `/loop-build` loop and reframes the build agent's loop as **judgment, not a script**. After acceptance passes, the build agent decides — with the full plan and acceptance in hand — when to gather feedback (critique on a UI build, then the review committee) and what to do with it: fix what improves the increment within the plan's intent, re-validate when a change could have gone stale, and defer the rest (out of scope, needs a product decision, or not worth the cost) to its summary for the human. Critique runs before review so the committee sees the critique-driven changes; direct incorporation was chosen over the earlier advisory-only stance — which left obvious in-scope improvements unmade and pushed routine polish onto the human — so a build doesn't ship a needlessly worse product just because the plan never spelled out an empty state or a clear primary action.
