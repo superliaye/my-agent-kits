@@ -4,6 +4,20 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.41.0] - 2026-06-23
+
+Adds an end-to-end **`/full-loop-semiauto`** that chains the existing loop skills in one run — plan-semiauto -> build -> retro — and a new **`/loop-retro`** that closes the loop by mining the just-finished session (the main transcript plus every subagent transcript) for concrete ways to improve the kit capabilities that ran. The retro is findings-only and reads the large transcripts off the resident's context via a dedicated **loop-retro-agent**. All three ship in the `loop` preset.
+
+### Added
+
+- **`/full-loop-semiauto` skill** ([capabilities/skills/@loop/full-loop-semiauto/](capabilities/skills/@loop/full-loop-semiauto/)) — a thin resident-driven chain that invokes `/loop-plan-semiauto`, `/loop-build`, then `/loop-retro` in order, each running in the resident's shared context so it picks up where the last left off. Composes the three by invocable name and fails fast if one is not installed; carries any escalation to the human and resumes the chain from there.
+- **`/loop-retro` skill** ([capabilities/skills/@loop/loop-retro/](capabilities/skills/@loop/loop-retro/)) — session retrospective. The resident spawns the retro agent with the working directory and relays its findings grouped by capability; it applies nothing automatically. Auto-runs at the end of a `/full-loop-*` flow, or invoke directly after any session that exercised installed skills/agents.
+- **loop-retro-agent** ([capabilities/agents/@loop/loop-retro-agent/](capabilities/agents/@loop/loop-retro-agent/)) — findings-only retro agent. Reads the most-recently-written `<session-id>.jsonl` plus its `<session-id>/subagents/agent-*.jsonl` transcripts, identifies which installed skills/agents ran (Skill/Agent tool-use + subagent `meta.json` `agentType`), reads each one's deployed body, and returns per-capability improvement opportunities tied to specific transcript evidence. Edits nothing and spawns nothing.
+
+### Changed
+
+- **`loop` preset** ([presets/loop.yaml](presets/loop.yaml)) — now ships `full-loop-semiauto` + `loop-retro` skills and the `loop-retro-agent`.
+
 ## [0.40.0] - 2026-06-19
 
 Adds an experimental `grill-to-design-doc` skill: a design-phase grill that delegates the interrogation to `/grill-with-docs`, then writes a feature design document from the resolved decisions. Opt-in via the `experimenting-engineering` preset.

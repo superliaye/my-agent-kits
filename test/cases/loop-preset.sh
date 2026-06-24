@@ -40,6 +40,11 @@ for s in loop-plan-manual loop-plan-semiauto; do
   assert_content_contains "$sm" "Artifact review (the three lenses" "$s artifact-review snippet expanded"
 done
 
+# full-loop-semiauto chains plan-semiauto -> build -> retro; loop-retro is the
+# session retrospective. Both ship in the preset.
+assert_file_exists "$HOME/.claude/skills/full-loop-semiauto/SKILL.md" "full-loop-semiauto deployed"
+assert_file_exists "$HOME/.claude/skills/loop-retro/SKILL.md" "loop-retro deployed"
+
 # Supporting skills the preset includes
 assert_file_exists "$HOME/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
 assert_file_exists "$HOME/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"

@@ -28,8 +28,8 @@ const fs=require("fs"), os=require("os"), path=require("path");
 const m=JSON.parse(fs.readFileSync(path.join(os.homedir(),".agent-kit","manifest.json"),"utf8"));
 const hostsOk=Array.isArray(m.agents)&&m.agents.every(x=>typeof x==="string");
 const defs=(m.agentDefs||[]).map(x=>x.name).sort().join(",");
-process.exit(hostsOk && defs==="architecture-review,design-critic,general-review,loop-build-acceptance,loop-build-agent,product-critic,rules-enforcer" ? 0 : 1);
-' && ok "manifest: agents=hosts, agentDefs=the loop preset's 7 capabilities" || fail "manifest host/capability split wrong"
+process.exit(hostsOk && defs==="architecture-review,design-critic,general-review,loop-build-acceptance,loop-build-agent,loop-retro-agent,product-critic,rules-enforcer" ? 0 : 1);
+' && ok "manifest: agents=hosts, agentDefs=the loop preset's 8 capabilities" || fail "manifest host/capability split wrong"
 
 # The regression: update --current must succeed and keep the agents deployed.
 AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" update --current >/tmp/akit-update.log 2>&1 \

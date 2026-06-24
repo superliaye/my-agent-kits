@@ -38,6 +38,12 @@ assert_content_contains "$tf" "developer_instructions = '''" "Codex agent has de
 assert_content_contains "$tf" "description =" "Codex agent has description field"
 assert_content_contains "$tf" "Precision over recall" "snippet expanded in Codex agent body"
 
+# The @loop agents deploy the same way (Claude .md + Codex .toml).
+for a in loop-build-agent loop-build-acceptance loop-retro-agent; do
+  assert_file_exists "$HOME/.claude/agents/$a.md" "Claude agent $a deployed"
+  assert_file_exists "$HOME/.codex/agents/$a.toml" "Codex agent $a deployed (.toml)"
+done
+
 # The committee skill ships as a normal skill.
 assert_file_exists "$HOME/.claude/skills/loop-review-committee/SKILL.md" "loop-review-committee skill deployed"
 

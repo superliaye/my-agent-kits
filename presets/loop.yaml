@@ -1,5 +1,5 @@
 name: loop
-description: "Day-to-day build + plan loop. /loop-build implements an agreed plan behind a hard acceptance-gate-before-review rule over two nested agents (build + acceptance); /loop-plan-manual and /loop-plan-semiauto author the plan.md + acceptance.md it consumes, with the grill running fully human (manual) or committee-voted (semiauto). Leaves — grill-with-committee/grill-with-docs for stress-testing, loop-review-committee for multi-lens review, loop-check-readiness for feedback-loop audits, plus the architecture/DDD, e2e-validate, diagnose, and visual-loop supporting skills."
+description: "Day-to-day build + plan loop. /loop-build implements an agreed plan behind a hard acceptance-gate-before-review rule over two nested agents (build + acceptance); /loop-plan-manual and /loop-plan-semiauto author the plan.md + acceptance.md it consumes, with the grill running fully human (manual) or committee-voted (semiauto). /full-loop-semiauto chains plan-semiauto -> build -> retro in one run; /loop-retro mines the session + subagent transcripts for ways to improve the kit capabilities that ran. Leaves — grill-with-committee/grill-with-docs for stress-testing, loop-review-committee for multi-lens review, loop-check-readiness for feedback-loop audits, plus the architecture/DDD, e2e-validate, diagnose, and visual-loop supporting skills."
 default_agents: [claude]
 
 capabilities:
@@ -9,6 +9,8 @@ capabilities:
     - loop-build
     - loop-plan-manual
     - loop-plan-semiauto
+    - full-loop-semiauto
+    - loop-retro
     - grill-with-committee
     - grill-with-docs
     - loop-review-committee
@@ -27,6 +29,7 @@ capabilities:
   agents:
     - loop-build-agent
     - loop-build-acceptance
+    - loop-retro-agent
     - architecture-review
     - rules-enforcer
     - general-review
