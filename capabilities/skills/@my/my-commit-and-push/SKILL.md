@@ -7,8 +7,8 @@ added_in: 0.3.0
 
 <!-- include: commit-procedure -->
 
-After the commit succeeds, push the branch to its remote tracking branch. If the branch has not been pushed before, set the upstream branch and write a change description following the rules below. Do not fork new branch unless user explicitly asked.
+After the commit succeeds, push it (don't create a new branch unless asked).
 
-The change description should summarize the cumulative change set relative to the base branch, not only the latest commit. When the branch contains multiple commits, describe their combined outcome.
+By default, write a change description **only on a new branch's first push** (`git push -u`) — summarize the branch's cumulative change against the base branch, not just the last commit, per the rules below. Pushing to a branch that already has an upstream (`main`, or any branch pushed before) is just `git push` with **no description** unless the user asks for one.
 
 <!-- include: change-summary-rules -->

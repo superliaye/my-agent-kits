@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.41.1] - 2026-06-23
+
+### Changed
+
+- **`/my-commit-and-push` only writes a change description on a brand-new branch's first push** ([capabilities/skills/@my/my-commit-and-push/SKILL.md](capabilities/skills/@my/my-commit-and-push/SKILL.md)) — the upstream check is now an explicit two-case branch with a named skip case. Previously the gate was buried mid-sentence and the change-summary rules read as an unconditional task, so the skill emitted a full change description even when pushing more commits to an already-tracked branch (e.g. `main`).
+
 ## [0.41.0] - 2026-06-23
 
 Adds an end-to-end **`/full-loop-semiauto`** that chains the existing loop skills in one run — plan-semiauto -> build -> retro — and a new **`/loop-retro`** that closes the loop by mining the just-finished session (the main transcript plus every subagent transcript) for concrete ways to improve the kit capabilities that ran. The retro is findings-only and reads the large transcripts off the resident's context via a dedicated **loop-retro-agent**. All three ship in the `loop` preset.
