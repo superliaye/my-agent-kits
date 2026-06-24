@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.42.0] - 2026-06-24
+
+### Added
+
+- **`/my-commit-and-push` tears down scaffolding after landing on `main`** ([capabilities/skills/@my/my-commit-and-push/SKILL.md](capabilities/skills/@my/my-commit-and-push/SKILL.md)) — when the user asked to push the work directly to `main` (a direct merge, no PR), once the push succeeds the skill cleans up what that work owns: deletes the now-merged feature branch (local + remote), closes the issue/bug it resolved on the repo's host (`gh`), and removes a dedicated git worktree if one was used. It only touches what the work owns and asks first when anything is ambiguous. `Bash(gh:*)` is added to the skill's `allowed-tools` so the issue close runs without a prompt.
+
 ## [0.41.1] - 2026-06-23
 
 ### Changed
