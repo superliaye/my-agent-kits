@@ -1,6 +1,6 @@
 ---
 name: loop-retro
-description: "Session retrospective that mines the current session — the main transcript plus every subagent transcript — for concrete ways to improve the kit capabilities (skills/agents) that ran. Spawns a retro agent to read the large transcripts off the resident's context and return findings only: per capability, what worked and where its instructions caused friction, each tied to transcript evidence. Edits nothing. Auto-runs at the end of a /full-loop-* flow, or invoke directly after a session that exercised kit skills/agents."
+description: "Session retrospective that mines the current session — the main transcript plus every subagent transcript — for concrete ways to improve the kit capabilities (skills/agents) that ran. Spawns a retro agent to read the large transcripts off the resident's context and write its findings to a per-run file: per capability, what worked and where its instructions caused friction, each tied to transcript evidence. Edits no code or capability. Auto-runs at the end of a /full-loop-* flow, or invoke directly after a session that exercised kit skills/agents."
 added_in: 0.41.0
 ---
 
@@ -8,7 +8,8 @@ added_in: 0.41.0
 
 Turn a finished session into improvement opportunities for the skills and agents it used.
 The transcripts are large, so you (the **resident agent**) hand the reading to a **retro
-agent** and relay what it finds — you spend almost no context yourself.
+agent**, which writes its findings to a file and hands you back the path — you spend
+almost no context yourself.
 
 ## Spawn the retro agent
 
@@ -22,8 +23,9 @@ Agent({
 })
 ```
 
-## Relay the findings
+## Point the user at the findings
 
-Present the agent's findings grouped by capability. **Apply nothing automatically** — the
-human decides what to act on. If the agent found no readable capability body in the
-session, say so plainly.
+The retro agent writes its findings to a file and returns the path. Print that path and
+its one-line headline — **don't paste the findings into chat**. Apply nothing
+automatically; the human opens the file and decides what to act on. If the agent found no
+readable capability body in the session, relay that plainly.

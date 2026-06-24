@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.42.2] - 2026-06-24
+
+### Changed
+
+- **`/loop-retro` writes its findings to a file instead of surfacing them in chat** ([capabilities/agents/@loop/loop-retro-agent/AGENT.md](capabilities/agents/@loop/loop-retro-agent/AGENT.md), [capabilities/skills/@loop/loop-retro/SKILL.md](capabilities/skills/@loop/loop-retro/SKILL.md)) — the retro agent now writes its per-capability findings to a per-run file under `~/.loop-retro/<repo-key>/<session-id>-retro.md` and returns only that path plus a one-line headline; the resident skill prints the path rather than pasting the findings. Previously it relayed the full summary into chat, which also pulled it into the resident's context — defeating the skill's own "spend almost no context yourself" intent. The path scheme matches the loop-plan per-run convention, keyed by the unique session id so concurrent retros don't collide.
+
 ## [0.42.1] - 2026-06-24
 
 ### Changed
