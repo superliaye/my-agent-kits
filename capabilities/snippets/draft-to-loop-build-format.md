@@ -5,7 +5,10 @@ exact format**, so the build step reads them with no reshaping.
 
 **`plan.md`** — the change to make, with **per-item intent**: each item states *what* to
 build and *why*, in build order, grounded in the research brief's `file:line` map. Not a
-narrative — a buildable list.
+narrative — a buildable list. When an item proposes a *new* mechanism — a marker, a schema
+value, a gate, a status — name the existing contract it must satisfy and confirm at
+`file:line` that the contract can produce it. A grill vote, even a unanimous one, settles
+*should we build this*, not *can the code do this*.
 
 **`acceptance.md`** — observable criteria in loop-build's **two blocks**:
 
@@ -17,6 +20,10 @@ narrative — a buildable list.
 - [ ] <observable UI outcome> — env: web|electron|desktop — at: <route/state>
 ```
 
+- **State the delivered outcome, not the mechanism.** Each criterion names what a consumer
+  can observe in the result — a behaviour, a rendered screen — never a restatement of a
+  plan step or an internal code metric. ("Validator reports zero problems" is a proxy;
+  "the catalog loads and every skill leaf is served" is the outcome.)
 - A style-only change carries visual criteria and few non-visual ones; a pure-logic
   change is the reverse. Include **both** block headers even when one is empty, and say so
   explicitly (e.g. "Visual acceptance: (none — no UI)") — never drop a block silently.

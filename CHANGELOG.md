@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.42.1] - 2026-06-24
+
+### Changed
+
+- **Planning drafts now ground proposed mechanisms and frame acceptance criteria as delivered outcomes** ([capabilities/snippets/draft-to-loop-build-format.md](capabilities/snippets/draft-to-loop-build-format.md), shared by `/loop-plan-semiauto` and `/loop-plan-manual`) — a plan item proposing a *new* mechanism (a marker, schema value, gate, status) must now name the contract it depends on and confirm at `file:line` that the contract can produce it, since a unanimous grill vote settles *should we build this*, not *can the code do this*. Acceptance criteria are now framed as the delivered outcome a consumer observes, not an internal code metric or a restatement of a plan step. Both catch in the draft phase the kind of infeasible-mechanism / wrong-altitude-criterion defects that previously surfaced only at artifact review.
+- **The build-acceptance agent reads the repo's harness conventions before running** ([capabilities/agents/@loop/loop-build-acceptance/AGENT.md](capabilities/agents/@loop/loop-build-acceptance/AGENT.md)) — before running any verification it now checks `CLAUDE.md`/`AGENTS.md`/`CONTEXT.md`, `docs/`, and memory for required flags, timeouts, isolation, and known-environmental failures, and treats a default-run failure that contradicts a documented caveat as suspected-environmental until confirmed in isolation. Removes the dependency on the resident hand-injecting this note into the spawn prompt.
+
 ## [0.42.0] - 2026-06-24
 
 ### Added

@@ -15,6 +15,14 @@ criterion — not a vibe. A criterion is `pass` only when a real signal says so.
 
 ## Check both blocks
 
+Before you run anything, read what the repo and your memory already say about how to
+run its harness — `CLAUDE.md`/`AGENTS.md`/`CONTEXT.md`, `docs/`, project memory:
+required flags, timeouts, isolation, env setup, known-environmental or flaky
+failures. Follow it instead of rediscovering it. Don't trust a red signal that
+contradicts a documented caveat — if the docs say the box needs high timeouts or
+isolated runs, treat a default-run failure as **suspected-environmental until you
+confirm it in isolation**, not a real failure.
+
 ### Non-visual acceptance (functional / behavioural)
 For each criterion, run the verification it names — a test command, a CLI/API
 assertion, a build/type-check. Where the repo has an end-to-end harness, use the
