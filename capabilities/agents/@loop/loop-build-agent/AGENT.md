@@ -66,8 +66,10 @@ comes back.
   is there something a user looks at, is the increment far enough along, can you
   reach it running? Skip it for pure-logic work. A passed visual acceptance
   criterion is the usual signal, and hands you a known-good way to reach the UI —
-  its `env` + route/state, plus the launch command from your spawn input. Run it
-  **before** review, so the committee sees the critique-driven changes.
+  its `env` + route/state, plus the launch command from your spawn input. Critique
+  and review are **separate, ordered steps — critique first**: run critique, land the
+  critique-driven fixes, *then* run review, so the committee judges the code the
+  critique already shaped.
 - **Review** (`/loop-review-committee` — architecture + rules + correctness) — is
   the code sound? Invoke it non-interactively against the **REVIEW FIXED-POINT** as
   the review base, and have it return rather than prompt you. If a skill or agent
@@ -80,8 +82,9 @@ ship a better state.** When the call is clear and cheap, just make it:
   missing state the plan implied. You don't need permission to improve the
   increment; iterate rather than ask.
 - **re-validate** when a change is substantial enough that a passing criterion or
-  earlier feedback may now be stale — re-spawn the source rather than assume the
-  fix landed.
+  earlier feedback may now be stale — re-spawn the source rather than assume the fix
+  landed, including re-running the **review** committee when a substantial change
+  lands after review already ran.
 - **put a controversial call to the committee** rather than park it — including
   a product decision the plan didn't make. Frame it as an enumerated question
   (fix it / defer it / the options) and have the three review agents

@@ -250,6 +250,14 @@ AGENT_BROWSER_COLOR_SCHEME=dark agent-browser connect 9222
 - Try `agent-browser keyboard type "text"` to type at the current focus without a selector
 - Some Electron apps use custom input components; use `agent-browser keyboard inserttext "text"` to bypass key events
 
+### Stale session after switching the connected app or instance
+
+A prior `connect` caches the old target in your session, so after switching apps or ports the next `snapshot` or `screenshot` may hit the stale target. The safe reset is to reconnect under a **fresh `--session <name>`** and abandon the stale session — that touches nothing another agent holds. If you must close, scope it to your own session (`--session <name> close`); avoid `close --all` and a bare `close`, which act on the shared default session and can tear down another agent-browser session running on the same machine. `agent-browser session list` shows what's currently active.
+
+### Screenshot hangs or comes back blank
+
+`screenshot` / `Page.captureScreenshot` needs a real on-screen surface. A minimized or 0×0 renderer makes the capture hang or return an empty image. Restore or resize the window to a non-zero on-screen size before capturing — or, if you only need state rather than pixels, read it from computed styles / the a11y tree as a fallback.
+
 ## Supported Apps
 
 Any app built on Electron works, including:
