@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.43.0] - 2026-06-25
+
+### Added
+
+- **`/my-mermaid` now picks the diagram type that fits the source before drawing** ([capabilities/skills/@my-productivity/my-mermaid/SKILL.md](capabilities/skills/@my-productivity/my-mermaid/SKILL.md), [capabilities/agents/@my-productivity/my-mermaid-agent/AGENT.md](capabilities/agents/@my-productivity/my-mermaid-agent/AGENT.md)) — the skill gains a type-selection step before it spawns the render agent. It names the *shape* of the source first (a sequence of interactions, a hierarchy, magnitudes flowing between nodes, a 2×2, …) so the data drives the choice, then maps that shape to a type — treating an embedded list of common shapes as shorthand, not the catalog. Whenever the shape is anything past an obvious flowchart/sequence, it reads the live Mermaid registry (`diagram-orchestration.ts`) and scans the full set of registered types for a better fit, so a specialized type (Sankey, Wardley, radar, treemap, …) gets considered instead of defaulting to a flowchart; a failed fetch falls back to the shorthand plus model knowledge rather than stalling. It proceeds silently when one type is clearly best, presents options when two or more would change the message, and on an unattended run picks the best fit and notes the alternatives. Fixing an existing block keeps that block's type unless the source clearly calls for a conversion. The chosen `TYPE` is passed into the spawn; the agent authors that type and, for a type its built-in authoring rules don't cover, reads the type's syntax page before drafting. The skill's `allowed-tools` gains `WebFetch` for the catalog read. A new `test/cases/my-mermaid-type-select.sh` asserts the wiring survives deploy.
+
 ## [0.42.2] - 2026-06-24
 
 ### Changed
