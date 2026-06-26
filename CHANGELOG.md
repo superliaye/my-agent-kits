@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.44.0] - 2026-06-26
+
+### Added
+
+- **Slidev onboarded as a bundle plus a kit-native export-and-verify deck loop** ([capabilities/bundles/slidev.bundle.md](capabilities/bundles/slidev.bundle.md), [capabilities/skills/@my-productivity/my-slidev/SKILL.md](capabilities/skills/@my-productivity/my-slidev/SKILL.md), [capabilities/agents/@my-productivity/my-slidev-agent/AGENT.md](capabilities/agents/@my-productivity/my-slidev-agent/AGENT.md)) — onboards [slidevjs/slidev](https://github.com/slidevjs/slidev), the markdown-driven developer slide-deck framework, the way HyperFrames is integrated: an `npx-skills` bundle wraps the official Slidev AI skills (slide syntax, frontmatter, layouts, code highlighting / magic-move / twoslash, `v-click` animations, Mermaid, export), pinned via `installer.package: slidevjs/slidev` and deployed by the existing `npx skills add` dispatch — no engine change. The bundle body documents Node ≥ 20.12.0, the per-deck-project playwright-chromium needed for export (modeled on how HyperFrames treats FFmpeg as a render-time dependency), and the known Windows blank-PDF export gotcha ([slidevjs/slidev#2091](https://github.com/slidevjs/slidev/issues/2091)). Because the upstream skills teach syntax but give no acceptance signal that a deck *renders* legibly, a kit-native `/my-slidev` skill + `my-slidev-agent` (modeled on `/my-mermaid`) adds a self-contained verify loop: the resident shapes the talk into a slide-by-slide breakdown, then the agent drafts the deck, exports each slide to PNG, reads the images back to catch code spilling off the slide, clipped or overlapping text, overfull slides, and blank renders, and gates on a two-axis acceptance (truth vs the source, projected-slide readability) before returning. Shipped opt-in via the `experimenting-productivity` preset. A new `test/cases/slidev-bundle.sh` asserts the bundle dispatches without leaking into the consumer repo and the kit-native files deploy to their global paths.
+
 ## [0.43.1] - 2026-06-25
 
 ### Changed
