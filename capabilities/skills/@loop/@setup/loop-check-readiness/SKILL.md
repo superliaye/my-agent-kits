@@ -23,7 +23,10 @@ A signal is good when it is:
 - **Agent-runnable** — *you*, headless, with the capabilities you have, can run it end to end and
   read the result. A step that needs a human — interactive auth, a click, the user's
   credentials, a GUI that won't launch headlessly — breaks the loop even when it's set up for a
-  person.
+  person. And you have to *discover and choose* the path from a cold start: a loop that only works
+  if you already know the trick — which surface ships, which port to attach, the bring-up steps —
+  is not agent-runnable until that knowledge is written where an agent reads it (`AGENTS.md` /
+  `CLAUDE.md`, a self-describing run script), not left to tribal knowledge.
 
 That last pillar is where repo and agent meet, and it's the one people forget. Count the
 capabilities you actually have — including user-scope skills you carry between repos, like
@@ -38,7 +41,13 @@ to a signal is one you can't take.
   monorepo the real harness is per-package, not at the root.
 - **Visual loop** (only if the repo renders UI) — can you actually get pixels, headless, with no
   human in the auth path? If the UI renders but nothing you have can capture it, that's a gap —
-  "the code looks right" is not evidence.
+  "the code looks right" is not evidence. And can a cold agent tell *which surface ships* — when
+  signals are ambiguous (an Electron main process *and* a web dev server), the shipping surface
+  must be written down, not left to a guess that lands on the wrong one.
+- **Parallel-agent safety** (when work fans out — parallel critics, a committee, acceptance) — can
+  several agents drive the app at once without colliding? Look for isolation the app *affords*:
+  per-run ports/sessions, isolated user-data/runtime roots, no single hard-coded debug port or
+  shared fixture state. A loop that only holds for one agent at a time caps fan-out — flag it.
 
 Discover, don't invent: grade whatever the repo ships (build files, CI config,
 `CLAUDE.md`/`AGENTS.md`, any harness-quirks memory), in any stack. Never run something with side

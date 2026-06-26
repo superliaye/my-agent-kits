@@ -13,11 +13,13 @@ instructions minimal. The two axes — looks (design-critic) and use (product-cr
 
 ## Steps
 
-1. **Resolve the target once** — the UI / flow to critique, who it's for, and **how to reach the
-   UI** (route/state + launch command, plus a screenshot for the visual lens if you already hold
-   one). Both critics work from the running product — if nothing is reachable, they will say what
-   they need rather than guess, so surface that. You resolve this once and hand the same reach info
-   to both critics.
+1. **Resolve and verify the target once** — the UI / flow to critique, who it's for, and **how to
+   reach the UI**: the route/state and the launch command for the surface the app ships as, plus a
+   screenshot for the visual lens if you already hold one. Verify the entry point loads real,
+   authenticated data before you spawn, so each critic judges the running product rather than a
+   blank shell. If you can't reach or authenticate it unattended, that's a loop-readiness gap —
+   surface it (the `loop-check-readiness` audit diagnoses these) and stop. Resolve this once, then
+   hand the same launch info to both critics and let each route to its own surface.
 
 2. **Spawn both at once** (one message, two Agent calls), foreground. **Each critic owns its own
    capture and flow** — the looks lens and the use lens deliberately look at different aspects, so
@@ -26,8 +28,10 @@ instructions minimal. The two axes — looks (design-critic) and use (product-cr
      (or a screenshot, if you already have one for it to judge).
    - `subagent_type: product-critic` — the usability lens; give it the target + how to reach the UI.
 
-   When a UI is reachable and both will drive it, hand each a **distinct debugging port +
-   user-data-dir** so their independent captures don't collide on one browser session.
+   When a UI is reachable and both will drive it, each critic captures independently — keep the two
+   captures from colliding (each critic isolates its own session; the visual-loop skill owns the
+   mechanism). This assumes the app can serve two drivers at once; if it can't without collision,
+   surface that as a loop-readiness gap.
 
 3. **Report, grouped by lens.** Present design-critic's findings and product-critic's findings
    separately — do not merge or rerank across the two. An empty findings array from either lens is a

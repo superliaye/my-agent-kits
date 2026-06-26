@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.44.1] - 2026-06-26
+
+### Changed
+
+- **The visual critics and `/critique-committee` target the surface the app ships as and verify a real, authenticated screen before judging** ([capabilities/snippets/visual-env-routing.md](capabilities/snippets/visual-env-routing.md), [capabilities/skills/critique-committee/SKILL.md](capabilities/skills/critique-committee/SKILL.md)) — prompted by a committee run against an Electron app that pointed both critics at the bare web dev URL: the page rendered without the shipped shell's auth injection, returned 401, and a critic burned a full run critiquing an empty shell. A visual consumer now drives the surface the app *ships as* and treats a screen that renders but stays unauthenticated (a 401 / empty / login shell) as *unreachable*, not a finding; on conflicting signals (an Electron app that also serves a web dev URL) it picks the surface the repo documents as shipping. `/critique-committee` resolves and verifies a known-good authenticated entry point once before fan-out, and expresses parallel-capture isolation as intent — each critic isolates its own session, the visual-loop skill owns the mechanism — instead of naming CDP ports, user-data-dirs, or `--session`, so the orchestrator stays reusable across apps. Cleanup of run-scoped captures is explicitly optional.
+- **`/loop-check-readiness` judges the visual loop from a cold agent's view and adds parallel-agent safety** ([capabilities/skills/@loop/@setup/loop-check-readiness/SKILL.md](capabilities/skills/@loop/@setup/loop-check-readiness/SKILL.md)) — the audit now asks whether an agent starting cold can discover *which surface ships* and how to drive it from what the repo documents (an ambiguous Electron-plus-web setup must be written down, not guessed), and whether several agents can drive the app at once without colliding (per-run ports/sessions, isolated runtime roots). Discoverability folds into the Agent-runnable pillar: a loop you can't find from a cold start is as broken as one you can't run. The visual capabilities surface reachability / auth / parallelism gaps to this audit rather than improvising per-app workarounds.
+
 ## [0.44.0] - 2026-06-26
 
 ### Added
