@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.44.2] - 2026-06-26
+
+### Changed
+
+- **Research fan-out verifies runtime-behavior claims against live source, not an ADR alone** ([capabilities/snippets/research-fan-out.md](capabilities/snippets/research-fan-out.md), shared by `/loop-plan-semiauto` and `/loop-plan-manual`) — a retro found a plan that asserted a runtime behavior ("the bundled source reseeds on restart") cited only to an ADR, when live source did the opposite; the false claim flowed through the build into three shipped comments before a code-stage review caught it. The `[verified@HEAD]` convention previously covered only scope-hinging existence claims and permitted citations, so it didn't catch this. It now explicitly covers claims about runtime behavior — what a command seeds/writes/reads, what persists across restart, what a gate enforces — which must be verified against source, never an ADR or doc alone, since an ADR records a decision and can drift from the code that runs.
+- **The build agent treats committee findings as an input to act on, and its return is its own synthesis** ([capabilities/agents/@loop/loop-build-agent/AGENT.md](capabilities/agents/@loop/loop-build-agent/AGENT.md)) — a retro found a build that returned the raw review-committee dump (including an unaddressed HIGH) instead of incorporating it, because the body framed acting on findings as judgment but never stated the committee's output is an input you act on before returning. The review step now says the committee's findings are an input to fold into the summary, not the return; and the return contract is scoped so it stays compatible with the escalation path (normal completion → the five-field summary; escalation → the explicit escalation list) — either way the agent's own synthesis, not a relayed committee or acceptance dump.
+
 ## [0.44.1] - 2026-06-26
 
 ### Changed

@@ -10,7 +10,10 @@ Build a grounded research brief **before** any grilling — you drive the fan-ou
    hinges on (e.g. "this part is already built", "this endpoint exists"), the agent
    **verifies it against live source at HEAD** and returns the `file:line` + the verbatim
    line it saw, marked `[verified@HEAD]` — so you trust a verified claim instead of
-   re-reading the same files, and re-check only an unmarked one.
+   re-reading the same files, and re-check only an unmarked one. This includes claims about
+   **runtime behavior** — what a command seeds/writes/reads, what persists across restart,
+   what a gate enforces: verify these against source too, never against an ADR or doc alone,
+   since an ADR records a decision and can drift from the code that runs.
 2. **Invoke the `deep-research` skill** only for **time-sensitive facts** worth a deeper
    dig (a library's current status, a recently-changed API, a version question) — not for
    stable knowledge. Cite URLs for anything from the web.

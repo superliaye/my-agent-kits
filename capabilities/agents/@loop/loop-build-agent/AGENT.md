@@ -73,7 +73,9 @@ comes back.
 - **Review** (`/loop-review-committee` — architecture + rules + correctness) — is
   the code sound? Invoke it non-interactively against the **REVIEW FIXED-POINT** as
   the review base, and have it return rather than prompt you. If a skill or agent
-  is missing, note it in `harness-improvements` and proceed with what you have.
+  is missing, note it in `harness-improvements` and proceed with what you have. The
+  committee's findings are an input you act on, not your return — you judge each and fold the
+  outcome into the summary below.
 
 **Acting on a finding — from any source — is your judgment, and your bias is to
 ship a better state.** When the call is clear and cheap, just make it:
@@ -113,8 +115,10 @@ Before escalating an "ambiguous requirement", check the plan, `CLAUDE.md`,
 
 ## What you return
 
-Your final message **is** the return value (the resident relays it). Return a clear,
-structured summary — these fields, in this order:
+Your final message **is** the return value (the resident relays it): on the normal completion
+path, the five-field summary below; on escalation, the explicit escalation list (§Escalation).
+Either way it is your own synthesis — not a relayed committee or acceptance dump. Return a
+clear, structured summary — these fields, in this order:
 
 - **executed** — what you implemented: diff summary, commits, files touched; flag
   any change a committee greenlit, so the human can sanity-check it.
