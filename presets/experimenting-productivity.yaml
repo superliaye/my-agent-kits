@@ -1,5 +1,5 @@
 name: experimenting-productivity
-description: Experimental add-on to productivity — bundles HyperFrames (HTML-based video composition with TTS, captions, audio-reactive animation) and Slidev (markdown-driven developer slide decks, with an export-and-verify deck loop). Opt-in (not default-selected); pick when you do video or talk-deck work.
+description: Experimental add-on to productivity — opt-in productivity helpers that are not ready for the default preset.
 default_agents: [claude]
 extends: productivity
 
@@ -7,12 +7,8 @@ capabilities:
   instructions: []
   skills:
     - prepare-peer-feedback
-    - my-slidev
-  agents:
-    - my-slidev-agent
+  agents: []
   plugins: []
   mcp: []
   hooks: []
-  bundles:
-    - hyperframes
-    - slidev
+  bundles: []

@@ -3,7 +3,7 @@
 # preset set and the preset's agents. Verifies it resolves fully (never blocks
 # on a prompt) and lands the default global artifacts.
 #
-# AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude Code plugin set.
+# Skip env vars prevent touching live plugin and bundle installs.
 
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -19,7 +19,7 @@ git init -q .
 
 # No --preset/--agents: --default alone must fully resolve the run.
 # `< /dev/null` asserts it never blocks waiting on a prompt.
-AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --default < /dev/null \
+AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --default < /dev/null \
   || { fail "agent-kit init --default exited non-zero"; exit 1; }
 
 # Global-only: artifacts land where Claude Code reads them.

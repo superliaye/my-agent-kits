@@ -16,6 +16,8 @@ WORK="$(mktemp -d)"
 trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"; git init -q .
 
+export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
+
 "$KIT_ROOT/bin/agent-kit" init --preset productivity --agents claude \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 

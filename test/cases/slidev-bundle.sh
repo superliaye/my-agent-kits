@@ -36,10 +36,7 @@ else
   ok "no slidev/ directory leaked into consumer repo"
 fi
 
-# Kit-native files deploy: the experimenting-productivity preset ships the
+# Kit-native files deploy: the productivity preset ships the
 # my-slidev skill + my-slidev-agent agent to their global paths.
-"$KIT_ROOT/bin/agent-kit" init --preset experimenting-productivity --agents claude \
-  || { fail "agent-kit init (experimenting-productivity) exited non-zero"; exit 1; }
-
 assert_file_exists "$HOME/.claude/skills/my-slidev/SKILL.md" "my-slidev skill deployed globally"
 assert_file_exists "$HOME/.claude/agents/my-slidev-agent.md" "my-slidev-agent deployed globally"
