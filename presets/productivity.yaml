@@ -1,5 +1,5 @@
 name: productivity
-description: Productivity kit — core conduct rule + planning/handoff/skill-authoring/diagramming helpers (grill-me, handoff, write-a-skill, my-mermaid). No bundles — opt into experimenting-productivity for the HyperFrames video bundle.
+description: Productivity kit — core conduct rule + planning/handoff/skill-authoring/diagramming/demo helpers (grill-me, handoff, write-a-skill, my-mermaid, my-demo-video). No bundles are installed by this preset; runtime CLIs such as npx hyperframes are probed by the skills that need them.
 default_agents: [claude]
 
 capabilities:
@@ -11,10 +11,15 @@ capabilities:
     - write-a-skill
     - caveman
     - teach
+    - electron-visual-loop
+    - web-visual-loop
+    - desktop-app-loop
     - my-mermaid
     - my-dissolve-doc
+    - my-demo-video
   agents:
     - my-mermaid-agent
+    - my-demo-video-agent
   plugins: []
   mcp: []
   hooks: []

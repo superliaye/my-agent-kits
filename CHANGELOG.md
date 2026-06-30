@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.45.0] - 2026-06-30
+
+### Added
+
+- **`/my-demo-video` records reachable app demos with local narration** ([capabilities/skills/@my-productivity/my-demo-video/SKILL.md](capabilities/skills/@my-productivity/my-demo-video/SKILL.md), [capabilities/agents/@my-productivity/my-demo-video-agent/AGENT.md](capabilities/agents/@my-productivity/my-demo-video-agent/AGENT.md)) — the productivity preset now ships a resident skill plus worker agent for recording a real web, Electron, or desktop surface into a run-scoped MP4, along with the visual-loop readiness adapters it composes with. The resident gates that the target is reachable, drivable, and populated through the matching visual loop, then passes a compact spawn contract to the worker. The worker keeps the media path local with `npx hyperframes tts`, `ffmpeg`, and `ffprobe`, probes web same-session recording at artifact level before relying on it, encodes explicit platform capture branches for desktop/Electron, and fails fast to the user with `faceless-explainer` as the synthetic alternative when the app cannot be captured.
+
 ## [0.44.2] - 2026-06-26
 
 ### Changed
