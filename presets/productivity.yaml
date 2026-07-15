@@ -1,5 +1,5 @@
 name: productivity
-description: Productivity kit — core conduct rule + planning/handoff/skill-authoring/diagramming/video/deck helpers (grill-me, handoff, write-a-skill, my-mermaid, my-demo-video, my-slidev), with HyperFrames and Slidev bundles.
+description: Productivity kit — core conduct rule + planning/handoff/skill-authoring/diagramming/video/deck helpers (grill-me, handoff, write-a-skill, my-mermaid, my-demo-video, my-slidev), with HyperFrames, Slidev, and Archify bundles.
 default_agents: [claude]
 
 capabilities:
@@ -28,3 +28,4 @@ capabilities:
   bundles:
     - hyperframes
     - slidev
+    - archify

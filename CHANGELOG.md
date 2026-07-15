@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.46.0] - 2026-07-15
+
+### Added
+
+- **Archify onboarded as a bundle in the productivity preset** ([capabilities/bundles/archify.bundle.md](capabilities/bundles/archify.bundle.md)) — onboards [tt-a1i/archify](https://github.com/tt-a1i/archify), an agent skill that turns a plain-English description of a system or process into a polished, self-contained technical diagram (architecture, workflow, sequence, data-flow, lifecycle) as a single dependency-free HTML file with a dark/light toggle and up-to-4× PNG/JPEG/WebP/SVG export. Integrated the same way as HyperFrames and Slidev: an `npx-skills` bundle pinned via `installer.package: tt-a1i/archify` and deployed by the existing `npx skills add` dispatch — no engine change. Requires Node ≥ 20 and `npx`; no `npm install` is needed for the packaged skill. Ships by default with the `productivity` preset. A new `test/cases/archify-bundle.sh` asserts the bundle dispatches as an npx-skills kind without leaking into the consumer repo.
+
 ## [0.45.0] - 2026-06-30
 
 ### Added
