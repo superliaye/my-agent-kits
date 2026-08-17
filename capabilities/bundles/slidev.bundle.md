@@ -14,7 +14,7 @@ verify_paths:
   claude:
     - "~/.claude/skills/slidev"
   codex:
-    - "~/.codex/skills/slidev"
+    - "~/.agents/skills/slidev"
 license: MIT
 ---
 
@@ -22,11 +22,11 @@ license: MIT
 
 Wraps [slidevjs/slidev](https://github.com/slidevjs/slidev) — presentation slides for developers, authored as a single markdown file and rendered to an interactive web deck.
 
-The kit invokes `npx skills add` with the immutable commit URL above and `--skill slidev` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, while `--agent codex` writes to `~/.codex/skills/`.
+The kit invokes `npx skills add` with the immutable commit URL above and `--skill slidev` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, while `--agent codex` writes to `~/.agents/skills/`.
 
 What lands teaches the deck-authoring syntax: slide separators and per-slide frontmatter, layouts, code highlighting with magic-move and twoslash, `v-click` animations, embedded Mermaid diagrams, and the export command. It teaches syntax — it gives no acceptance signal that a deck *renders* legibly. For that, use `/my-slidev`, which drafts the deck and verifies it by exporting each slide to PNG and reading the image back.
 
-`verify_paths` expects the upstream CLI to write the skill under a folder named `slidev`. On the first real host install, check the folder it actually creates under `~/.claude/skills/` (and `~/.codex/skills/` for Codex) and align `verify_paths` to that name if it differs.
+`verify_paths` expects the upstream CLI to write the skill under a folder named `slidev`. On the first real host install, check the folder it actually creates under `~/.claude/skills/` (and `~/.agents/skills/` for Codex) and align `verify_paths` to that name if it differs.
 
 ## How updates work
 

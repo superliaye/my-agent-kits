@@ -14,7 +14,7 @@ verify_paths:
   claude:
     - "~/.claude/skills/archify"
   codex:
-    - "~/.codex/skills/archify"
+    - "~/.agents/skills/archify"
 license: MIT
 ---
 
@@ -29,11 +29,11 @@ lifecycle.
 
 The kit invokes `npx skills add` with the immutable commit URL above and `--skill archify`
 once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes
-to `~/.claude/skills/`, while `--agent codex` writes to `~/.codex/skills/`.
+to `~/.claude/skills/`, while `--agent codex` writes to `~/.agents/skills/`.
 
 `verify_paths` expects the upstream CLI to write the skill under a folder named `archify`. On
 the first real host install, check the folder it actually creates under `~/.claude/skills/`
-(and `~/.codex/skills/` for Codex) and align `verify_paths` to that name if it differs.
+(and `~/.agents/skills/` for Codex) and align `verify_paths` to that name if it differs.
 
 ## How updates work
 
