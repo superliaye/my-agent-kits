@@ -57,8 +57,8 @@ verify_paths:
     - "~/.claude/skills/first-skill"
     - "~/.claude/skills/second-skill"
   codex:
-    - "~/.codex/skills/first-skill"
-    - "~/.codex/skills/second-skill"
+    - "~/.agents/skills/first-skill"
+    - "~/.agents/skills/second-skill"
 license: Apache-2.0
 ---
 ```

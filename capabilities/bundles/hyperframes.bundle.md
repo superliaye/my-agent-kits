@@ -53,26 +53,26 @@ verify_paths:
     - "~/.claude/skills/slideshow"
     - "~/.claude/skills/talking-head-recut"
   codex:
-    - "~/.codex/skills/embedded-captions"
-    - "~/.codex/skills/faceless-explainer"
-    - "~/.codex/skills/figma"
-    - "~/.codex/skills/general-video"
-    - "~/.codex/skills/hyperframes-animation"
-    - "~/.codex/skills/hyperframes-audio"
-    - "~/.codex/skills/hyperframes-cli"
-    - "~/.codex/skills/hyperframes-core"
-    - "~/.codex/skills/hyperframes-creative"
-    - "~/.codex/skills/hyperframes-keyframes"
-    - "~/.codex/skills/hyperframes-registry"
-    - "~/.codex/skills/hyperframes"
-    - "~/.codex/skills/media-use"
-    - "~/.codex/skills/motion-graphics"
-    - "~/.codex/skills/music-to-video"
-    - "~/.codex/skills/pr-to-video"
-    - "~/.codex/skills/product-launch-video"
-    - "~/.codex/skills/remotion-to-hyperframes"
-    - "~/.codex/skills/slideshow"
-    - "~/.codex/skills/talking-head-recut"
+    - "~/.agents/skills/embedded-captions"
+    - "~/.agents/skills/faceless-explainer"
+    - "~/.agents/skills/figma"
+    - "~/.agents/skills/general-video"
+    - "~/.agents/skills/hyperframes-animation"
+    - "~/.agents/skills/hyperframes-audio"
+    - "~/.agents/skills/hyperframes-cli"
+    - "~/.agents/skills/hyperframes-core"
+    - "~/.agents/skills/hyperframes-creative"
+    - "~/.agents/skills/hyperframes-keyframes"
+    - "~/.agents/skills/hyperframes-registry"
+    - "~/.agents/skills/hyperframes"
+    - "~/.agents/skills/media-use"
+    - "~/.agents/skills/motion-graphics"
+    - "~/.agents/skills/music-to-video"
+    - "~/.agents/skills/pr-to-video"
+    - "~/.agents/skills/product-launch-video"
+    - "~/.agents/skills/remotion-to-hyperframes"
+    - "~/.agents/skills/slideshow"
+    - "~/.agents/skills/talking-head-recut"
 license: Apache-2.0
 ---
 
@@ -80,7 +80,7 @@ license: Apache-2.0
 
 Wraps [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) — an open-source, HTML-native video rendering framework built for AI agents. Write HTML compositions, render to MP4 deterministically.
 
-The kit invokes `npx skills add` with the immutable commit URL and every skill name declared above once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, while `--agent codex` writes to `~/.codex/skills/`.
+The kit invokes `npx skills add` with the immutable commit URL and every skill name declared above once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, while `--agent codex` writes to `~/.agents/skills/`.
 
 What lands in `~/.claude/skills/`:
 

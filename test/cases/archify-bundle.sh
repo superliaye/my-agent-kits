@@ -39,8 +39,8 @@ fi
 
 # Bundle verification accepts list-valued verify_paths, the explicit form Hive
 # uses for managed npx-skills bundles.
-mkdir -p "$HOME/.claude/skills/archify" "$HOME/.codex/skills/archify"
-touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.codex/skills/archify/SKILL.md"
+mkdir -p "$HOME/.claude/skills/archify" "$HOME/.agents/skills/archify"
+touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.agents/skills/archify/SKILL.md"
 unset AGENT_KIT_SKIP_BUNDLE_INSTALL
 node --input-type=module -e '
   const {
@@ -55,7 +55,7 @@ node --input-type=module -e '
   const invalidCodexPaths = listAllCapabilities().bundles
     .filter((bundle) => bundle.installerKind === "npx-skills")
     .flatMap((bundle) => normalizeBundleVerifyPaths(bundle.verifyPaths?.codex))
-    .filter((path) => !path.startsWith("~/.codex/skills/"));
+    .filter((path) => !path.startsWith("~/.agents/skills/"));
   if (invalidCodexPaths.length > 0) {
     throw new Error(`npx-skills Codex paths target the wrong home: ${invalidCodexPaths.join(", ")}`);
   }
@@ -76,3 +76,58 @@ node --input-type=module -e '
   }
 ' "$KIT_ROOT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" "$KIT_ROOT/lib/capabilities.js" \
   || { fail "managed npx-skills metadata support failed"; exit 1; }
+
+# Immutable GitHub tree URLs name commits, not branches. The upstream skills
+# CLI passes a tree ref to `git clone --branch`, which fails for raw SHAs. The
+# kit must fetch the exact commit itself and give npx the local checkout.
+FIXTURE="$TMPHOME/immutable-skill-source"
+mkdir -p "$FIXTURE"
+git -C "$FIXTURE" init -q
+git -C "$FIXTURE" config user.name test
+git -C "$FIXTURE" config user.email test@example.com
+printf '%s\n' '---' 'name: fixture-skill' 'description: fixture' '---' >"$FIXTURE/SKILL.md"
+git -C "$FIXTURE" add SKILL.md
+git -C "$FIXTURE" commit -qm fixture
+FIXTURE_SHA="$(git -C "$FIXTURE" rev-parse HEAD)"
+git config --global protocol.file.allow always
+git config --global url."file://$FIXTURE".insteadOf https://github.com/example/skill.git
+
+FAKE_BIN="$TMPHOME/fake-bin"
+mkdir -p "$FAKE_BIN"
+cat >"$FAKE_BIN/npx" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [ "${1:-}" = "--version" ]; then
+  printf '10.0.0\n'
+  exit 0
+fi
+test "$1" = "-y"
+test "$2" = "skills"
+test "$3" = "add"
+test "$4" = "."
+test -f SKILL.md
+test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+printf '%s\n' "$PWD" >"$NPX_CWD_LOG"
+SH
+chmod +x "$FAKE_BIN/npx"
+
+EXPECTED_SHA="$FIXTURE_SHA" \
+NPX_CWD_LOG="$TMPHOME/npx-cwd" \
+PATH="$FAKE_BIN:$PATH" \
+node --input-type=module -e '
+  const { deployNpxSkillsBundle } = await import(process.argv[1]);
+  const sha = process.env.EXPECTED_SHA;
+  const pkg = `https://github.com/example/skill/tree/${sha}`;
+  const installed = deployNpxSkillsBundle({
+    meta: { installer: { package: pkg, skills: ["fixture-skill"] } },
+    bundleName: "fixture-skill",
+    agents: ["codex"],
+    log: () => {},
+    priorPin: null,
+  });
+  if (installed !== pkg) throw new Error(`unexpected installed pin: ${installed}`);
+' "$KIT_ROOT/lib/deploy.js" \
+  || { fail "immutable npx-skills checkout failed"; exit 1; }
+
+assert_file_exists "$TMPHOME/npx-cwd" "npx ran from immutable checkout"
+assert_content_contains "$TMPHOME/npx-cwd" "$FIXTURE_SHA" "immutable checkout cache includes commit"

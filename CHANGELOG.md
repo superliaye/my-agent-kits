@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.46.3] - 2026-08-17
+
+### Fixed
+
+- **Immutable `npx-skills` sources install at their exact commit** — `agent-kit` shallow-fetches GitHub tree SHA pins into its managed cache and invokes `npx skills add` on the local checkout, avoiding the upstream CLI's invalid `git clone --branch <commit>` behavior.
+- **Codex bundle verification follows the `skills` CLI output** — Archify, HyperFrames, and Slidev verify under `~/.agents/skills/`, the location used by `skills@1.5.22` for `--agent codex`.
+
 ## [0.46.2] - 2026-08-17
 
 ### Fixed
