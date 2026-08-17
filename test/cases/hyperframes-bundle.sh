@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 . "$HERE/../lib/assertions.sh"
 
 # Isolate BOTH HOME and USERPROFILE so the global writes land in a throwaway dir.

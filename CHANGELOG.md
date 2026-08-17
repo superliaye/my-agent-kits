@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.46.2] - 2026-08-17
+
+### Fixed
+
+- **`npx-skills` bundle verification now follows the current `skills` CLI Codex location** — Archify, HyperFrames, and Slidev verify Codex installs under `~/.codex/skills/`, so Hive and `agent-kit verify` can add, detect, and remove the files the upstream installer actually manages.
+
 ## [0.46.1] - 2026-08-17
 
 ### Changed
