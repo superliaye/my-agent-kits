@@ -36,3 +36,35 @@ if [ -d "$WORK/.claude/skills/archify" ]; then
 else
   ok "no archify/ directory leaked into consumer repo"
 fi
+
+# Bundle verification accepts list-valued verify_paths, the explicit form Hive
+# uses for managed npx-skills bundles.
+mkdir -p "$HOME/.claude/skills/archify" "$HOME/.agents/skills/archify"
+touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.agents/skills/archify/SKILL.md"
+unset AGENT_KIT_SKIP_BUNDLE_INSTALL
+node --input-type=module -e '
+  const {
+    normalizeBundleVerifyPaths,
+    verify,
+  } = await import(process.argv[1]);
+  const {
+    buildNpxSkillsArgs,
+    isSafeNpxSkillsPackage,
+  } = await import(process.argv[2]);
+  const actual = normalizeBundleVerifyPaths(["~/.claude/skills/archify"]);
+  if (JSON.stringify(actual) !== JSON.stringify(["~/.claude/skills/archify"])) {
+    throw new Error(`unexpected normalized paths: ${JSON.stringify(actual)}`);
+  }
+  const safe = "https://github.com/example/skill/tree/0123456789abcdef0123456789abcdef01234567";
+  if (!isSafeNpxSkillsPackage(safe)) throw new Error("immutable GitHub package rejected");
+  if (isSafeNpxSkillsPackage(`${safe};touch /tmp/pwned`)) throw new Error("unsafe package accepted");
+  const args = buildNpxSkillsArgs({ packageSpec: safe, cliAgent: "codex", skills: ["archify"] });
+  const expected = ["-y", "skills", "add", safe, "--global", "--agent", "codex", "--skill", "archify", "--yes"];
+  if (JSON.stringify(args) !== JSON.stringify(expected)) {
+    throw new Error(`unexpected installer args: ${JSON.stringify(args)}`);
+  }
+  if (verify({ agents: ["claude", "codex"], capabilities: { bundles: ["archify"] } }) !== 0) {
+    throw new Error("bundle verification failed");
+  }
+' "$KIT_ROOT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" \
+  || { fail "managed npx-skills metadata support failed"; exit 1; }

@@ -4,7 +4,7 @@ allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 license: Apache-2.0
 added_in: 0.9.0
 upstream: https://github.com/fcakyon/claude-codex-settings
-upstream_version: 9ad3323
+upstream_version: bad8cb6
 ---
 
 # Electron App Automation

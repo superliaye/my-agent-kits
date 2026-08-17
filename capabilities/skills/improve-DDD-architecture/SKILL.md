@@ -2,6 +2,7 @@
 description: Review code against domain-driven design and hexagonal architecture principles. Surfaces anemic models, infrastructure leaking into the domain, aggregate-boundary violations, ubiquitous-language drift, misplaced business logic, and missing anti-corruption layers. Use when the user wants a DDD review, asks whether code follows DDD/hexagonal/ports-and-adapters, or as the DDD reviewer leaf in an orchestrated review loop.
 added_in: 0.14.0
 upstream: https://github.com/Sairyss/domain-driven-hexagon
+upstream_version: 5c2d15a7e2d69e83dfddf28468ee9f30e02c30de
 ---
 
 # Improve DDD Architecture

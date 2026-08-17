@@ -5,8 +5,8 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/to-prd/`
-- **Last synced**: 2026-06-12 (vendored at upstream HEAD `694fa30`)
+- **Path**: `skills/engineering/to-spec/`
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`; local invocable name and PRD output remain stable)
 - **Files vendored**:
   - `SKILL.md`
 
@@ -20,9 +20,10 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: to-prd` field — the kit's capability loader derives the name from the folder.
+- Dropped upstream's `name: to-spec` field — the kit retains the stable `to-prd` folder/invocable name and PRD output.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+- Retained PRD terminology while porting the current upstream's seam-minimization guidance; upstream renamed the capability and output to `to-spec`.
 
 ## External dependencies
 

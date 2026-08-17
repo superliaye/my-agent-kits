@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/productivity/grill-me/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
 - **Files vendored**:
   - `SKILL.md`
 
@@ -23,3 +23,4 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 - Dropped upstream's `name: grill-me` field — the kit's capability loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+- Retained the self-contained interview body because upstream now delegates to a separate `grilling` skill that this kit does not ship.

@@ -2,7 +2,7 @@
 description: Find deepening opportunities in a codebase, informed by the domain language in CONTEXT.md and the decisions in docs/adr/. Use when the user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more testable and AI-navigable.
 added_in: 0.4.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: 1.1.0
+upstream_version: "2026-08-15 (068b6e0)"
 ---
 
 # Improve Codebase Architecture
@@ -34,6 +34,8 @@ This skill is _informed_ by the project's domain model. The domain language give
 
 ### 1. Explore
 
+**Scope before you scan — YAGNI.** Deepening a module pays off by making future changes to it easier, so put extra weight on the parts of the codebase that have recently changed. If the user named a module, subsystem, or pain point, use that scope. Otherwise, inspect a useful stretch of `git log --oneline` for hot spots; widen only when the history is scattered.
+
 Read the project's domain glossary and any ADRs in the area you're touching first.
 
 Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
@@ -52,7 +54,7 @@ Write a self-contained HTML file to the OS temp directory so nothing lands in th
 
 The report uses **Tailwind via CDN** for layout and styling, and **Mermaid via CDN** for diagrams where a graph/flow/sequence reliably communicates the structure. Mix Mermaid with hand-crafted CSS/SVG visuals — use Mermaid when relationships are graph-shaped (call graphs, dependencies, sequences), and hand-built divs/SVG when you want something more editorial (mass diagrams, cross-sections, collapse animations). Each candidate gets a **before/after visualisation**. Be visual.
 
-For each candidate, the same template as before, but rendered as a card:
+For each candidate, render a card with:
 
 - **Files** — which files/modules are involved
 - **Problem** — why the current architecture is causing friction

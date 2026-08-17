@@ -3,6 +3,7 @@ description: Run an extremely strict maintainability review for abstraction qual
 disable-model-invocation: true
 added_in: 0.15.0
 upstream: https://github.com/shaneholloman/cursor-plugins/tree/main/cursor-team-kit/skills/thermo-nuclear-code-quality-review
+upstream_version: 3fe2823ce17c1656c222d4b7c59d3f82fbf20143
 ---
 
 # Thermo-Nuclear Code Quality Review

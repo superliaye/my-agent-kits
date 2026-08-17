@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/zoom-out/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`; upstream removed this capability in commit `e112a6b`)
 - **Files vendored**:
   - `SKILL.md`
 
@@ -23,3 +23,4 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 - Dropped upstream's `name: zoom-out` field — the kit's capability loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - Preserved upstream's `disable-model-invocation: true` — this is a slash-command-only skill (the model shouldn't auto-route into it; the user invokes it explicitly when they want to step up an abstraction layer).
+- Retained the last shipped body to preserve the stable `/zoom-out` capability; there is no newer upstream body to sync.

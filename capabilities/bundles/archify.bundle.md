@@ -4,13 +4,17 @@ added_in: 0.46.0
 scope: global
 installer:
   kind: npx-skills
-  package: tt-a1i/archify
+  package: https://github.com/tt-a1i/archify/tree/cffdd42eed0ebf013aa070378d94facdd3d56b10
+  skills:
+    - archify
 requires:
   - node
   - npx
 verify_paths:
-  claude: "~/.claude/skills/archify"
-  codex: "~/.agents/skills/archify"
+  claude:
+    - "~/.claude/skills/archify"
+  codex:
+    - "~/.agents/skills/archify"
 license: MIT
 ---
 
@@ -23,7 +27,7 @@ a single dependency-free HTML file, and checks the artifact — then you iterate
 Redis", "move auth to the left"). Five modes: architecture, workflow, sequence, data-flow, and
 lifecycle.
 
-The kit invokes `npx skills add tt-a1i/archify --global --agent <claude-code|codex> --yes`
+The kit invokes `npx skills add` with the immutable commit URL above and `--skill archify`
 once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes
 to `~/.claude/skills/`, `--agent codex` to `~/.agents/skills/` — which is Codex's user-skill
 location (`~/.codex/skills/` holds only config and Codex's bundled `.system` skills, so user
@@ -35,11 +39,10 @@ the first real host install, check the folder it actually creates under `~/.clau
 
 ## How updates work
 
-`npx-skills` bundles pin via the npm package spec in `installer.package`. To upgrade archify
+`npx-skills` bundles pin via an immutable GitHub commit URL in `installer.package`. To upgrade archify
 across consumer repos:
 
-1. Pick a new release of [tt-a1i/archify](https://github.com/tt-a1i/archify). Use a tagged
-   version (e.g. `tt-a1i/archify@2.10.0`) to make the pin reproducible.
+1. Pick a new commit of [tt-a1i/archify](https://github.com/tt-a1i/archify).
 2. Update `installer.package:` above.
 3. Bump my-agent-kits version + CHANGELOG.
 4. Consumer repos run `agent-kit update <repo>` to pick up the new pin.

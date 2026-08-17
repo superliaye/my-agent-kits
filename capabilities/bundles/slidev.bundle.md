@@ -4,13 +4,17 @@ added_in: 0.44.0
 scope: global
 installer:
   kind: npx-skills
-  package: slidevjs/slidev
+  package: https://github.com/slidevjs/slidev/tree/1877b3014ecc8f256e8c4df799035252a1968fc2
+  skills:
+    - slidev
 requires:
   - node
   - npx
 verify_paths:
-  claude: "~/.claude/skills/slidev"
-  codex: "~/.agents/skills/slidev"
+  claude:
+    - "~/.claude/skills/slidev"
+  codex:
+    - "~/.agents/skills/slidev"
 license: MIT
 ---
 
@@ -18,7 +22,7 @@ license: MIT
 
 Wraps [slidevjs/slidev](https://github.com/slidevjs/slidev) — presentation slides for developers, authored as a single markdown file and rendered to an interactive web deck.
 
-The kit invokes `npx skills add slidevjs/slidev --global --agent <claude-code|codex> --yes` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, `--agent codex` to `~/.agents/skills/` — which is Codex's user-skill location (`~/.codex/skills/` holds only config and Codex's bundled `.system` skills, so user skills there would be invisible).
+The kit invokes `npx skills add` with the immutable commit URL above and `--skill slidev` once per selected agent. The upstream CLI is host-aware: passing `--agent claude-code` writes to `~/.claude/skills/`, `--agent codex` to `~/.agents/skills/` — which is Codex's user-skill location (`~/.codex/skills/` holds only config and Codex's bundled `.system` skills, so user skills there would be invisible).
 
 What lands teaches the deck-authoring syntax: slide separators and per-slide frontmatter, layouts, code highlighting with magic-move and twoslash, `v-click` animations, embedded Mermaid diagrams, and the export command. It teaches syntax — it gives no acceptance signal that a deck *renders* legibly. For that, use `/my-slidev`, which drafts the deck and verifies it by exporting each slide to PNG and reading the image back.
 
@@ -26,9 +30,9 @@ What lands teaches the deck-authoring syntax: slide separators and per-slide fro
 
 ## How updates work
 
-`npx-skills` bundles pin via the npm package spec in `installer.package`. To upgrade slidev across consumer repos:
+`npx-skills` bundles pin via an immutable GitHub commit URL in `installer.package`. To upgrade slidev across consumer repos:
 
-1. Pick a new release of [slidevjs/slidev](https://github.com/slidevjs/slidev). Use a tagged version (e.g. `slidevjs/slidev@52.1.0`) to make the pin reproducible.
+1. Pick a new commit of [slidevjs/slidev](https://github.com/slidevjs/slidev).
 2. Update `installer.package:` above.
 3. Bump my-agent-kits version + CHANGELOG.
 4. Consumer repos run `agent-kit update <repo>` to pick up the new pin.

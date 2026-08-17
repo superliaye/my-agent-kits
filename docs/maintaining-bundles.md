@@ -34,9 +34,9 @@ license: MIT
 ---
 ```
 
-### `installer.kind: npx-skills` (registry-based)
+### `installer.kind: npx-skills`
 
-For skill bundles already packaged for the [`skills`](https://www.npmjs.com/package/skills) CLI (e.g. [hyperframes](https://github.com/heygen-com/hyperframes)). The kit runs `npx -y skills add <package>` once — the CLI is host-aware and writes to each detected agent's skills dir itself, so `host_flag_map` is not used.
+For bundles packaged for the [`skills`](https://www.npmjs.com/package/skills) CLI (e.g. [hyperframes](https://github.com/heygen-com/hyperframes)). Pin an immutable GitHub commit URL and declare the exact skills and installed paths. The kit runs one non-interactive command per selected agent, so `host_flag_map` is not used.
 
 ```yaml
 ---
@@ -45,18 +45,25 @@ added_in: 0.8.0
 scope: global
 installer:
   kind: npx-skills
-  package: heygen-com/hyperframes   # may include @version (e.g. ...@1.2.3)
+  package: https://github.com/<owner>/<repo>/tree/<40-char sha>
+  skills:
+    - first-skill
+    - second-skill
 requires:
   - node
   - npx
 verify_paths:
-  claude: "~/.claude/skills/<name>"
-  codex:  "~/.agents/skills/<name>"   # Codex's user-skill dir, NOT ~/.codex/skills
+  claude:
+    - "~/.claude/skills/first-skill"
+    - "~/.claude/skills/second-skill"
+  codex:                              # Codex's user-skill dir, NOT ~/.codex/skills
+    - "~/.agents/skills/first-skill"
+    - "~/.agents/skills/second-skill"
 license: Apache-2.0
 ---
 ```
 
-`source` and `pinned_commit` are not used for `npx-skills` bundles; the "pin" is the package spec in `installer.package`, recorded verbatim into `bundle_commits.<name>` so `agent-kit update` re-runs the installer when the maintainer bumps it.
+`source` and `pinned_commit` are not used for `npx-skills` bundles; the pin is the immutable URL in `installer.package`, recorded verbatim into `bundle_commits.<name>` so `agent-kit update` re-runs the installer when the maintainer bumps it.
 
 ### Body
 

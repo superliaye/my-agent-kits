@@ -5,8 +5,8 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/diagnose/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Path**: `skills/engineering/diagnosing-bugs/`
+- **Last synced**: 2026-08-17 (vendored at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
 - **Files vendored**:
   - `SKILL.md`
   - `scripts/hitl-loop.template.sh`
@@ -21,7 +21,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: diagnose` field — the kit's capability loader derives the name from the folder.
+- Dropped upstream's `name: diagnosing-bugs` field — the kit retains the stable `diagnose` folder/invocable name.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 
 ## Notes

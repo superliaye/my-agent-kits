@@ -5,8 +5,8 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/to-issues/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Path**: `skills/engineering/to-tickets/`
+- **Last synced**: 2026-08-17 (vendored at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`; local invocable name remains `to-issues`)
 - **Files vendored**:
   - `SKILL.md`
 
@@ -20,7 +20,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: to-issues` field — the kit's capability loader derives the name from the folder.
+- Dropped upstream's `name: to-tickets` field — the kit retains the stable `to-issues` folder/invocable name.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
 
