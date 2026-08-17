@@ -2,7 +2,7 @@
 description: Test-driven development with red-green-refactor loop. Use when user wants to build features or fix bugs using TDD, mentions "red-green-refactor", wants integration tests, or asks for test-first development.
 added_in: 0.16.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: 1.1.0
+upstream_version: "2026-08-15 (068b6e0)"
 ---
 
 # Test-Driven Development

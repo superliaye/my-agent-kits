@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/grill-with-docs/`
-- **Last synced**: 2026-06-12 (vendored at upstream HEAD `694fa30`)
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
 - **Files vendored**:
   - `SKILL.md`
   - `CONTEXT-FORMAT.md`
@@ -25,3 +25,4 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 - Dropped upstream's `name: grill-with-docs` field — the kit's capability loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+- Retained the self-contained resident flow because upstream now delegates to `grilling` and `domain-modeling`, which this kit does not ship.

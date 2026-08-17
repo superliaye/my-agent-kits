@@ -1,8 +1,8 @@
 ---
-description: gstack — 30+ slash commands (planning, design, review, QA, ship, security, browser automation). Installs to ~/.claude/skills/gstack/ with /gstack-* prefix. Runtime deps (Bun, Playwright Chromium) are auto-installed by the wizard.
+description: gstack — 50+ slash commands (planning, design, review, QA, ship, security, browser automation). Installs to ~/.claude/skills/gstack/ with /gstack-* prefix. Runtime deps (Bun, Playwright Chromium) are auto-installed by the wizard.
 added_in: 0.7.0
 source: https://github.com/garrytan/gstack.git
-pinned_commit: dc6252d1df7f1f650ea6e9b2bba7d08fab5de902
+pinned_commit: 1cab5e11083a37ea0bc62117e9a9c5d05d68785e
 scope: global
 installer:
   command: ./setup
@@ -21,7 +21,7 @@ license: MIT
 
 # gstack bundle
 
-Wraps [garrytan/gstack](https://github.com/garrytan/gstack) — a toolkit of 30+ Claude Code skills modeled as a virtual engineering team (CEO, designer, engineer, QA, security officer).
+Wraps [garrytan/gstack](https://github.com/garrytan/gstack) — a toolkit of 50+ Claude Code skills modeled as a virtual engineering team (CEO, designer, engineer, QA, security officer).
 
 What lands in `~/.claude/skills/gstack/` (per-agent, depending on selection):
 

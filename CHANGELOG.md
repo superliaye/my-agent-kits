@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.46.1] - 2026-08-17
+
+### Changed
+
+- **External bundles now use current immutable upstream revisions** — Archify, HyperFrames, and Slidev declare exact GitHub commit URLs, exact skill names, and every Claude/Codex verification path; gstack advances to `1cab5e11083a37ea0bc62117e9a9c5d05d68785e`. `agent-kit` now accepts immutable GitHub tree URLs and list-valued verification paths.
+- **Vendored upstream capabilities were refreshed without changing their invocable names** — current compatible Matt Pocock skill bodies/resources were synced, retained self-contained forks were reviewed against upstream HEAD, and Electron visual-loop, DDD, and thermo-nuclear provenance now records the latest reviewed revision.
+
 ## [0.46.0] - 2026-07-15
 
 ### Added

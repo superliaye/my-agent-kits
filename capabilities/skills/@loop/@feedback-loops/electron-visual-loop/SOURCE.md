@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/fcakyon/claude-codex-settings>
 - **Path**: `plugins/agent-browser/skills/electron/SKILL.md`
-- **Last synced**: 2026-05-17 (vendored at `upstream_version: 9ad3323` — commit `9ad3323e3f7eadb239368c0b8956452451418d92`, authored 2026-05-09)
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `bad8cb6eaf47c4fadc4128221dd45ac40530fe9b`; the vendored source file itself is unchanged)
 - **Files vendored**:
   - `SKILL.md`
 

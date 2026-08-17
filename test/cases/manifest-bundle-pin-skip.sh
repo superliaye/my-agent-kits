@@ -16,7 +16,7 @@ git init -q .
 # Skip the real clone/setup; we assert pin recording + skip-on-match, not the
 # heavy install. The pin-skip decision is evaluated regardless of this flag.
 export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
-GSTACK_PIN="dc6252d1df7f1f650ea6e9b2bba7d08fab5de902"
+GSTACK_PIN="1cab5e11083a37ea0bc62117e9a9c5d05d68785e"
 
 # First apply records the pin in the manifest; nothing to skip yet.
 INIT_OUT="$(mktemp)"

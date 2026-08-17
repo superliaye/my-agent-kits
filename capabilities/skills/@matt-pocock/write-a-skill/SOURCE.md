@@ -5,8 +5,8 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 ## Upstream
 
 - **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/productivity/write-a-skill/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Path**: `skills/productivity/writing-for-agents/`
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`; local invocable name and skill-authoring job remain stable)
 - **Files vendored**:
   - `SKILL.md`
 
@@ -20,9 +20,10 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 ## Local modifications
 
-- Dropped upstream's `name: write-a-skill` field — the kit's capability loader derives the name from the folder.
+- Dropped upstream's `name: writing-for-agents` field — the kit retains the stable `write-a-skill` folder/invocable name and focused job.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
 - `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+- Retained the focused skill-authoring workflow because upstream broadened the successor into a reference for every agent-consumed document.
 
 ## Notes
 

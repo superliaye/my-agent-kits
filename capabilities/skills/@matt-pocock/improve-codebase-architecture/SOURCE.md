@@ -6,7 +6,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - **Repo**: <https://github.com/mattpocock/skills>
 - **Path**: `skills/engineering/improve-codebase-architecture/`
-- **Last synced**: 2026-05-22 (vendored at `upstream_version: 1.1.0`, upstream HEAD `b8be62f`)
+- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
 - **Files vendored**:
   - `SKILL.md`
   - `LANGUAGE.md`
@@ -26,6 +26,7 @@ Vendored from an upstream repo. To sync with upstream, follow the steps below.
 
 - Dropped upstream's `name: improve-codebase-architecture` field — the kit's capability loader derives the name from the folder.
 - Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
+- Retained the inlined architecture vocabulary and resident grilling flow because upstream now delegates to `codebase-design`, `grilling`, and `domain-modeling`, which this kit does not ship. Ported the current upstream's change-focused YAGNI scan scope.
 
 ## Cross-skill dependencies
 

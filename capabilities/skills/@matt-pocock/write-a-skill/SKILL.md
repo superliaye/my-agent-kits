@@ -2,7 +2,7 @@
 description: Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, or build a new skill.
 added_in: 0.12.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: 1.1.0
+upstream_version: "2026-08-15 (068b6e0)"
 ---
 
 # Writing Skills
