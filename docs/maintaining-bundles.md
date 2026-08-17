@@ -56,9 +56,9 @@ verify_paths:
   claude:
     - "~/.claude/skills/first-skill"
     - "~/.claude/skills/second-skill"
-  codex:                              # Codex's user-skill dir, NOT ~/.codex/skills
-    - "~/.agents/skills/first-skill"
-    - "~/.agents/skills/second-skill"
+  codex:
+    - "~/.codex/skills/first-skill"
+    - "~/.codex/skills/second-skill"
 license: Apache-2.0
 ---
 ```

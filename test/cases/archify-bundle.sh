@@ -39,8 +39,8 @@ fi
 
 # Bundle verification accepts list-valued verify_paths, the explicit form Hive
 # uses for managed npx-skills bundles.
-mkdir -p "$HOME/.claude/skills/archify" "$HOME/.agents/skills/archify"
-touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.agents/skills/archify/SKILL.md"
+mkdir -p "$HOME/.claude/skills/archify" "$HOME/.codex/skills/archify"
+touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.codex/skills/archify/SKILL.md"
 unset AGENT_KIT_SKIP_BUNDLE_INSTALL
 node --input-type=module -e '
   const {
@@ -51,6 +51,14 @@ node --input-type=module -e '
     buildNpxSkillsArgs,
     isSafeNpxSkillsPackage,
   } = await import(process.argv[2]);
+  const { listAllCapabilities } = await import(process.argv[3]);
+  const invalidCodexPaths = listAllCapabilities().bundles
+    .filter((bundle) => bundle.installerKind === "npx-skills")
+    .flatMap((bundle) => normalizeBundleVerifyPaths(bundle.verifyPaths?.codex))
+    .filter((path) => !path.startsWith("~/.codex/skills/"));
+  if (invalidCodexPaths.length > 0) {
+    throw new Error(`npx-skills Codex paths target the wrong home: ${invalidCodexPaths.join(", ")}`);
+  }
   const actual = normalizeBundleVerifyPaths(["~/.claude/skills/archify"]);
   if (JSON.stringify(actual) !== JSON.stringify(["~/.claude/skills/archify"])) {
     throw new Error(`unexpected normalized paths: ${JSON.stringify(actual)}`);
@@ -66,5 +74,5 @@ node --input-type=module -e '
   if (verify({ agents: ["claude", "codex"], capabilities: { bundles: ["archify"] } }) !== 0) {
     throw new Error("bundle verification failed");
   }
-' "$KIT_ROOT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" \
+' "$KIT_ROOT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" "$KIT_ROOT/lib/capabilities.js" \
   || { fail "managed npx-skills metadata support failed"; exit 1; }
