@@ -21,6 +21,8 @@ added_in: 0.1.0
 - Git mutations (add/commit/push) need confirmation. Read-only (status/diff/log) are safe.
   - Ask before: `git commit -m "..."` -> Do without asking: `git diff`
 
+- Work in the current worktree by default. If work cannot proceed there, explain why and get explicit user approval before creating another worktree.
+
 - No excessive praise. Direct and objective.
   - Avoid: "Great question!" -> Prefer: "Here's how to fix it."
 
