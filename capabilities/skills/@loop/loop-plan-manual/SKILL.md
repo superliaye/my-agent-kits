@@ -1,6 +1,6 @@
 ---
 name: loop-plan-manual
-description: "A human-in-the-loop plan/PRD + acceptance authoring flow that runs BEFORE /loop-build, so the build step consumes ready artifacts instead of drafting them from context. The resident drives four phases: parallel research fan-out -> /grill-with-docs (you answer every question) -> draft plan.md + acceptance.md in loop-build's two-block format under ~/.loop-plan/ -> artifact review by the three lens agents. It then STOPS and points you at /loop-build (no auto-handoff). Use when the user says \"/loop-plan-manual\", or wants a thorough, fully-human-reviewed plan before building."
+description: "A human-in-the-loop plan.md + acceptance.md authoring flow that runs BEFORE /loop-build, so the build step consumes ready artifacts instead of drafting them from context. The resident drives four phases: parallel research fan-out -> /grill-with-docs (you answer every question) -> draft the two artifacts in loop-build's format under ~/.loop-plan/ -> artifact review by the three lens agents. It then STOPS and points you at /loop-build (no auto-handoff). Use when the user says \"/loop-plan-manual\", or wants a thorough, fully-human-reviewed plan before building."
 added_in: 0.33.0
 ---
 

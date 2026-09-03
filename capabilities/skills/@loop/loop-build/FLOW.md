@@ -9,9 +9,9 @@ hard rule — **acceptance gates review, always** — and only the few decisions
 owns come back up: a genuine gap before the build, an escalation at the round cap.
 Roles are colored: the resident (blue) brokers and never builds; the build agent
 (lavender) implements and orchestrates; the acceptance agent (green) verifies and
-never fixes; the three reviewers (purple) run in parallel; and on a UI build the two
-critics (design + product) run first — right after acceptance — so the review committee
-covers their changes too.
+never fixes; the build agent acts as the `loop-review-committee` executor and selects up to five
+reviewers (purple); and on a UI build the two critics (design + product) run first — right after
+acceptance — so the review committee covers their changes too.
 
 ```mermaid
 flowchart TD
@@ -20,7 +20,7 @@ flowchart TD
     subgraph RES ["resident agent — brokers, never builds"]
       direction TB
       Gate{"readiness gate:<br/>entry mode?"}
-      Gate -->|"A · artifacts exist<br/>(prior plan/QA)"| Confirm["confirm plan +<br/>acceptance are current"]:::resident
+      Gate -->|"A · artifacts exist<br/>(prior planning session)"| Confirm["confirm plan +<br/>acceptance are current"]:::resident
       Gate -->|"B · invoked cold"| Draft["draft plan +<br/>acceptance from context"]:::resident
       Gate -.->|"cannot assemble<br/>a plan"| NoPlan[["STOP ·<br/>nothing to build"]]:::stop
       Draft --> Gaps{"genuine gaps?"}
@@ -28,37 +28,45 @@ flowchart TD
       Confirm --> Spawn
       AskU --> Spawn
       Gaps -->|"no · get the<br/>user's nod"| Spawn
-      Spawn["spawn build agent (foreground):<br/>PLAN, ACCEPTANCE,<br/>REVIEW FIXED-POINT, ROUND CAP"]:::resident
+      Spawn["spawn build agent (foreground):<br/>PLAN, ACCEPTANCE, review base,<br/>target=worktree, spec sources, cap"]:::resident
     end
 
     Spawn --> Impl
 
     subgraph BUILD ["build agent — owns the loop · implement · gate · critique (UI) · review"]
       direction TB
-      Impl["implement plan as-is<br/>commit coherent slices"]:::agent --> Acc
+      Impl["implement plan as-is<br/>in coherent slices"]:::agent --> Fingerprint["fingerprint exact source tree"]:::agent
+      Fingerprint --> Acc
       Acc["spawn acceptance agent"]:::agent
-      Acc -.->|"spawns"| AccA["acceptance: verify each<br/>criterion, never fixes"]:::accept
+      Acc -.->|"expected fingerprint"| AccA["acceptance: match before + after,<br/>verify each criterion, never fixes"]:::accept
       AccA --> Split{"acceptance<br/>result?"}
-      Split -->|"some fail · rounds left<br/>(fix from not-working[])"| Impl
+      Split -->|"stale tree or fail · rounds left<br/>(fix from not-working[])"| Impl
       Split -->|"cap hit · still failing<br/>(incl. no-harness)"| Esc
       Split -->|"all pass"| Crit
       Split -->|"nothing-to-verify<br/>(both blocks empty)"| Review
       Crit{"a UI worth<br/>critiquing? (your call)"}
       Crit -->|"yes · UI build"| Critique["/critique-committee —<br/>design + product critics"]:::critic
       Crit -->|"no · pure logic"| Review
-      Critique --> CJudge["judge critique with full plan context ·<br/>fix within intent + commit ·<br/>borderline → committee vote · split → human"]:::agent
-      CJudge --> Review
-      CJudge -.->|"re-validate if<br/>a fix regressed"| Acc
-      Review["/loop-review-committee —<br/>non-interactive, vs fixed-point"]:::agent --> Fan
-      Fan>"fan out 3 reviewers<br/>in parallel"]:::agent
+      Critique --> CJudge["judge critique with full plan context ·<br/>fix within intent ·<br/>borderline → committee vote · split → human"]:::agent
+      CJudge --> CEdit{"did critique<br/>produce an edit?"}
+      CEdit -->|no| Review
+      CEdit -->|"yes · evidence invalid"| Fingerprint
+      Review["/loop-review-committee —<br/>base + worktree + plan/acceptance"]:::agent --> Payload
+      Payload["capture one immutable payload<br/>+ confirm fingerprint"]:::agent --> Select
+      Select{"committee executor:<br/>record run/skip for all five lenses"} --> Fan
+      Fan>"preflight + run selected reviewers<br/>in capacity-aware parallel batches"]:::agent
       Fan --> Ra["architecture-<br/>review"]:::review
       Fan --> Re["rules-<br/>enforcer"]:::review
       Fan --> Rg["general-<br/>review"]:::review
+      Fan --> Rs["spec-<br/>review"]:::review
+      Fan --> Rm["smell-<br/>review"]:::review
       Ra --> Judge
       Re --> Judge
       Rg --> Judge
-      Judge["judge review with full plan context ·<br/>fix within intent + commit ·<br/>borderline → committee vote · split → human"]:::agent --> Regress{"a fix could<br/>regress acceptance?"}
-      Regress -->|"yes · re-validate"| Acc
+      Rs --> Judge
+      Rm --> Judge
+      Judge["judge review with full plan context ·<br/>fix within intent ·<br/>borderline → committee vote · split → human"]:::agent --> Regress{"did review<br/>produce an edit?"}
+      Regress -->|"yes · evidence invalid"| Fingerprint
       Regress -->|no| Ret
       Ret["return structured summary:<br/>executed · achieved · still-missing<br/>dismissed-feedback · harness-improvements"]:::agent
     end
@@ -84,7 +92,7 @@ flowchart TD
 ## The two entry modes
 
 The readiness gate is the resident's only real fork. **Mode A** — a prior
-research/plan session (e.g. [`/loop-plan-semiauto`](../loop-plan-semiauto/SKILL.md))
+planning session (e.g. [`/loop-plan-semiauto`](../loop-plan-semiauto/SKILL.md))
 already produced the plan and the acceptance doc; the resident confirms both are
 current and spawns with **no user interaction**. **Mode B** — invoked cold; the
 resident drafts the plan + acceptance from session context, then uses
@@ -95,13 +103,16 @@ nothing to build.
 
 ## Acceptance gates review — always
 
-Inside the build agent, the hard rule is the order: **implement → acceptance →
+Inside the build agent, the hard rule is the order: **implement → fingerprint → acceptance →
 critique → review**, never review first. The acceptance agent verifies each criterion
-with evidence and **never fixes** (it spawns nothing). Its result fans into four:
+with evidence and **never fixes** (it spawns nothing). It accepts only the expected source-tree
+fingerprint, checks it again after verification, and returns it in a completed result. The build
+agent cannot report `achieved` from its own checks, from a stale result, or after a later edit. Its
+result fans into four:
 
 - **all pass** → critique if there's a UI worth it, then review; **nothing-to-verify**
   (both criteria blocks empty) → straight to review.
-- **some fail, rounds left** → fix from the `not-working[]` evidence and loop back
+- **some fail or the tree is stale, rounds left** → fix from the `not-working[]` evidence and loop back
   to implement.
 - **cap hit, still failing** (including a `no-harness` criterion with no runnable
   signal) → **escalate**, do not proceed to review.
@@ -111,15 +122,17 @@ visual acceptance criterion is the usual signal, and the source of a known-good 
 path — `/critique-committee` runs the **design** and **product** critics, reaching the UI
 via the visual block's env + route/state and the launch command from the build agent's
 spawn input; it runs **before** review, so the committee sees the critique-driven changes. From there the build agent **judges every finding itself**, with the full plan and
-acceptance in hand: it fixes what improves the increment within the plan's intent and
-commits, re-validates when a change could have left earlier feedback stale, and puts a
+acceptance in hand: it fixes what improves the increment within the plan's intent,
+re-validates after every edit, and puts a
 genuinely controversial call — including a product decision the plan didn't make — to a vote
 by the three review agents, acting on a unanimous verdict and **escalating only a split** to
-the human. The review committee then runs the same way:
-`/loop-review-committee` non-interactively against the review fixed-point, fanning out
-**architecture-review**, **rules-enforcer**, and **general-review** in parallel, judged by
-the same philosophy. If a fix could regress acceptance, the build agent **re-runs
-acceptance** before returning.
+the human. The review committee receives the fixed point, `target=worktree`, and the exact plan and
+acceptance artifacts as its spec source. It captures one immutable payload, records a run/skip
+rationale for **architecture**, **documented rules**, **correctness**, **spec conformance**, and
+**Fowler smells**; the build agent is the `loop-review-committee` executor for that selection. The
+committee preflights only the selected agents, runs them in capacity-aware parallel batches, and
+invalidates the review if the source-tree fingerprint changes. The build agent judges the separated
+findings with the same philosophy and re-runs acceptance and review after every resulting edit.
 
 ## Escalation is brokered, then resumed
 

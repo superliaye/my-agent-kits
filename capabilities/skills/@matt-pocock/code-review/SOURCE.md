@@ -16,4 +16,4 @@
 ## Local deviations
 
 - Preserved upstream `name`, `description`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
-- Added setup-free tracker discovery and a direct user question when the originating issue cannot be resolved; added a worktree target that includes tracked and untracked changes without staging them.
+- Added setup-free tracker discovery and a direct user question when the originating issue cannot be resolved; added a worktree target that includes tracked and untracked changes without staging them; sources the Fowler baseline from the shared deploy-time snippet used by the loop smell reviewer.

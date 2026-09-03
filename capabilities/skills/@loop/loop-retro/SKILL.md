@@ -13,15 +13,22 @@ almost no context yourself.
 
 ## Spawn the retro agent
 
-Give the agent the working directory — it locates this session's transcripts itself:
+Give the agent the working directory and, when the Codex runtime exposes it, the resident's root
+thread id:
 
 ```
 Agent({
   subagent_type: "loop-retro-agent",
   description: "retro on this session",
-  prompt: `WORKING DIRECTORY: <cwd> — the repo this session ran in.`
+  prompt: `
+    WORKING DIRECTORY: <cwd> — the repo this session ran in.
+    CODEX ROOT THREAD ID: <root id when available; otherwise unavailable>
+  `
 })
 ```
+
+In a root Codex session, `$CODEX_THREAD_ID` is the root id. If no root id is available, the child
+derives it from its own Codex thread metadata; do not guess from working directory or timestamps.
 
 ## Point the user at the findings
 

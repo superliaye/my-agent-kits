@@ -1,6 +1,6 @@
 ---
 name: loop-plan-semiauto
-description: "A minimal-human plan/PRD + acceptance authoring flow that runs BEFORE /loop-build. Same pipeline as /loop-plan-manual — parallel research fan-out -> grill -> draft plan.md + acceptance.md in loop-build's two-block format under ~/.loop-plan/ -> artifact review by the three lens agents — except the grill is /grill-with-committee: a three-lens committee votes on each batched question, a unanimous answer is accepted silently, and only a split or an \"Other\" vote escalates to you. It then STOPS and points you at /loop-build (no auto-handoff). Use when the user says \"/loop-plan-semiauto\", or wants a plan with as little human interaction as the decisions allow (\"if lucky, no human\")."
+description: "A minimal-human plan.md + acceptance.md authoring flow that runs BEFORE /loop-build. Same pipeline as /loop-plan-manual — parallel research fan-out -> grill -> draft the two artifacts in loop-build's format under ~/.loop-plan/ -> artifact review by the three lens agents — except the grill is /grill-with-committee: a three-lens committee votes on each batched question, a unanimous answer is accepted silently, and only a split or an \"Other\" vote escalates to you. It then STOPS and points you at /loop-build (no auto-handoff). Use when the user says \"/loop-plan-semiauto\", or wants a plan with as little human interaction as the decisions allow (\"if lucky, no human\")."
 added_in: 0.33.0
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: loop-build
-description: "Day-to-day build flow. The resident agent confirms the work is ready to build (an agreed plan + acceptance criteria), then spawns a build agent that implements the plan, gates itself on a build-acceptance pass BEFORE any code review, runs the review committee (and, on a UI build, the design/product critics), incorporates feedback, and returns a structured summary. Two entry modes — A: a prior plan/QA session already produced the artifacts, so it builds with no further questions; B: invoked cold, the resident drafts plan + acceptance from context and confirms only the genuine gaps with you. Use when the user says \"/loop-build\", asks to build/implement an agreed plan, or resumes after a previous research/plan session."
+description: "Day-to-day build flow. The resident confirms an agreed plan.md plus acceptance.md, then spawns a build agent that implements the plan, binds acceptance evidence to the current source tree, runs applicable code-review lenses (and UI critics when relevant), incorporates feedback, and returns a structured summary. It consumes prior artifacts without prompting or drafts them from context when invoked cold. Use when the user says \"/loop-build\", asks to build an agreed plan, or resumes after a planning session."
 added_in: 0.32.0
 ---
 
@@ -15,12 +15,12 @@ It is a thin resident-facing entry over two nested agents:
 [`loop-build-agent`](../../../agents/@loop/loop-build-agent/AGENT.md) and
 [`loop-build-acceptance`](../../../agents/@loop/loop-build-acceptance/AGENT.md).
 
-## The contract: a plan + an acceptance doc
+## The contract: a plan or spec + an acceptance doc
 
 Two things must exist before building. Neither has an enforced path — you resolve
 them from context and pass them **in the build agent's spawn prompt**.
 
-1. **Plan / PRD** — the change to make, with per-item intent.
+1. **Plan / spec** — the change to make, with per-item intent.
 2. **Acceptance doc** — observable criteria in two blocks:
 
    ```markdown
@@ -38,7 +38,7 @@ them from context and pass them **in the build agent's spawn prompt**.
 ## What the assistant (resident) does
 
 1. **Readiness gate — pick the entry mode.**
-   - **Mode A — artifacts exist.** A prior research/plan session (e.g.
+   - **Mode A — artifacts exist.** A prior planning session (e.g.
      [`/loop-plan-semiauto`](../loop-plan-semiauto/SKILL.md)) already produced the
      plan and the acceptance doc. Confirm both are present and current → go to
      step 2 with **no user interaction**.
@@ -59,18 +59,21 @@ them from context and pass them **in the build agent's spawn prompt**.
      description: "build <one-line feature>",
      prompt: `
        PLAN:
-       <the agreed plan / PRD>
+       <the agreed plan/spec or exact plan.md path>
 
        ACCEPTANCE:
-       <the acceptance doc — both blocks>
+       <the acceptance doc or exact acceptance.md path — both blocks>
 
        REVIEW FIXED-POINT: <base to diff against — e.g. HEAD, main, or the commit before this build>
+       REVIEW TARGET: worktree
+       REVIEW SPEC SOURCES: <the exact plan.md and acceptance.md paths or their immutable contents>
        ACCEPTANCE ROUND CAP: 3
      `
    })
    ```
 
-   The build agent runs **foreground** (you block on it), so its own nested spawns
+   Pass both planning artifacts as the review spec source even when their contents are already
+   present under PLAN and ACCEPTANCE. The build agent runs **foreground** (you block on it), so its own nested spawns
    (acceptance, reviewers) are unconstrained by the background depth cap.
 
 3. **Broker escalations.** If the build agent returns **at the round cap with
@@ -85,7 +88,7 @@ them from context and pass them **in the build agent's spawn prompt**.
    | Field | Relay as |
    |---|---|
    | `executed` | What was implemented — diff summary, commits, files touched. |
-   | `achieved` | Acceptance criteria now passing, with evidence. |
+   | `achieved` | Acceptance criteria now passing, with evidence and the accepted source-tree fingerprint. |
    | `still-missing` | Failing/unaddressed criteria + why; anything deferred for you to decide; anything escalated. |
    | `dismissed-feedback` | Feedback the build agent judged and chose not to apply, from any source, + its rationale — **always surface these**, the human may disagree. |
    | `harness-improvements` | Gaps in the acceptance doc, a missing test/visual harness, or friction in the skills/agents/loop itself. |
