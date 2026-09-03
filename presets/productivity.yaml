@@ -1,5 +1,5 @@
 name: productivity
-description: Productivity kit — core conduct rule + planning/handoff/skill-authoring/diagramming/video/deck helpers (grill-me, handoff, write-a-skill, my-mermaid, my-demo-video, my-slidev), with HyperFrames, Slidev, and Archify bundles.
+description: Productivity kit — Matt Pocock's seven stable productivity skills plus kit-owned visual-loop, diagramming, video, deck, and document helpers, with HyperFrames, Slidev, and Archify bundles.
 default_agents: [claude]
 
 capabilities:
@@ -7,10 +7,12 @@ capabilities:
     - core
   skills:
     - grill-me
+    - grilling
     - handoff
-    - write-a-skill
-    - caveman
     - teach
+    - to-questionnaire
+    - wait-what
+    - writing-for-agents
     - electron-visual-loop
     - web-visual-loop
     - desktop-app-loop

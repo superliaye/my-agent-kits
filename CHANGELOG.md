@@ -4,6 +4,21 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.47.0] - 2026-09-03
+
+### Added
+
+- **Matt Pocock's selected stable catalog at upstream commit `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`** — adds `code-review`, `codebase-design`, `domain-modeling`, `implement`, `research`, `resolving-merge-conflicts`, `triage`, `wayfinder`, `wizard`, `grilling`, `to-questionnaire`, and `wait-what`, with runtime companions and pinned provenance. The engineering preset ships all 22 selected engineering and productivity skills; productivity ships its seven-skill subset; loop ships the six-skill closure its workflows invoke.
+
+### Changed
+
+- **Canonical upstream names replace three former names** — `diagnose` becomes `diagnosing-bugs`, `to-prd` becomes `to-spec`, and `write-a-skill` becomes `writing-for-agents`. Existing manifest selections migrate automatically for both `update --current` and interactive update seeding.
+- **Kit-owned compositions use the refreshed catalog** — `e2e-validate` routes stubborn failures to `diagnosing-bugs`; `grill-with-committee` uses `grilling` for frontier formation and `domain-modeling` for glossary and ADR effects; `architecture-review` uses `codebase-design` as its module-depth vocabulary.
+
+### Removed
+
+- **Retired or excluded Matt skills no longer deploy** — removes `to-issues`, `caveman`, and `zoom-out`; the selected catalog also excludes `ask-matt`, `setup-matt-pocock-skills`, and `to-tickets`. Updates remove retired manifest-owned deployments without installing compatibility aliases.
+
 ## [0.46.3] - 2026-08-17
 
 ### Fixed

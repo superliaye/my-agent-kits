@@ -1,9 +1,11 @@
 ---
-description: Teach the user a new skill or concept over multiple sessions, treating the current directory as a stateful teaching workspace (mission, curated resources, beautiful HTML lessons, learning records, glossary). Grounds every lesson in the user's real-world mission and their zone of proximal development. Use when the user runs /teach <topic> or asks to be taught, coached, or tutored on a skill or concept.
-added_in: 0.20.0
+name: teach
+description: Teach the user a new skill or concept, within this workspace.
+disable-model-invocation: true
 argument-hint: "What would you like to learn about?"
+added_in: 0.20.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-15 (068b6e0)"
+upstream_version: "2026-08-24 (6654f6b)"
 ---
 
 The user has asked you to teach them something. This is a stateful request - they intend to learn the topic over multiple sessions.
@@ -47,9 +49,9 @@ Fluency can give the user an illusory sense of mastery, but storage strength is 
 
 ## Lessons
 
-A lesson is the main thing you produce — the unit in which knowledge and skills reach the user. Each lesson is one self-contained HTML file, saved to `./lessons/` and titled `0001-<dash-case-name>.html` where the number increments each time.
+A lesson is the main thing you produce: the unit in which knowledge and skills reach the user. Each lesson is one self-contained HTML file, saved to `./lessons/` and titled `0001-<dash-case-name>.html` where the number increments each time.
 
-A lesson should be **beautiful** — clean, readable typography and layout — since the user will return to these later to review. Think Tufte.
+A lesson should be **beautiful**, with clean, readable typography and layout, since the user will return to these later to review. Think Tufte.
 
 The lesson should be short, and completable very quickly. Learners' working memory is very small, and we need to stay within it. But each lesson should give the user a single tangible win that they can build on. It should be directly tied to the mission, and should be in the user's zone of proximal development.
 
@@ -63,9 +65,9 @@ Each lesson should contain a reminder to ask followup questions to the agent. Th
 
 ## Assets
 
-Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers — anything a second lesson could reuse.
+Lessons are built from reusable **components**, stored in `./assets/`: stylesheets, quiz widgets, simulators, diagram helpers, and anything else a second lesson could reuse.
 
-Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it — never inline code a future lesson would duplicate.
+Reuse is the default, not the exception. Before authoring a lesson, read `./assets/` and build from the components already there. When a lesson needs something new and reusable, write it as a component in `./assets/` and link to it; never inline code a future lesson would duplicate.
 
 A shared stylesheet is the first component every workspace earns: every lesson links it, so the lessons look like one consistent course rather than a pile of one-offs. As the workspace grows, so should the component library.
 

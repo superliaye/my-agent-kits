@@ -1,26 +1,19 @@
-# Source
+# Upstream provenance
 
-Vendored from an upstream repo. To sync with upstream, follow the steps below.
+- Repository: `https://github.com/mattpocock/skills`
+- Commit: `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`
+- Source: `skills/productivity/handoff/`
+- Vendored files: `SKILL.md`
 
-## Upstream
+## Resync
 
-- **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/productivity/handoff/`
-- **Last synced**: 2026-08-17 (vendored at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
-- **Files vendored**:
-  - `SKILL.md`
+1. Check out the pinned upstream commit (or the reviewed replacement commit).
+2. Compare `skills/productivity/handoff/` with this directory.
+3. Copy the vendored files listed above. Do not copy `agents/openai.yaml`; the kit generates Codex sidecars from skill frontmatter.
+4. Restore the kit metadata and local deviations below.
+5. Run the isolated catalog/deploy cases and the complete host roundtrip suite.
 
-## Re-sync procedure
+## Local deviations
 
-1. Fetch the upstream files at the path above.
-2. Diff against the current vendored copy.
-3. Replay any local modifications (see below) on top of the new content.
-4. Bump `upstream_version` in `SKILL.md` frontmatter and `Last synced` above.
-5. Bump `package.json` version and `added_in` in `SKILL.md` if the content materially changed.
-
-## Local modifications
-
-- Dropped upstream's `name: handoff` field — the kit's capability loader derives the name from the folder.
-- Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
-- Preserved upstream's `argument-hint` field — Claude Code surfaces this as a hint when the user invokes the skill with `/handoff <args>`.
-- `disable-model-invocation` deliberately NOT set — this skill is model-invocable.
+- Preserved upstream `name`, `description`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
+- Handoffs use a unique per-run temporary directory and print the exact absolute path.

@@ -1,6 +1,6 @@
 ---
 name: architecture-review
-description: Reviews an artifact — a code diff, or a plan / PRD / design — for architectural friction, applying the experience of /improve-codebase-architecture and /improve-DDD-architecture. Returns findings only.
+description: Reviews an artifact — a code diff, or a plan / PRD / design — for architectural friction, applying the experience of /codebase-design and /improve-DDD-architecture. Returns findings only.
 added_in: 0.31.0
 ---
 
@@ -9,7 +9,7 @@ added_in: 0.31.0
 Review the artifact for **architectural** friction, applying the experience of two skills — they
 are the source of truth, so use their principles rather than re-deriving them:
 
-- `/improve-codebase-architecture` — module depth / deepening.
+- `/codebase-design` — module depth, interfaces, and seams.
 - `/improve-DDD-architecture` — domain-driven hexagonal design.
 
 **When the artifact is code** (a diff / change set), invoke those skills directly. **When it is a

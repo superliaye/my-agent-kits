@@ -1,5 +1,5 @@
 name: engineering
-description: Engineering coding kit — language-agnostic rules + reusable workflow skills
+description: Engineering coding kit — language-agnostic rules, kit-owned delivery helpers, and Matt Pocock's selected stable engineering and productivity catalog.
 default_agents: [claude]
 
 capabilities:
@@ -15,17 +15,29 @@ capabilities:
     - my-process-pr-comments
     - my-fix-build
     - my-aggressive-clean-up
+    - code-review
+    - codebase-design
+    - diagnosing-bugs
+    - domain-modeling
     - grill-me
     - grill-with-docs
-    - diagnose
+    - grilling
+    - handoff
+    - implement
     - improve-codebase-architecture
-    - thermo-nuclear-code-quality-review
     - prototype
-    - to-prd
-    - to-issues
-    - zoom-out
+    - research
+    - resolving-merge-conflicts
     - tdd
-    - caveman
+    - teach
+    - to-questionnaire
+    - to-spec
+    - triage
+    - wait-what
+    - wayfinder
+    - wizard
+    - writing-for-agents
+    - thermo-nuclear-code-quality-review
   plugins: []
   mcp: []
   hooks: []

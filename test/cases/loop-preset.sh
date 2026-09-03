@@ -2,8 +2,8 @@
 # Verify the `loop` preset deploys its survivor skills: the loop-build entry, the
 # loop-plan family (loop-plan-manual/-semiauto + the grill-with-committee /
 # grill-with-docs they build on) with their <!-- include: --> markers expanded,
-# and the supporting skills (e2e-validate, the architecture/DDD reviews, diagnose,
-# the visual loops, to-issues).
+# and the supporting skills (e2e-validate, the architecture/DDD reviews,
+# diagnosing-bugs, and the visual loops).
 #
 # AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude Code plugin set.
 
@@ -45,17 +45,27 @@ done
 assert_file_exists "$HOME/.claude/skills/full-loop-semiauto/SKILL.md" "full-loop-semiauto deployed"
 assert_file_exists "$HOME/.claude/skills/loop-retro/SKILL.md" "loop-retro deployed"
 
-# Supporting skills the preset includes
+# Supporting skills and Matt dependency closure the preset includes
 assert_file_exists "$HOME/.claude/skills/e2e-validate/SKILL.md" "e2e-validate deployed"
 assert_file_exists "$HOME/.claude/skills/improve-codebase-architecture/SKILL.md" "improve-codebase-architecture deployed"
+assert_file_exists "$HOME/.claude/skills/codebase-design/SKILL.md" "codebase-design deployed"
+assert_file_exists "$HOME/.claude/skills/domain-modeling/SKILL.md" "domain-modeling deployed"
+assert_file_exists "$HOME/.claude/skills/grilling/SKILL.md" "grilling deployed"
 assert_file_exists "$HOME/.claude/skills/improve-DDD-architecture/SKILL.md" "improve-DDD-architecture deployed"
 assert_file_exists "$HOME/.claude/skills/design-critique/SKILL.md" "design-critique deployed"
 assert_file_exists "$HOME/.claude/skills/product-critique/SKILL.md" "product-critique deployed"
 assert_file_exists "$HOME/.claude/skills/critique-committee/SKILL.md" "critique-committee deployed"
-assert_file_exists "$HOME/.claude/skills/diagnose/SKILL.md" "diagnose deployed"
+assert_file_exists "$HOME/.claude/skills/diagnosing-bugs/SKILL.md" "diagnosing-bugs deployed"
 assert_file_exists "$HOME/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
 assert_file_exists "$HOME/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
-assert_file_exists "$HOME/.claude/skills/to-issues/SKILL.md" "to-issues deployed"
+
+for retired in diagnose to-issues caveman zoom-out; do
+  if [ -d "$HOME/.claude/skills/$retired" ]; then
+    fail "$retired should not deploy in the loop preset"
+  else
+    ok "$retired absent from the loop preset"
+  fi
+done
 
 # SOURCE.md is maintainer-only upstream provenance — it must NOT deploy
 # (electron-visual-loop carries one, having been copied from an upstream repo).

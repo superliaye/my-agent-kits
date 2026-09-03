@@ -51,7 +51,7 @@ Returns:
    toggle present in settings").
 6. **Judge against `success_criteria`,** not just exit codes. Code that
    runs but doesn't meet the criteria is `Requirements Unmet`.
-7. **Route stubborn failures to `/diagnose`** if it's installed and the
+7. **Route stubborn failures to `/diagnosing-bugs`** if it's installed and the
    failure's root cause isn't obvious.
 8. **Write the report** with the status and evidence.
 

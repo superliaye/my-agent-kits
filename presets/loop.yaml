@@ -1,5 +1,5 @@
 name: loop
-description: "Day-to-day build + plan loop. /loop-build implements an agreed plan behind a hard acceptance-gate-before-review rule over two nested agents (build + acceptance); /loop-plan-manual and /loop-plan-semiauto author the plan.md + acceptance.md it consumes, with the grill running fully human (manual) or committee-voted (semiauto). /full-loop-semiauto chains plan-semiauto -> build -> retro in one run; /loop-retro mines the session + subagent transcripts for ways to improve the kit capabilities that ran. Leaves — grill-with-committee/grill-with-docs for stress-testing, loop-review-committee for multi-lens review, loop-check-readiness for feedback-loop audits, plus the architecture/DDD, e2e-validate, diagnose, and visual-loop supporting skills."
+description: "Day-to-day plan, acceptance-gated build, review, and retrospective loop. Includes the six-skill Matt dependency closure for grilling, domain modeling, codebase design, architecture improvement, and bug diagnosis, plus the kit's acceptance, critique, and visual feedback loops."
 default_agents: [claude]
 
 capabilities:
@@ -13,19 +13,21 @@ capabilities:
     - loop-retro
     - grill-with-committee
     - grill-with-docs
+    - grilling
+    - domain-modeling
     - loop-review-committee
     - loop-check-readiness
     - e2e-validate
     - improve-codebase-architecture
+    - codebase-design
     - improve-DDD-architecture
     - design-critique
     - product-critique
     - critique-committee
-    - diagnose
+    - diagnosing-bugs
     - electron-visual-loop
     - web-visual-loop
     - desktop-app-loop
-    - to-issues
   agents:
     - loop-build-agent
     - loop-build-acceptance

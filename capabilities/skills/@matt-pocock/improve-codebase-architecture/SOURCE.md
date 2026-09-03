@@ -1,43 +1,19 @@
-# Source
+# Upstream provenance
 
-Vendored from an upstream repo. To sync with upstream, follow the steps below.
+- Repository: `https://github.com/mattpocock/skills`
+- Commit: `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`
+- Source: `skills/engineering/improve-codebase-architecture/`
+- Vendored files: `SKILL.md`, `HTML-REPORT.md`
 
-## Upstream
+## Resync
 
-- **Repo**: <https://github.com/mattpocock/skills>
-- **Path**: `skills/engineering/improve-codebase-architecture/`
-- **Last synced**: 2026-08-17 (reviewed at upstream HEAD `068b6e0c62393147daf03530149cdce209c93da8`)
-- **Files vendored**:
-  - `SKILL.md`
-  - `LANGUAGE.md`
-  - `INTERFACE-DESIGN.md`
-  - `DEEPENING.md`
-  - `HTML-REPORT.md` (added in 1.1.0)
+1. Check out the pinned upstream commit (or the reviewed replacement commit).
+2. Compare `skills/engineering/improve-codebase-architecture/` with this directory.
+3. Copy the vendored files listed above. Do not copy `agents/openai.yaml`; the kit generates Codex sidecars from skill frontmatter.
+4. Restore the kit metadata and local deviations below.
+5. Run the isolated catalog/deploy cases and the complete host roundtrip suite.
 
-## Re-sync procedure
+## Local deviations
 
-1. Fetch the upstream files at the path above.
-2. Diff against the current vendored copy.
-3. Replay any local modifications (see below) on top of the new content.
-4. Bump `upstream_version` in `SKILL.md` frontmatter and `Last synced` above.
-5. Bump `package.json` version and `added_in` in `SKILL.md` if the content materially changed.
-
-## Local modifications
-
-- Dropped upstream's `name: improve-codebase-architecture` field — the kit's capability loader derives the name from the folder.
-- Added kit-required fields: `added_in`, `upstream`, `upstream_version`.
-- Retained the inlined architecture vocabulary and resident grilling flow because upstream now delegates to `codebase-design`, `grilling`, and `domain-modeling`, which this kit does not ship. Ported the current upstream's change-focused YAGNI scan scope.
-
-## Cross-skill dependencies
-
-`SKILL.md` references two files in the sibling skill `grill-with-docs` via relative paths:
-
-- `../grill-with-docs/CONTEXT-FORMAT.md`
-- `../grill-with-docs/ADR-FORMAT.md`
-
-These resolve correctly in both the kit layout (`capabilities/skills/*/`) and the deployed layout (`.claude/skills/*/` or `.agents/skills/*/`) — both are sibling folders. **If `grill-with-docs` is removed from a preset, those references break**; keep them together.
-
-## Notes
-
-- Model-invocable — `disable-model-invocation` is deliberately NOT set so the model can route here when the user asks about architecture or refactoring.
-- `diagnose`'s Phase 6 hands off to this skill — pairs naturally with it.
+- Preserved upstream `name`, `description`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
+- Invokes `codebase-design` without copying its vocabulary and principles into this skill.

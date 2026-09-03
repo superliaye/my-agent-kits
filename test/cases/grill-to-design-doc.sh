@@ -2,8 +2,8 @@
 # Opt-in capability: grill-to-design-doc ships only via experimenting-engineering.
 # That preset extends engineering AND pulls the superpowers plugin (a network
 # install), so we deploy onto the plugin-free engineering preset and opt the skill
-# in by flag. Asserts the skill folder, its companion template, and its composed
-# /grill-with-docs dependency all co-deploy.
+# in by flag. Asserts the skill folder, its companion template, and the full
+# /grill-with-docs dependency closure all co-deploy.
 
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -31,6 +31,8 @@ assert_file_exists "$HOME/.claude/skills/grill-to-design-doc/DESIGN-DOC-FORMAT.m
 # This assertion is the guard: if grill-with-docs were ever dropped from that chain,
 # the composition would silently break and this would fail.
 assert_file_exists "$HOME/.claude/skills/grill-with-docs/SKILL.md" "composed /grill-with-docs dependency co-deployed"
+assert_file_exists "$HOME/.claude/skills/grilling/SKILL.md" "composed /grilling dependency co-deployed"
+assert_file_exists "$HOME/.claude/skills/domain-modeling/SKILL.md" "composed /domain-modeling dependency co-deployed"
 
 # SKILL.md body references the capability it composes by invocable name.
 assert_content_contains "$HOME/.claude/skills/grill-to-design-doc/SKILL.md" "grill-with-docs" "SKILL body composes grill-with-docs"

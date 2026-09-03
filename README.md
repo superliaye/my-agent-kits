@@ -22,7 +22,8 @@ Invoke the Node entrypoint from the kit directory — this works identically in 
 cd ~/my-agent-kits
 node lib/wizard.js init --default   # install recommended defaults, no prompts
 node lib/wizard.js init             # interactive 5-step wizard
-node lib/wizard.js update           # re-deploy the kit to your global install
+node lib/wizard.js update           # interactively adjust the installed selection
+node lib/wizard.js update --current # replay the installed selection without prompts
 node lib/wizard.js help
 ```
 
@@ -69,12 +70,23 @@ Flag reference:
 
 Updating:
 
-`agent-kit update` is a stateless global re-deploy. There is no per-repo state to diff against — it re-resolves the working set the same way `init --default` does (same `--preset`/`--agents` shape) and re-runs the idempotent deploy, so the global install matches the current kit:
+`agent-kit update` reads the global selection manifest created by `init`, pre-checks the currently selected capabilities and agents, and lets you adjust them interactively. `update --current` replays that selection non-interactively at the current kit version; bare `update` also takes this replay path when no TTY is available. Both paths remove manifest-owned skills that are deselected or no longer ship and migrate renamed Matt skills to their canonical names.
 
 ```bash
-node lib/wizard.js update                                  # re-resolve defaults, re-deploy globally
-node lib/wizard.js update --preset engineering --agents claude  # re-deploy a specific preset/agent set
+node lib/wizard.js update           # adjust the current selection
+node lib/wizard.js update --current # replay it without prompts
 ```
+
+## Presets
+
+The current Matt Pocock catalog is pinned to one upstream commit and excludes `ask-matt`, `setup-matt-pocock-skills`, and `to-tickets`.
+
+| Preset | Matt skills | Other contents |
+|---|---|---|
+| `engineering` | `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `improve-codebase-architecture`, `prototype`, `research`, `resolving-merge-conflicts`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | Core engineering instructions and kit-owned delivery/review helpers |
+| `productivity` | `grill-me`, `grilling`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, `writing-for-agents` | Visual loops, document/media helpers, worker agents, and the Archify, HyperFrames, and Slidev bundles |
+| `loop` | `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-with-docs`, `grilling`, `improve-codebase-architecture` | Planning, acceptance-gated build, review, critique, retrospective, and visual feedback capabilities |
+| `experimenting-engineering` | Inherits the complete `engineering` set | Adds `calibrate-system-prompt`, `grill-to-design-doc`, and the Superpowers plugin |
 
 ## What's in here
 
@@ -103,11 +115,12 @@ lands in any repo. There is no repo-local state file:
 ~/.codex/AGENTS.md      # instructions concatenated inline (if --agents codex)
 ~/.codex/agents/        # Codex reads sub-agents here (<name>.toml; if --agents codex)
 ~/.agents/skills/       # cross-client skills (Codex reads here; if --agents codex).
-                        #   Each Codex skill also gets a manual-only
-                        #   ~/.agents/skills/<name>/agents/openai.yaml sidecar.
+                        #   Manual-only skills get a generated
+                        #   <name>/agents/openai.yaml sidecar.
+~/.agent-kit/manifest.json # global selection and ownership record used by update
 ```
 
-That's it. No per-rule `.claude/rules/*.md` files, no per-repo state file, and no instructions or skills copied into the repo itself.
+That's it. No per-rule `.claude/rules/*.md` files, no repo-local state file, and no instructions or skills copied into the repo itself.
 
 ## Tests
 
