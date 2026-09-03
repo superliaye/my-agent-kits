@@ -8,8 +8,10 @@ added_in: 0.1.0
 
 ## Rules
 
-- Delete commented-out code and personal dev notes
-  - Remove: `// TODO: ask John`, `// hack, fix later`, `// I removed this for compatibility`
+- Add comments only when they convey information the code cannot express clearly: intent, rationale, contracts, invariants, constraints, or non-obvious risks.
+  - Prefer clearer code over comments that narrate implementation.
+  - Do not introduce commented-out code or personal notes. Make TODOs actionable and traceable using the project's convention.
+  - Update comments affected by your change; leave unrelated comments untouched.
 
 - Docs describe current state, not history. Rewrite, don't append.
   - Remove: "Last Updated: Jan 2025", "moved from old-file.md", "Update: we now also support..."
