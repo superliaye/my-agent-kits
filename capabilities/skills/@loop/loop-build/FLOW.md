@@ -52,7 +52,7 @@ flowchart TD
       CEdit -->|no| Review
       CEdit -->|"yes · evidence invalid"| Fingerprint
       Review["/loop-review-committee —<br/>base + worktree + plan/acceptance"]:::agent --> Payload
-      Payload["capture one immutable payload<br/>+ confirm fingerprint"]:::agent --> Select
+      Payload["capture one immutable payload<br/>+ confirm change set"]:::agent --> Select
       Select{"committee executor:<br/>record run/skip for all five lenses"} --> Fan
       Fan>"preflight + run selected reviewers<br/>in capacity-aware parallel batches"]:::agent
       Fan --> Ra["architecture-<br/>review"]:::review
@@ -131,7 +131,7 @@ acceptance artifacts as its spec source. It captures one immutable payload, reco
 rationale for **architecture**, **documented rules**, **correctness**, **spec conformance**, and
 **Fowler smells**; the build agent is the `loop-review-committee` executor for that selection. The
 committee preflights only the selected agents, runs them in capacity-aware parallel batches, and
-invalidates the review if the source-tree fingerprint changes. The build agent judges the separated
+invalidates the review if the captured Git-visible change set changes. The build agent judges the separated
 findings with the same philosophy and re-runs acceptance and review after every resulting edit.
 
 ## Escalation is brokered, then resumed

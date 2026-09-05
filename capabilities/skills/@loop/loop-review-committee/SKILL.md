@@ -29,8 +29,6 @@ Resolve omitted inputs without prompting:
 
 Record the resolved values; never leave the target mode implicit.
 
-<!-- include: source-tree-fingerprint -->
-
 <!-- include: review-payload-contract -->
 
 ## 1. Capture one immutable review payload
@@ -38,22 +36,13 @@ Record the resolved values; never leave the target mode implicit.
 Pin `BASE_OID` with `git rev-parse --verify <BASE>^{commit}` and `HEAD_OID` with
 `git rev-parse --verify HEAD`, then resolve `REVIEW_BASE` with
 `git merge-base <BASE_OID> <HEAD_OID>`. Use only these object ids in later capture commands; fail on
-a bad ref or empty selected change set. For `TARGET=committed`, require a clean tracked and
-non-ignored-untracked worktree before capture; if it is dirty, stop and ask the caller to choose
-`TARGET=worktree` or provide a clean checkout. Never stash, discard, or hide local changes
-automatically.
-
-For either target, reject a tree where NUL-safe `git ls-files -v -z` reports any assume-unchanged or
-skip-worktree entry. Compare every stage-zero path's indexed type/executable mode with its actual
-filesystem state: `committed` requires equality, while `worktree` rejects any mismatch that
-`change.patch` does not represent. Apply the same checks recursively inside every initialized
-tracked submodule, then require its HEAD to equal the parent's indexed gitlink and its
-`git status --porcelain=v1 --untracked-files=normal` to be empty; reject it otherwise. These gates
-prevent Git hints, configuration, or nested changes from hiding tracked source state from the
-review payload.
+a bad ref or empty selected change set. The target is the Git-visible change: `committed` reads only
+the pinned commit objects; `worktree` reads the tracked diff plus non-ignored untracked paths that
+Git reports. Local state hidden from Git is outside the review. Never modify the index or worktree
+while capturing it.
 
 Create one fresh, run-unique directory under the operating system's temporary directory. Populate
-the `loop-review-payload/v1` manifest and these fixed entries, then make the payload read-only:
+the `loop-review-payload/v2` manifest and these fixed entries, then make the payload read-only:
 
 - `commits.txt` — `git log <REVIEW_BASE>..<HEAD_OID> --oneline`.
 - `change.patch` — for `committed`,
@@ -62,28 +51,27 @@ the `loop-review-payload/v1` manifest and these fixed entries, then make the pay
   including committed, staged, and unstaged tracked changes without changing the index.
 - `untracked/<n>.blob` — for `worktree`, every path from the NUL-safe
   `git ls-files --others --exclude-standard -z`, sorted by path bytes and copied byte-for-byte. Copy
-  a symlink's target bytes rather than following it. If an entry is a nested repository directory,
-  recursively expand its HEAD-tree, index, and non-ignored-untracked union into full outer-relative
-  paths; emit empty directory/deleted blobs plus every file or symlink leaf in bytewise path order,
-  excluding nested Git metadata and ignored files.
+  a symlink's target bytes rather than following it; record a returned directory without expanding
+  nested repository contents that the outer repository does not report.
 - `specs/<n>` and `standards/<n>` — immutable bytes of every resolved spec and applicable
-  documented-standard source.
+  documented-standard source. Read repository paths from `HEAD_OID`; for `worktree`, capture the
+  worktree state instead when that path is part of the captured change.
 
 Populate the manifest metadata from the resolved invocation and captured source. Record entries in
 this order: commits, change, sorted untracked, specs, then standards.
 
-Discover standards sources before selection: root instructions; nested instructions governing the
-changed paths; contributor/coding-standard docs that declare themselves normative or are referenced
-by those instructions; applicable lint/format configuration; and binding decision records. Discover
-a spec from the caller first, then issue references in the commits and matching files under `docs/`,
-`specs/`, or `.scratch/`. Record when either kind of ground truth is absent.
+Discover repository standards from the pinned `HEAD_OID` tree and, for `worktree`, every path in the
+captured patch or untracked entries before selection: root instructions; nested instructions
+governing the changed paths; contributor/coding-standard docs that declare themselves normative or
+are referenced by those instructions; applicable lint/format configuration; and binding decision
+records. Discover a spec from the caller first, then issue references in the commits and matching
+files under `docs/`, `specs/`, or `.scratch/`. Record when either kind of ground truth is absent.
 
-Compute the fingerprint before and after capture. If it differs, discard the payload and capture a
-fresh one; do not combine evidence from two trees. At both boundaries, also require
-`git rev-parse --verify HEAD` to equal `HEAD_OID`; otherwise restart from object-id pinning. Verify
-the payload against the shared contract, then make the directory read-only. Selection and every
-reviewer receive the same payload path and fingerprint. They may inspect surrounding repository
-source only while that fingerprint remains current.
+Immediately recapture the selected change. For `committed`, require `HEAD` still to equal `HEAD_OID`.
+For `worktree`, also require the same `HEAD`, byte-identical `change.patch`, and the same sorted
+untracked paths, types, modes, and bytes. If any differ, discard the payload and start capture again;
+do not combine evidence from two states. Verify the payload against the shared contract, then make
+the directory read-only.
 
 ## 2. Select the applicable lenses
 
@@ -108,15 +96,14 @@ spawning any reviewer and report it; an uninstalled skipped lens does not block 
 
 Run the selected agents in the fewest capacity-aware parallel batches the current runtime permits;
 never assume all five slots are available. Give each only the repository root, immutable payload
-path, captured fingerprint, and a request to apply its resident lens. The agents already carry their
-finding contract, so do not reproduce it. If no lens applies, return the five skip rationales without
-spawning.
+path, and a request to apply its resident lens. The agents already carry their finding contract, so
+do not reproduce it. If no lens applies, return the five skip rationales without spawning.
 
 ## 4. Validate and report
 
-Recompute the source-tree fingerprint after the reviewers return. If it differs from the payload's
-fingerprint, invalidate the entire review and report that the source changed; do not present stale
-findings as current.
+Repeat the same recapture check after the reviewers return. If the selected commit or Git-visible
+worktree change differs from the payload, invalidate the entire review and report that the change
+set moved; do not present stale findings as current.
 
 Report all five axes in this order — **Architecture**, **Documented rules**, **Correctness**,
 **Spec conformance**, **Fowler smells**. Under each, show its `run` or `skip` rationale and either its

@@ -2,8 +2,8 @@
 
 When the input is an immutable review payload, apply this contract; otherwise use the reviewer's
 standalone artifact flow. Accept only `manifest.json` with `"schema":
-"loop-review-payload/v1"`. Its top-level fields are `schema`, `target`, `requestedBase`,
-`resolvedBase`, `reviewBase`, `head`, `sourceTreeFingerprint`, and `entries`. Each entry has exactly:
+"loop-review-payload/v2"`. Its top-level fields are `schema`, `target`, `requestedBase`,
+`resolvedBase`, `reviewBase`, `head`, and `entries`. Each entry has exactly:
 
 ```json
 {
@@ -25,5 +25,7 @@ preserve the original link's provenance; reject cycles and inaccessible targets.
 deleted entries have empty payload bytes and `mode` is `null` for deleted entries. Verify every
 listed digest before use and reject an unknown schema, a missing or unlisted payload entry, or a
 digest mismatch. Treat the payload entries as the authoritative change, spec, and standards: do
-not regenerate the diff, discover replacements, or substitute live versions. Treat the payload as
+not regenerate the diff, discover replacements, or substitute live versions. For surrounding
+repository source, query only the exact commit in `head`, such as with `git show <head>:<path>` or
+`git grep <pattern> <head>`; do not read the current worktree or a live ref. Treat the payload as
 read-only.
