@@ -20,6 +20,7 @@ capabilities:
     - my-dissolve-doc
     - my-demo-video
     - my-slidev
+    - newspaper
   agents:
     - my-mermaid-agent
     - my-demo-video-agent

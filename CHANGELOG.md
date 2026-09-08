@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.48.0] - 2026-09-08
+
+### Added
+
+- **`/newspaper` maintains a live canvas for long-running work** — adds a self-contained loopback service whose newspaper-style canvas presents current progress, decisions, risks, findings, code, tables, metrics, and local media. Filesystem and browser edits reconcile through a versioned schema, isolated run state, authenticated local APIs, and explicit cleanup. The engineering, productivity, and loop presets ship the skill, with deploy and runtime contract coverage.
+- **Forwardable local services share a security and lifecycle contract** — adds reusable guidance for loopback binding, origin-relative URLs, authenticated content, constrained file access, health checks, and idle shutdown.
+
 ## [0.47.0] - 2026-09-03
 
 ### Added

@@ -28,6 +28,7 @@ capabilities:
     - electron-visual-loop
     - web-visual-loop
     - desktop-app-loop
+    - newspaper
   agents:
     - loop-build-agent
     - loop-build-acceptance

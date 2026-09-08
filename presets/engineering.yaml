@@ -38,6 +38,7 @@ capabilities:
     - wizard
     - writing-for-agents
     - thermo-nuclear-code-quality-review
+    - newspaper
   plugins: []
   mcp: []
   hooks: []
