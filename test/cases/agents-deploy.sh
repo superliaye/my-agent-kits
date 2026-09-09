@@ -45,6 +45,25 @@ for a in loop-build-agent loop-build-acceptance loop-retro-agent; do
   assert_file_exists "$HOME/.codex/agents/$a.toml" "Codex agent $a deployed (.toml)"
 done
 
+# Build acceptance is bound to the Git-visible change without rereading every
+# unchanged tracked file, and verification remains owned by the contract.
+for host in "$HOME/.claude/agents" "$HOME/.codex/agents"; do
+  suffix="md"; [ "$host" = "$HOME/.codex/agents" ] && suffix="toml"
+  build="$host/loop-build-agent.$suffix"
+  acceptance="$host/loop-build-acceptance.$suffix"
+  assert_content_contains "$build" "Git-visible source-state attestation" "build agent carries lightweight source-state contract ($suffix)"
+  assert_content_contains "$acceptance" "Git-visible source-state attestation" "acceptance agent carries lightweight source-state contract ($suffix)"
+  assert_content_contains "$build" "acceptance leaf owns every acceptance signal" "build agent delegates contract verification ($suffix)"
+  assert_content_contains "$acceptance" "File changes add no verification scope" "acceptance stays contract-driven ($suffix)"
+  assert_content_contains "$build" "longest supported wait interval" "build agent waits efficiently for long commands ($suffix)"
+  assert_content_contains "$acceptance" "longest supported wait interval" "acceptance agent waits efficiently for long commands ($suffix)"
+  if grep -qF "['ls-tree', '-r', '--name-only', '-z', 'HEAD']" "$build" "$acceptance"; then
+    fail "HEAD-tree byte scanner remains in deployed loop agents ($suffix)"
+  else
+    ok "HEAD-tree byte scanner absent from deployed loop agents ($suffix)"
+  fi
+done
+
 # The committee skill ships as a normal skill.
 assert_file_exists "$HOME/.claude/skills/loop-review-committee/SKILL.md" "loop-review-committee skill deployed"
 

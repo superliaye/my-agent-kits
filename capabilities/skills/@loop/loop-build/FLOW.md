@@ -3,8 +3,8 @@
 **The resident settles *what ready means*; the build agent owns the loop.** This is
 a thin resident-facing entry over two nested agents. The resident agent picks the
 entry mode (artifacts already exist, or it drafts them cold), confirms the work
-is ready, and spawns the build
-agent foreground. From there the build agent runs the loop on its own behind one
+is ready, and awaits one direct build agent through a completion-driven wait.
+From there the build agent runs the loop on its own behind one
 hard rule — **acceptance gates review, always** — and only the few decisions a human
 owns come back up: a genuine gap before the build, an escalation at the round cap.
 Roles are colored: the resident (blue) brokers and never builds; the build agent
@@ -28,17 +28,17 @@ flowchart TD
       Confirm --> Spawn
       AskU --> Spawn
       Gaps -->|"no · get the<br/>user's nod"| Spawn
-      Spawn["spawn build agent (foreground):<br/>PLAN, ACCEPTANCE, review base,<br/>target=worktree, spec sources, cap"]:::resident
+      Spawn["spawn direct build agent:<br/>PLAN, ACCEPTANCE, review base,<br/>target=worktree, spec sources, cap<br/>then await its return"]:::resident
     end
 
     Spawn --> Impl
 
     subgraph BUILD ["build agent — owns the loop · implement · gate · critique (UI) · review"]
       direction TB
-      Impl["implement plan as-is<br/>in coherent slices"]:::agent --> Fingerprint["fingerprint exact source tree"]:::agent
-      Fingerprint --> Acc
+      Impl["implement plan as-is<br/>in coherent slices"]:::agent --> Attest["attest Git-visible<br/>source state"]:::agent
+      Attest --> Acc
       Acc["spawn acceptance agent"]:::agent
-      Acc -.->|"expected fingerprint"| AccA["acceptance: match before + after,<br/>verify each criterion, never fixes"]:::accept
+      Acc -.->|"expected attestation"| AccA["acceptance: match before + after,<br/>verify each criterion, never fixes"]:::accept
       AccA --> Split{"acceptance<br/>result?"}
       Split -->|"stale tree or fail · rounds left<br/>(fix from not-working[])"| Impl
       Split -->|"cap hit · still failing<br/>(incl. no-harness)"| Esc
@@ -50,7 +50,7 @@ flowchart TD
       Critique --> CJudge["judge critique with full plan context ·<br/>fix within intent ·<br/>borderline → committee vote · split → human"]:::agent
       CJudge --> CEdit{"did critique<br/>produce an edit?"}
       CEdit -->|no| Review
-      CEdit -->|"yes · evidence invalid"| Fingerprint
+      CEdit -->|"yes · evidence invalid"| Attest
       Review["/loop-review-committee —<br/>base + worktree + plan/acceptance"]:::agent --> Payload
       Payload["capture one immutable payload<br/>+ confirm change set"]:::agent --> Select
       Select{"committee executor:<br/>record run/skip for all five lenses"} --> Fan
@@ -66,7 +66,7 @@ flowchart TD
       Rs --> Judge
       Rm --> Judge
       Judge["judge review with full plan context ·<br/>fix within intent ·<br/>borderline → committee vote · split → human"]:::agent --> Regress{"did review<br/>produce an edit?"}
-      Regress -->|"yes · evidence invalid"| Fingerprint
+      Regress -->|"yes · evidence invalid"| Attest
       Regress -->|no| Ret
       Ret["return structured summary:<br/>executed · achieved · still-missing<br/>dismissed-feedback · harness-improvements"]:::agent
     end
@@ -103,10 +103,10 @@ nothing to build.
 
 ## Acceptance gates review — always
 
-Inside the build agent, the hard rule is the order: **implement → fingerprint → acceptance →
+Inside the build agent, the hard rule is the order: **implement → attest → acceptance →
 critique → review**, never review first. The acceptance agent verifies each criterion
-with evidence and **never fixes** (it spawns nothing). It accepts only the expected source-tree
-fingerprint, checks it again after verification, and returns it in a completed result. The build
+with its named signal and **never fixes** (it spawns nothing); file changes add no test scope. It accepts only the expected Git-visible
+source-state attestation, checks it again after verification, and returns it in a completed result. The build
 agent cannot report `achieved` from its own checks, from a stale result, or after a later edit. Its
 result fans into four:
 

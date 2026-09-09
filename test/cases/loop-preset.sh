@@ -25,6 +25,9 @@ AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
 
 # loop-build is the survivor entry skill.
 assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "loop-build SKILL.md deployed"
+loop_build="$HOME/.claude/skills/loop-build/SKILL.md"
+assert_content_contains "$loop_build" "completion-driven wait" "loop-build parks on its direct child"
+assert_content_contains "$loop_build" "owns its descendant tree" "loop-build preserves descendant ownership"
 
 # loop-plan family — the two plan skills + the reusable committee grill + the
 # grill-with-docs it builds on. Their SKILL.md includes (research-fan-out,
@@ -38,6 +41,7 @@ for s in loop-plan-manual loop-plan-semiauto; do
   if grep -qF "<!-- include:" "$sm"; then fail "$s: literal include marker remains after deploy"; else ok "$s: includes expanded"; fi
   assert_content_contains "$sm" "Draft \`plan.md\` + \`acceptance.md\`" "$s draft snippet expanded"
   assert_content_contains "$sm" "Artifact review (the three lenses" "$s artifact-review snippet expanded"
+  assert_content_contains "$sm" "A file change alone does not" "$s keeps test criteria contract-driven"
 done
 
 # full-loop-semiauto chains plan-semiauto -> build -> retro; loop-retro is the

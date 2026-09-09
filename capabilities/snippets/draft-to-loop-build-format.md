@@ -30,6 +30,9 @@ value, a gate, a status — name the existing contract it must satisfy and confi
 - Each criterion must be **observable and verifiable**: a non-visual one names the
   command / test / assertion that proves it; a visual one names the env and the
   route/state to look at.
+- Verification is contract-driven. Add a test command only when the requested outcome, an agreed
+  TDD loop, or a binding repository delivery contract requires it. A file change alone does not
+  justify a test or affected-suite criterion.
 
 ### Where the artifacts go
 

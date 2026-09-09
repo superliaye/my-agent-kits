@@ -24,3 +24,6 @@ assert_content_contains "$HOME/.codex/AGENTS.md" "Core Instructions" "core instr
 assert_file_exists "$HOME/.agents/skills/my-commit/SKILL.md" "my-commit codex skill deployed globally"
 assert_file_exists "$HOME/.agents/skills/my-commit/agents/openai.yaml" "Codex sidecar generated globally"
 assert_content_contains "$HOME/.agents/skills/my-commit/agents/openai.yaml" "allow_implicit_invocation: false" "sidecar manual-only policy"
+assert_file_exists "$HOME/.agents/skills/my-create-pr/SKILL.md" "my-create-pr codex skill deployed globally"
+assert_content_contains "$HOME/.agents/skills/my-create-pr/SKILL.md" "Immediately before pushing" "Codex PR flow owns pre-push validation"
+assert_content_contains "$HOME/.agents/skills/my-create-pr/SKILL.md" "pass before the push" "Codex PR flow blocks failed required checks"

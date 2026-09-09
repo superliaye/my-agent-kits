@@ -9,7 +9,12 @@ Take the current branch all the way to an open pull request: commit, push, then 
 
 <!-- include: commit-procedure -->
 
-After the commit, push the branch to its upstream tracking branch — use `-u` for a new branch.
+Immediately before pushing, run the repository's documented pre-PR checks. Reuse existing passing
+evidence only when the Git-visible source state has not changed since it was produced. When the
+repository defines no pre-PR checks, proceed without inventing a test suite. A required check must
+pass before the push; otherwise stop and report its failure.
+
+After validation, push the branch to its upstream tracking branch — use `-u` for a new branch.
 
 Then create the pull request on the repo's remote host. Work out the host and the right tool from `git remote -v` and what the environment provides — for example GitHub via `gh pr create`, GitLab via `glab mr create`, Azure DevOps via `az repos pr create`. Open it against the base branch (usually the repo's default branch). If no PR tool or credentials are available, stop and hand the user the title and body so they can open it manually.
 

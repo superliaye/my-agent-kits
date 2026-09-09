@@ -1,5 +1,5 @@
 name: loop
-description: "Day-to-day plan, fingerprint-bound acceptance, conditional five-lens review, and retrospective loop. Includes the six-skill Matt dependency closure for grilling, domain modeling, codebase design, architecture improvement, and bug diagnosis, plus the kit's critique and visual feedback loops."
+description: "Day-to-day plan, Git-visible-state-bound acceptance, conditional five-lens review, and retrospective loop. Includes the six-skill Matt dependency closure for grilling, domain modeling, codebase design, architecture improvement, and bug diagnosis, plus the kit's critique and visual feedback loops."
 default_agents: [claude]
 
 capabilities:

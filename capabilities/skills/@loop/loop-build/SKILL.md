@@ -1,6 +1,6 @@
 ---
 name: loop-build
-description: "Day-to-day build flow. The resident confirms an agreed plan.md plus acceptance.md, then spawns a build agent that implements the plan, binds acceptance evidence to the current source tree, runs applicable code-review lenses (and UI critics when relevant), incorporates feedback, and returns a structured summary. It consumes prior artifacts without prompting or drafts them from context when invoked cold. Use when the user says \"/loop-build\", asks to build an agreed plan, or resumes after a planning session."
+description: "Day-to-day build flow. The resident confirms an agreed plan.md plus acceptance.md, then spawns a build agent that implements the plan, binds acceptance evidence to the Git-visible source state, runs applicable code-review lenses (and UI critics when relevant), incorporates feedback, and returns a structured summary. It consumes prior artifacts without prompting or drafts them from context when invoked cold. Use when the user says \"/loop-build\", asks to build an agreed plan, or resumes after a planning session."
 added_in: 0.32.0
 ---
 
@@ -73,8 +73,9 @@ them from context and pass them **in the build agent's spawn prompt**.
    ```
 
    Pass both planning artifacts as the review spec source even when their contents are already
-   present under PLAN and ACCEPTANCE. The build agent runs **foreground** (you block on it), so its own nested spawns
-   (acceptance, reviewers) are unconstrained by the background depth cap.
+   present under PLAN and ACCEPTANCE. The direct build agent owns its descendant tree. Await its
+   return through a **completion-driven wait**; when the runtime exposes only bounded waits, use the
+   longest interval it supports and resume only for a result, escalation, or child-pushed milestone.
 
 3. **Broker escalations.** If the build agent returns **at the round cap with
    failing acceptance** (or any genuine blocker — missing creds, an ambiguous
@@ -88,7 +89,7 @@ them from context and pass them **in the build agent's spawn prompt**.
    | Field | Relay as |
    |---|---|
    | `executed` | What was implemented — diff summary, commits, files touched. |
-   | `achieved` | Acceptance criteria now passing, with evidence and the accepted source-tree fingerprint. |
+   | `achieved` | Acceptance criteria now passing, with evidence and the accepted source-state attestation. |
    | `still-missing` | Failing/unaddressed criteria + why; anything deferred for you to decide; anything escalated. |
    | `dismissed-feedback` | Feedback the build agent judged and chose not to apply, from any source, + its rationale — **always surface these**, the human may disagree. |
    | `harness-improvements` | Gaps in the acceptance doc, a missing test/visual harness, or friction in the skills/agents/loop itself. |
