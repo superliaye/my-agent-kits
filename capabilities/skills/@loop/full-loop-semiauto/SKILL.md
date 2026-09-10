@@ -1,6 +1,6 @@
 ---
 name: full-loop-semiauto
-description: "End-to-end semiauto loop: chains /loop-plan-semiauto -> /loop-build -> /loop-retro in one run. The planner drafts plan.md + acceptance.md with a committee-voted grill (human only on a split), the build agent implements them behind the acceptance-gate-before-review rule, and the retro mines the session + subagent transcripts for ways to improve the kit capabilities that ran. Use when the user says \"/full-loop-semiauto\", or wants a plan-to-build-to-retro pass with as little human interaction as the decisions allow."
+description: "End-to-end semiauto loop: chains /loop-plan-semiauto -> /loop-build -> /loop-retro. The planner drafts plan hypotheses plus sparse acceptance through a committee-voted grill; the build gates review on that exact contract and escalates semantic defects; the retro mines the run for capability improvements. Use for /full-loop-semiauto or a minimal-human plan-to-build-to-retro pass."
 added_in: 0.41.0
 ---
 

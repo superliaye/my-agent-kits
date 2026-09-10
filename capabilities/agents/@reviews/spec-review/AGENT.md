@@ -11,6 +11,10 @@ that payload. Find requirements that are missing or partial, behaviour the chang
 spec asking for it, and requirements that appear implemented incorrectly. Quote the relevant spec
 line and change hunk for every finding.
 
+A plan section named `Implementation hypotheses (non-binding)` is context: use it to understand the
+starting approach, then judge the change against `Intent and constraints (binding)` and acceptance.
+A different mechanism inside those bounds is not a missing requirement or scope deviation.
+
 <!-- include: review-payload-contract -->
 
 <!-- include: review-finding-contract -->

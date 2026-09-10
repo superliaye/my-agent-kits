@@ -3,36 +3,15 @@
 From the resolved grill, write the two artifacts `/loop-build` consumes — in **loop-build's
 exact format**, so the build step reads them with no reshaping.
 
-**`plan.md`** — the change to make, with **per-item intent**: each item states *what* to
-build and *why*, in build order, grounded in the research brief's `file:line` map. Not a
-narrative — a buildable list. When an item proposes a *new* mechanism — a marker, a schema
-value, a gate, a status — name the existing contract it must satisfy and confirm at
-`file:line` that the contract can produce it. A grill vote, even a unanimous one, settles
-*should we build this*, not *can the code do this*.
+**`plan.md`** — use the binding intent / non-binding implementation hypotheses structure above and
+ground it in the research brief's `file:line` map. When a hypothesis proposes a new marker, schema
+value, gate, or status, name the existing contract it must satisfy and confirm at `file:line` that
+the contract can produce it.
 
-**`acceptance.md`** — observable criteria in loop-build's **two blocks**:
-
-```markdown
-## Non-visual acceptance     (present whenever behaviour changes)
-- [ ] <observable behavioural outcome> — verify: <cmd / test / assertion>
-
-## Visual acceptance          (REQUIRED when the change involves visuals)
-- [ ] <observable UI outcome> — env: web|electron|desktop — at: <route/state>
-```
-
-- **State the delivered outcome, not the mechanism.** Each criterion names what a consumer
-  can observe in the result — a behaviour, a rendered screen — never a restatement of a
-  plan step or an internal code metric. ("Validator reports zero problems" is a proxy;
-  "the catalog loads and every skill leaf is served" is the outcome.)
-- A style-only change carries visual criteria and few non-visual ones; a pure-logic
-  change is the reverse. Include **both** block headers even when one is empty, and say so
-  explicitly (e.g. "Visual acceptance: (none — no UI)") — never drop a block silently.
-- Each criterion must be **observable and verifiable**: a non-visual one names the
-  command / test / assertion that proves it; a visual one names the env and the
-  route/state to look at.
-- Verification is contract-driven. Add a test command only when the requested outcome, an agreed
-  TDD loop, or a binding repository delivery contract requires it. A file change alone does not
-  justify a test or affected-suite criterion.
+**`acceptance.md`** — apply the sparse release contract above. State delivered outcomes, not plan
+steps or internal metrics. Include both block headers even when one is empty and mark the empty block
+explicitly. Verification stays contract-driven. A file change alone does not justify a test or
+affected-suite criterion.
 
 ### Where the artifacts go
 

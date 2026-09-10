@@ -96,17 +96,17 @@ check("kit: every SKILL.md/AGENT.md include resolves to a real snippet", () => {
   }
 });
 
-check("kit: the four loop-plan snippets exist", () => {
+check("kit: the loop-plan snippets exist", () => {
   const kitSnippets = loadSnippets(KIT_ROOT);
-  for (const n of ["committee-answer-contract", "research-fan-out", "draft-to-loop-build-format", "artifact-review"]) {
+  for (const n of ["committee-answer-contract", "research-fan-out", "plan-contract", "acceptance-contract", "draft-to-loop-build-format", "artifact-review"]) {
     assert(kitSnippets.has(n), `snippet '${n}' missing from capabilities/snippets/`);
   }
 });
 
-check("kit: both plan skills include all three shared-phase snippets", () => {
+check("kit: both plan skills include all shared-phase snippets", () => {
   for (const skill of ["loop-plan-manual", "loop-plan-semiauto"]) {
     const src = readFileSync(join(KIT_ROOT, "capabilities", "skills", "@loop", skill, "SKILL.md"), "utf8");
-    for (const n of ["research-fan-out", "draft-to-loop-build-format", "artifact-review"]) {
+    for (const n of ["research-fan-out", "plan-contract", "acceptance-contract", "draft-to-loop-build-format", "artifact-review"]) {
       assert(new RegExp(`<!--\\s*include:\\s*${n}\\s*-->`).test(src), `${skill} missing include ${n}`);
     }
   }

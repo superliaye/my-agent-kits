@@ -1,6 +1,6 @@
 ---
 name: loop-plan-manual
-description: "A human-in-the-loop plan.md + acceptance.md authoring flow that runs BEFORE /loop-build, so the build step consumes ready artifacts instead of drafting them from context. The resident drives four phases: parallel research fan-out -> /grill-with-docs (you answer every question) -> draft the two artifacts in loop-build's format under ~/.loop-plan/ -> artifact review by the three lens agents. It then STOPS and points you at /loop-build (no auto-handoff). Use when the user says \"/loop-plan-manual\", or wants a thorough, fully-human-reviewed plan before building."
+description: "A human-in-the-loop plan.md + sparse acceptance.md authoring flow before /loop-build. It runs parallel research, puts every release decision to the human through /grill-with-docs, defers evidence-dependent mechanisms as plan hypotheses, and reviews the artifacts before stopping with exact paths. Use for /loop-plan-manual or a fully human-decided plan before building."
 added_in: 0.33.0
 ---
 
@@ -10,7 +10,7 @@ The **human-in-the-loop planner**. It produces exactly what
 `/loop-build` wants — a **plan** and an **acceptance doc** in
 loop-build's two-block format, so `/loop-build` consumes them directly with no further
 drafting. You (the **resident agent**) drive every phase; here the grill puts **every
-question to the human**.
+release decision to the human**.
 
 ## How to invoke
 
@@ -23,9 +23,15 @@ question to the human**.
 ## Phase 2 — Grill (manual: `/grill-with-docs`)
 
 Run the `/grill-with-docs` skill — if it isn't installed, stop and tell the user (don't
-improvise the grill). Seed it with the research brief's open questions and loop until
-nothing is open. Every question goes to **you** — that human-in-the-loop grill is the whole
-point of this variant; the grill skill owns how it runs.
+improvise the grill). Seed it with the research brief's release decisions and loop until no
+decision required to define the outcome or safely start implementation remains open.
+Evidence-dependent branches are already resolved as implementation hypotheses. Every release
+decision goes to **you** — that human-in-the-loop grill is the whole point of this variant; the
+grill skill owns how it runs.
+
+<!-- include: plan-contract -->
+
+<!-- include: acceptance-contract -->
 
 <!-- include: draft-to-loop-build-format -->
 

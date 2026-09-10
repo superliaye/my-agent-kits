@@ -11,9 +11,12 @@ Before stopping, have the committee review the **artifacts you drafted** (`plan.
    If a `subagent_type` is missing, stop and tell the user which reviewer is uninstalled;
    don't run a partial committee.
 
-2. **Judge each finding yourself** (you are the resident — no separate verifier). Apply the
-   ones you accept by **revising the artifacts**; this is bounded to **~2 review rounds** —
-   re-review only when a revision could have introduced a new issue, not reflexively.
+2. **Judge each finding yourself** (you are the resident — no separate verifier). Apply accepted
+   plan findings and semantic-preserving acceptance cleanups by revising the artifacts. Before an
+   acceptance edit changes an outcome or its authority/source — adding, removing, weakening, or
+   strengthening a gate rather than clarifying or merging duplicates — get human confirmation.
+   Review stays bounded to **~2 rounds**; re-review only when a revision could have introduced a
+   new issue.
 
 3. **Surface every dismissal.** For each finding you decline, record it with a one-line
    rationale and show it to the user — they may override your judgment. Never bury a

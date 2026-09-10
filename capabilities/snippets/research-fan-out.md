@@ -24,7 +24,12 @@ Build a grounded research brief **before** any grilling — you drive the fan-ou
      research already reveals them.
    - **Constraints / risks** — contracts, invariants, things that must not break.
    - **Cited web facts** — only the time-sensitive ones, each with a URL.
-   - **Open questions** — what the grill must resolve. These seed Phase 2.
+   - **Release decisions** — questions that must be resolved to define the requested outcome,
+     binding constraints, or an irreversible choice required before implementation. These seed
+     Phase 2.
+   - **Implementation hypotheses** — evidence-dependent branches that can be settled safely while
+     building, each with the intent it serves, its bounds, and the evidence that will settle it.
 
 The brief is the input to the grill; keep it grounded (every "how it works today" claim
-points at a `file:line`), not speculative.
+points at a `file:line`), not speculative. A deferred implementation hypothesis is a resolved
+planning outcome, not an open grill question.

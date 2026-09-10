@@ -18,6 +18,11 @@ Usable **standalone** (ending in a `grill.md` digest) or **embedded** as the gri
 `/loop-plan-semiauto`. You drive every round; only **you** talk to the user — the voters are
 autonomous leaves that only vote.
 
+When embedded, accept only the planner's **release decisions** as the frontier. An explicitly
+deferred implementation hypothesis is already resolved for planning purposes. A unanimous vote
+settles the decision and its provenance; committee agreement alone never creates acceptance
+authority.
+
 ## The round loop
 
 Repeat until nothing is open:

@@ -28,6 +28,9 @@ assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "loop-build SKILL.
 loop_build="$HOME/.claude/skills/loop-build/SKILL.md"
 assert_content_contains "$loop_build" "completion-driven wait" "loop-build parks on its direct child"
 assert_content_contains "$loop_build" "owns its descendant tree" "loop-build preserves descendant ownership"
+assert_content_contains "$loop_build" "ACCEPTANCE CONTRACT ID" "loop-build binds work to exact acceptance bytes"
+assert_content_contains "$loop_build" "contract-defect" "loop-build brokers invalid acceptance immediately"
+assert_content_contains "$loop_build" "implementation hypotheses" "loop-build lets evidence refine plan mechanisms"
 
 # loop-plan family — the two plan skills + the reusable committee grill + the
 # grill-with-docs it builds on. Their SKILL.md includes (research-fan-out,
@@ -42,7 +45,27 @@ for s in loop-plan-manual loop-plan-semiauto; do
   assert_content_contains "$sm" "Draft \`plan.md\` + \`acceptance.md\`" "$s draft snippet expanded"
   assert_content_contains "$sm" "Artifact review (the three lenses" "$s artifact-review snippet expanded"
   assert_content_contains "$sm" "A file change alone does not" "$s keeps test criteria contract-driven"
+  assert_content_contains "$sm" "sparse release contract" "$s admits only shipment-blocking outcomes"
+  assert_content_contains "$sm" "source: user" "$s records criterion authority"
+  assert_content_contains "$sm" "implementation hypotheses" "$s defers evidence-dependent mechanisms"
+  assert_content_contains "$sm" "Implementation hypotheses (non-binding)" "$s marks adaptable mechanisms for review"
+  assert_content_contains "$sm" "human confirmation" "$s cannot silently strengthen acceptance"
+  assert_content_contains "$sm" "outcome or source" "$s protects acceptance authority changes"
+  assert_content_contains "$sm" "passing necessarily proves another" "$s prunes redundant shipment gates"
+  assert_content_contains "$sm" "request succeeds and returns" "$s folds prerequisites into delivered outcomes"
+  assert_content_contains "$sm" "verified live \`file:line\`" "$s requires current repository authority"
+  assert_content_contains "$sm" "candidate or example" "$s does not promote brainstormed options"
+  assert_content_contains "$sm" "Conditional or pending authority" "$s keeps unresolved gates out of acceptance"
 done
+
+assert_content_contains \
+  "$HOME/.claude/skills/loop-plan-semiauto/SKILL.md" \
+  "never qualifies an outcome for acceptance" \
+  "committee consensus does not create a shipment gate"
+assert_content_contains \
+  "$HOME/.claude/skills/grill-with-committee/SKILL.md" \
+  "release decisions" \
+  "embedded committee respects the planner decision boundary"
 
 # full-loop-semiauto chains plan-semiauto -> build -> retro; loop-retro is the
 # session retrospective. Both ship in the preset.
@@ -62,6 +85,10 @@ assert_file_exists "$HOME/.claude/skills/critique-committee/SKILL.md" "critique-
 assert_file_exists "$HOME/.claude/skills/diagnosing-bugs/SKILL.md" "diagnosing-bugs deployed"
 assert_file_exists "$HOME/.claude/skills/electron-visual-loop/SKILL.md" "electron-visual-loop deployed"
 assert_file_exists "$HOME/.claude/skills/web-visual-loop/SKILL.md" "web-visual-loop deployed"
+assert_content_contains \
+  "$HOME/.claude/skills/loop-review-committee/SKILL.md" \
+  "ACCEPTANCE CONTRACT ID" \
+  "review payload binds the acceptance contract"
 
 for retired in diagnose to-issues caveman zoom-out; do
   if [ -d "$HOME/.claude/skills/$retired" ]; then

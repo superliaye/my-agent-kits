@@ -16,6 +16,8 @@ The invocation accepts:
 - **BASE** — a commit, branch, or tag used to resolve the merge-base.
 - **TARGET** — `committed` or `worktree`.
 - **SPEC SOURCES** — optional originating issue/spec paths or exact contents.
+- **ACCEPTANCE CONTRACT ID** — optional SHA-256 of one separately supplied spec source; required
+  when `/loop-build` invokes the committee.
 
 Resolve omitted inputs without prompting:
 
@@ -59,6 +61,10 @@ the `loop-review-payload/v2` manifest and these fixed entries, then make the pay
 
 Populate the manifest metadata from the resolved invocation and captured source. Record entries in
 this order: commits, change, sorted untracked, specs, then standards.
+
+When `ACCEPTANCE CONTRACT ID` is present, require a captured spec entry with that exact `sha256`.
+Return `stale-contract` before reviewer selection when none matches; the live path or inline content
+has moved away from the contract whose evidence passed.
 
 Discover repository standards from the pinned `HEAD_OID` tree and, for `worktree`, every path in the
 captured patch or untracked entries before selection: root instructions; nested instructions

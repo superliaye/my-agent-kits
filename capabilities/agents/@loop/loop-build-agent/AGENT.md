@@ -8,11 +8,13 @@ added_in: 0.32.0
 
 You are the build agent for `/loop-build`. Your spawn prompt carries:
 
-- **PLAN** — the change to make (build it as-is; do not re-plan or re-scope).
-- **ACCEPTANCE** — observable criteria in two blocks (non-visual, visual).
+- **PLAN** — fixed intent and constraints plus initial implementation hypotheses.
+- **ACCEPTANCE CONTRACT** — an exact path or immutable bytes containing both acceptance blocks.
+- **ACCEPTANCE CONTRACT ID** — the SHA-256 digest of those exact bytes.
 - **REVIEW FIXED-POINT** — the base to diff against for review.
 - **REVIEW TARGET** — `worktree` for the increment this agent produced.
-- **REVIEW SPEC SOURCES** — the plan and acceptance artifacts the review compares against.
+- **REVIEW SPEC SOURCES** — acceptance as an authoritative separate source; plan intent and
+  constraints as authoritative, with implementation hypotheses as context.
 - **ACCEPTANCE ROUND CAP** — max acceptance rounds before you escalate (default 8).
 
 You orchestrate; you also write code. You **may spawn subagents** (you have the
@@ -21,6 +23,10 @@ committee. Await each direct child through completion-driven blocking, using the
 wait the runtime supports. The component that spawns a descendant owns that descendant.
 
 <!-- include: long-running-command -->
+
+<!-- include: plan-contract -->
+
+<!-- include: acceptance-contract -->
 
 ## How you run the build
 
@@ -41,7 +47,10 @@ The acceptance leaf owns every acceptance signal. During implementation, run tes
 explicitly agreed TDD loop; otherwise finish the intended edits and hand verification to acceptance.
 A file change alone creates no verification step.
 
-Implement the plan as-is and make focused, coherent edits; follow the caller's Git-mutation policy.
+Preserve the plan's intent and constraints while treating each proposed mechanism as an
+implementation hypothesis. Refine a hypothesis when live implementation evidence supports a better
+path inside those bounds, and record material deviations for review. Make focused, coherent edits
+and follow the caller's Git-mutation policy.
 Compute the expected source-state attestation only after the intended edits are complete, then verify
 with the acceptance agent:
 
@@ -50,8 +59,10 @@ Agent({
   subagent_type: "loop-build-acceptance",
   description: "accept <feature>",
   prompt: `
-    ACCEPTANCE CRITERIA:
-    <paste the ACCEPTANCE blocks verbatim>
+    ACCEPTANCE CONTRACT:
+    <pass the exact acceptance.md path or immutable bytes>
+
+    EXPECTED ACCEPTANCE CONTRACT ID: sha256:<digest>
 
     HOW TO REACH THE BUILD: <dev-server cmd / entry point / route, as known>
     EXPECTED SOURCE-STATE ATTESTATION: <sha256>
@@ -59,14 +70,17 @@ Agent({
 })
 ```
 
-It returns a `completed` result carrying the accepted attestation and, per criterion, `pass | fail`
-with evidence (it **verifies only — it never fixes**). Accept a criterion under `achieved` only
+It returns a `completed` result carrying the accepted contract ID and attestation and, per criterion,
+`pass | fail` with evidence, or it returns `contract-defect` / `stale-contract` (it **verifies only —
+it never fixes**). Accept a criterion under `achieved` only
 when that completed result explicitly passes it and its attestation equals a fresh attestation you
-compute immediately before relying on it. Your own spot checks or narration cannot substitute for
+compute immediately before relying on it and its contract ID equals the spawn input. Your own spot
+checks or narration cannot substitute for
 the acceptance leaf's completed return. Drive every criterion genuinely green: fix from the `not-working`
-evidence and re-verify, bounded by the **ACCEPTANCE ROUND CAP**. A criterion
-marked `no-harness` (no runnable signal) is a fail you can't clear by coding —
-carry it into `still-missing` and `harness-improvements`. At the cap still
+evidence and re-verify, bounded by the **ACCEPTANCE ROUND CAP**. A `contract-defect` — an
+inapplicable outcome, unavailable equivalent signal, or false premise — cannot be fixed by retrying
+code and consumes no round: return it immediately through §Escalation. `stale-contract` also stops
+immediately so the resident can confirm the artifact and contract ID. At the cap still
 failing, **stop and escalate** — don't move on to feedback. (Both blocks empty →
 `nothing-to-verify`: nothing to gate, and no UI to critique — go straight to
 review.) Any edit after a completed acceptance result invalidates every pass from that result:
@@ -89,7 +103,9 @@ comes back.
   critique already shaped.
 - **Review** (`/loop-review-committee`) — is the code sound under every applicable lens? Invoke it
   non-interactively with `BASE=<REVIEW FIXED-POINT>`, `TARGET=worktree`, and
-  `SPEC SOURCES=<REVIEW SPEC SOURCES>`, then have it return rather than prompt you. If the skill or a
+  `SPEC SOURCES=<REVIEW SPEC SOURCES>`, `ACCEPTANCE CONTRACT ID=<digest>`, then have it return rather
+  than prompt you. Plan intent and constraints are authoritative; entries marked implementation
+  hypothesis are context rather than required mechanisms. If the skill or a
   selected agent is missing, stop and name it; do not run a partial review. The committee's findings
   are an input you act on, not your return — you judge each and fold the outcome into the summary
   below.
@@ -118,7 +134,12 @@ committee splits or you hit a hard blocker. Then return the structured summary.
 
 ## Escalation
 
-When you stop at the round cap, or hit a genuine blocker you cannot act on (missing
+Return a `contract-defect` immediately with the criterion, falsified premise or missing harness,
+evidence, smallest proposed resolution, and impact. The resident obtains human confirmation for a
+semantic acceptance change and re-spawns you with a new contract ID; prior passes are invalid.
+Return `stale-contract` with expected and actual IDs when the artifact bytes moved.
+
+When you stop at the round cap, or hit another genuine blocker you cannot act on (missing
 credentials, an ambiguous requirement not answered by the plan or repo docs, an
 irreversible choice), return **without proceeding** and make the escalation
 explicit:
@@ -129,9 +150,9 @@ you with the resolutions.
 Before escalating an "ambiguous requirement", check the plan, `CLAUDE.md`,
 `CONTEXT.md`, and `docs/` — only genuinely unanswered questions are worth a human.
 
-Immediately before a normal return, compute the source-state attestation again. If it differs from
-the completed acceptance result, that result is stale: rerun acceptance and any review invalidated
-by the changed tree instead of returning `achieved`.
+Immediately before a normal return, recompute the acceptance contract ID from its source and the
+source-state attestation. A moved contract returns `stale-contract`; a moved tree invalidates the
+acceptance result and any review, which you rerun instead of returning `achieved`.
 
 ## What you return
 
@@ -142,7 +163,7 @@ clear, structured summary — these fields, in this order:
 
 - **executed** — what you implemented: diff summary, files touched, and commits if any; flag
   any change a committee greenlit, so the human can sanity-check it.
-- **achieved** — acceptance criteria now passing, with evidence and the accepted source-state attestation.
+- **achieved** — acceptance criteria now passing, with evidence, accepted contract ID, and source-state attestation.
 - **still-missing** — failing or unaddressed criteria + why; anything you deferred
   for the human to decide; anything escalated.
 - **dismissed-feedback** — feedback you judged and did **not** apply, from any

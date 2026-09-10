@@ -2,7 +2,7 @@
 
 `/loop-plan-manual` and `/loop-plan-semiauto` run one shared 5-phase pipeline — research
 fan-out, grill, draft `plan.md` + `acceptance.md`, artifact review, hand off — and differ at
-**only Phase 2, the grill**: manual puts every question to the human via `/grill-with-docs`;
+**only Phase 2, the grill**: manual puts every release decision to the human via `/grill-with-docs`;
 semiauto lets a three-lens committee vote via `/grill-with-committee` and pauses only on a
 split or an "Other". The spine forks at Phase 2 and re-merges into Phase 3; the diagram
 carries the rest.
@@ -25,18 +25,18 @@ flowchart TD
       Rcode --> Brief
       Rweb --> Brief
       Deep --> Brief
-      Brief["synthesise grounded brief:<br/>problem restated, area map<br/>(file:line), constraints/risks,<br/>cited facts, OPEN QUESTIONS"]:::resident
+      Brief["synthesise grounded brief:<br/>problem restated, area map<br/>(file:line), constraints/risks,<br/>RELEASE DECISIONS +<br/>IMPLEMENTATION HYPOTHESES"]:::resident
     end
 
-    Brief --> Fork{"Phase 2 — Grill<br/>which skill?<br/>(seed: open questions)"}
+    Brief --> Fork{"Phase 2 — Grill<br/>which skill?<br/>(seed: release decisions)"}
 
     subgraph P2 ["Phase 2 — Grill (the only difference)"]
       direction TB
       Fork -->|manual| ManCheck{"/grill-with-docs<br/>installed?"}
       ManCheck -->|no| ManStop[["STOP — tell the user<br/>grill-with-docs<br/>not installed"]]:::stop
-      ManCheck -->|yes| Manual["/grill-with-docs:<br/>put EVERY question<br/>to the human"]:::agent
-      Manual --> ManAsk[["every question →<br/>human answers"]]:::pause
-      ManAsk -->|"loop until<br/>nothing open"| Manual
+      ManCheck -->|yes| Manual["/grill-with-docs:<br/>put every RELEASE<br/>decision to the human"]:::agent
+      Manual --> ManAsk[["every release decision →<br/>human answers"]]:::pause
+      ManAsk -->|"loop until no required<br/>release decision is open"| Manual
 
       Fork -->|semiauto| SemiCheck{"/grill-with-committee<br/>installed?"}
       SemiCheck -->|no| SemiStop[["STOP — tell the user<br/>grill-with-committee<br/>not installed"]]:::stop
@@ -44,8 +44,8 @@ flowchart TD
       Semi --> Vote["three-lens committee VOTES:<br/>architecture · rules ·<br/>first-principles"]:::review
       Vote -->|"unanimous choice"| Silent["accepted silently"]:::review
       Vote -->|"split or 'Other'"| SemiAsk[["escalate to human"]]:::pause
-      Silent -->|"loop until<br/>nothing open"| Semi
-      SemiAsk -->|"loop until<br/>nothing open"| Semi
+      Silent -->|"loop until no required<br/>release decision is open"| Semi
+      SemiAsk -->|"loop until no required<br/>release decision is open"| Semi
     end
 
     ManAsk -->|"resolved decisions"| P3draft
@@ -53,8 +53,8 @@ flowchart TD
 
     subgraph P3 ["Phase 3 — Draft artifacts (shared, loop-build format)"]
       direction TB
-      P3draft["write plan.md —<br/>buildable per-item list:<br/>what + why, in build order,<br/>grounded in file:line map"]:::resident
-      P3draft --> P3acc["write acceptance.md in<br/>loop-build's TWO blocks:<br/>Non-visual + Visual —<br/>BOTH headers always present"]:::resident
+      P3draft["write plan.md —<br/>fixed intent + constraints;<br/>build-ordered implementation<br/>hypotheses + decision triggers"]:::resident
+      P3draft --> P3acc["write sparse acceptance.md:<br/>smallest independently<br/>ship-blocking outcomes;<br/>source + initial evidence"]:::resident
       P3acc --> P3path["write both to fresh per-run folder:<br/>~/.loop-plan/&lt;repo-key&gt;/&lt;run-key&gt;/<br/>(run-key isolates this run;<br/>overridable if user names one)"]:::resident
     end
 
@@ -70,7 +70,7 @@ flowchart TD
       Arch --> Judge
       Rules --> Judge
       Gen --> Judge
-      Judge["resident judges each finding<br/>ITSELF; apply accepted ones<br/>by REVISING artifacts<br/>(~2 rounds, bounded)"]:::resident
+      Judge["resident judges each finding;<br/>semantic-preserving cleanup<br/>may revise acceptance;<br/>gate changes need HUMAN"]:::resident
       Judge --> Dismiss[["surface EVERY dismissal<br/>with one-line rationale<br/>to the user"]]:::pause
       Judge -->|"revision could<br/>introduce new issue"| P4fan
     end
