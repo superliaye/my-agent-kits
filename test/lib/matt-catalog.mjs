@@ -72,7 +72,7 @@ const descriptions = {
   "implement": "Implement a piece of work based on a spec or set of tickets.",
   "improve-codebase-architecture": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
   "prototype": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
-  "research": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
+  "research": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
   "resolving-merge-conflicts": "Use when you need to resolve an in-progress git merge/rebase conflict.",
   "tdd": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests.",
   "teach": "Teach the user a new skill or concept, within this workspace.",
@@ -278,7 +278,8 @@ function validateOverlays() {
     check(/absolute path/i.test(body), `${name}: does not require reporting the exact absolute path`);
   }
   const research = readSkill("research");
-  check(research.includes(".scratch/research/<run-key>/research.md"), "research: default output is not a run-scoped repo artifact");
+  check(/operating\s+system's temporary-directory facility/.test(research), "research: default output does not use an OS temporary directory");
+  check(!research.includes(".scratch/research"), "research: default output still writes into the repository");
 
   const domainModeling = readSkill("domain-modeling");
   check(/read-only/.test(domainModeling) && /obtain confirmation/.test(domainModeling), "domain-modeling: discussion can mutate durable docs without confirmation");

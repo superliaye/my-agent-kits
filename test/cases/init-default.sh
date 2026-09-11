@@ -25,6 +25,7 @@ AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 "$KIT_ROOT/bin/a
 # Global-only: artifacts land where Claude Code reads them.
 assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md written by --default"
 assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction present"
+assert_content_contains "$HOME/.claude/CLAUDE.md" "Keep agent run artifacts outside the repository" "agent artifact placement rule deployed"
 assert_dir_nonempty "$HOME/.claude/skills" "global skills deployed"
 # the `loop` preset is in the default pre-checked set, so its loop-build skill lands.
 assert_file_exists "$HOME/.claude/skills/loop-build/SKILL.md" "default preset set deployed (loop)"

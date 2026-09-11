@@ -15,5 +15,5 @@
 
 ## Local deviations
 
-- Preserved upstream `name`, `description`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
-- Research reports use an explicit collision-safe per-run repo path, honor caller-supplied paths, and print the exact absolute path.
+- Preserved upstream `name`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
+- The description and output instructions keep research reports outside the repository by default. Reports honor caller-supplied paths and repository-instructed locations; otherwise they use a collision-safe per-run operating-system temporary directory and print the exact absolute path.

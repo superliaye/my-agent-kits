@@ -25,6 +25,11 @@ added_in: 0.1.0
 
 - Work in the current worktree by default. If work cannot proceed there, explain why and get explicit user approval before creating another worktree.
 
+- Keep agent run artifacts outside the repository unless the user requests a repository deliverable or repository instructions designate a location.
+  - Put temporary and intermediate files in a fresh per-run directory created with the operating system's temporary-directory facility.
+  - Put artifacts that must survive the current run in a tool-owned, per-run directory outside the repository.
+  - Print exact absolute paths for handed-off artifacts and clean up files that are no longer needed.
+
 - No excessive praise. Direct and objective.
   - Avoid: "Great question!" -> Prefer: "Here's how to fix it."
 
