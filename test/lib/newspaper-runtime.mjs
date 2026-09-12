@@ -37,6 +37,7 @@ for (const asset of ['index.html', 'app.js', 'app.css']) {
 }
 assertCardOverflowContract(stylesheet);
 assertTypographyContract(stylesheet);
+assertMarkdownHierarchyContract(stylesheet);
 
 let canvas = await state(firstMeta);
 assert(canvas.revision === 0 && canvas.nodes.lead, 'default canvas is not useful');
@@ -253,6 +254,21 @@ function assertTypographyContract(stylesheet) {
   assert(cssNumber(labels, 'font-size') >= 12, 'content labels are below the newspaper reading size');
   assert(cssNumber(footer, 'font-size') >= 11, 'card footer labels are below the newspaper reading size');
   assert(cssNumber(regionNavigation, 'font-size') >= 13, 'region navigation labels are below the newspaper reading size');
+}
+
+function assertMarkdownHierarchyContract(stylesheet) {
+  const leadSummary = cssRule(stylesheet, '.card--lead .card__body > p:first-child');
+  const sectionHeading = cssRuleContainingSelector(stylesheet, '.card__body h2');
+  const sectionLabel = cssRuleContainingSelector(stylesheet, '.card__body p:has(+ ul)');
+  const emphasis = cssRule(stylesheet, '.card__body strong');
+  const quote = cssRule(stylesheet, '.card__body blockquote');
+  const code = cssRule(stylesheet, '.card__body pre');
+  assert(cssNumber(leadSummary, 'font-size') > 15, 'lead summary is not visually distinguished from body copy');
+  assert(cssNumber(sectionHeading, 'font-size') > 15, 'Markdown section headings do not establish hierarchy');
+  assert(cssNumber(sectionLabel, 'font-weight') >= 600, 'prose introducing structured content is not visually distinguished');
+  assert(/background/.test(emphasis), 'Markdown strong emphasis is not visually highlighted');
+  assert(/border-left/.test(quote), 'Markdown blockquotes are not visually distinguished');
+  assert(/background/.test(code), 'Markdown fenced code is not visually distinguished');
 }
 
 function cssRule(stylesheet, selector) {

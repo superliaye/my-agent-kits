@@ -52,7 +52,12 @@ fi
 
 DEPLOYED="$RUNTIME_HOME/.agents/skills/newspaper"
 assert_content_contains "$DEPLOYED/runtime/app.source.jsx" "from '@xyflow/react'" "newspaper authors its renderer with React Flow"
+assert_content_contains "$DEPLOYED/runtime/app.source.jsx" "from 'react-markdown'" "newspaper renders Markdown through a maintained parser"
+assert_content_contains "$DEPLOYED/runtime/app.source.jsx" "from 'remark-gfm'" "newspaper supports GitHub-Flavored Markdown"
+assert_content_contains "$DEPLOYED/runtime/app.source.jsx" "skipHtml" "newspaper Markdown renderer ignores raw HTML"
 assert_content_contains "$DEPLOYED/runtime/app.js" "ReactFlow" "newspaper ships the bundled React Flow runtime"
+assert_content_contains "$DEPLOYED/runtime/app.js" "remarkGfm" "newspaper ships the bundled GFM renderer"
+assert_content_contains "$DEPLOYED/runtime/app.js" "markdown-table" "newspaper ships responsive Markdown tables"
 if grep -R -E '(src|href)=["'\'' ]*https?://|npm (install|add)|npx ' "$DEPLOYED/runtime" "$DEPLOYED/scripts" >/dev/null; then
   fail "newspaper runtime references package installation or network assets"
 else

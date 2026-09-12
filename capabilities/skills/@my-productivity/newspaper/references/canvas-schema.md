@@ -28,11 +28,13 @@ resize adds `frame: { x, y, width, height }`, which overrides recipe placement u
 
 Supported node-specific fields:
 
-- `story`: `title`, `body` containing safe Markdown paragraphs, lists, emphasis, code, and links.
+- `story`: `title` and `body` containing safe GitHub-Flavored Markdown. Headings, tables, task
+  lists, blockquotes, fenced code, emphasis, and links are rendered; raw HTML is ignored.
 - `code`: `title`, `code`, and optional `language`.
 - `table`: `title`, string `headers`, and string `rows` of the same width.
 - `metric`: `label`, string or numeric `value`, and optional `trend`.
-- `callout`: `title`, `body`, and optional `status` (`info`, `active`, `warning`, `risk`, `success`).
+- `callout`: `title`, GitHub-Flavored Markdown `body`, and optional `status` (`info`, `active`,
+  `warning`, `risk`, `success`).
 - `media`: `title`, run-relative `src`, `caption`, and optional `alt`. The file must remain beneath
   the run directory and be explicitly referenced by this node.
 

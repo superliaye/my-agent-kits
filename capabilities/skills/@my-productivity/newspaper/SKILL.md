@@ -21,6 +21,11 @@ decisions, risks, or material findings. Patch stable keyed entries in `canvas.js
 <run-key>` after an uncertain edit and repair any error reported in the adjacent `validation.json`.
 Keep the canvas useful as current state rather than an event transcript.
 
+Write for scanning: put the conclusion in the headline, open long stories with a one-sentence
+takeaway, and use short Markdown sections, bold labels, lists, or tables to expose the structure.
+Split dense material across focused cards and use callout, metric, table, or code nodes when those
+forms communicate the important information more clearly than prose.
+
 The default document demonstrates the common fields. Read `references/canvas-schema.md` when you
 need code, table, metric, callout, media, edges, explicit placement, or another region.
 

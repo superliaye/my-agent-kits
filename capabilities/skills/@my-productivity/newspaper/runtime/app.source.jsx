@@ -1,5 +1,7 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Background,
   Controls,
@@ -390,7 +392,7 @@ const ArticleNode = memo(function ArticleNode({ id, data, selected }) {
         <input aria-label="Headline" aria-invalid={Boolean(headlineError)} aria-describedby={headlineError ? `headline-error-${id}` : undefined} value={headline} maxLength={300} autoFocus onChange={(event) => { setHeadline(event.target.value); setHeadlineDirty(true); setHeadlineError(''); }} onKeyDown={(event) => { if (event.key === 'Escape') cancelHeadlineEdit(); }} />
         {headlineError && <span id={`headline-error-${id}`} className="headline-form__error" role="alert">{headlineError}</span>}
         <div><button type="submit">Save headline</button><button type="button" onClick={cancelHeadlineEdit}>Cancel</button></div>
-      </form> : node.type !== 'metric' && typeof node.title === 'string' && <h3 title="Double-click to edit" onDoubleClick={beginHeadlineEdit}>{node.title}</h3>}
+      </form> : node.type !== 'metric' && typeof node.title === 'string' && <h3 className="card__headline" title="Double-click to edit" onDoubleClick={beginHeadlineEdit}>{node.title}</h3>}
       <NodeContent id={id} node={node} />
       {node.type !== 'metric' && (node.status || node.order !== undefined) && <footer className="card__footer">
         <span>#{id}</span>{node.status && <span className="status-pill">{humanize(node.status)}</span>}
@@ -422,29 +424,18 @@ function Media({ node }) {
 }
 
 function Markdown({ source }) {
-  const blocks = source.split(/\n{2,}/);
-  return blocks.map((block, index) => {
-    const lines = block.split('\n');
-    const unordered = lines.every((line) => /^[-*] /.test(line));
-    const ordered = lines.every((line) => /^\d+\. /.test(line));
-    if (unordered || ordered) {
-      const List = ordered ? 'ol' : 'ul';
-      return <List key={index}>{lines.map((line, item) => <li key={item}><Inline source={line.replace(ordered ? /^\d+\. / : /^[-*] /, '')} /></li>)}</List>;
-    }
-    return <p key={index}><Inline source={block.replace(/\n/g, ' ')} /></p>;
-  });
+  return <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents} skipHtml>{source}</ReactMarkdown>;
 }
 
-function Inline({ source }) {
-  const parts = source.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g);
-  return parts.map((part, index) => {
-    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (link && /^(https?:|mailto:)/.test(link[2])) return <a key={index} href={link[2]} target="_blank" rel="noreferrer">{link[1]}</a>;
-    if (/^\*\*[^*]+\*\*$/.test(part)) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    if (/^`[^`]+`$/.test(part)) return <code key={index}>{part.slice(1, -1)}</code>;
-    return <React.Fragment key={index}>{part}</React.Fragment>;
-  });
-}
+const markdownComponents = {
+  a({ children, href }) {
+    const external = /^https?:/i.test(href ?? '');
+    return <a href={href} {...(external ? { target: '_blank', rel: 'noreferrer' } : {})}>{children}</a>;
+  },
+  table({ children }) {
+    return <div className="markdown-table"><table>{children}</table></div>;
+  },
+};
 
 function fitEdition(flow, nodes) {
   flow.fitView({ nodes: nodes.map(({ id }) => ({ id })), padding: innerWidth <= 680 ? 0.04 : 0.12, duration: 0, maxZoom: innerWidth <= 680 ? 0.42 : 0.9 });
