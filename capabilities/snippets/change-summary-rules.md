@@ -1,6 +1,6 @@
 ## Audience
 
-Write for human code reviewers. They can read the diff, so do not repeat details that are obvious from the code.
+Write for human reviewers. They can read the diff, so do not repeat details that are obvious from the code.
 
 ## Structure
 
