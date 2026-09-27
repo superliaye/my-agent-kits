@@ -33,6 +33,9 @@ actual name rather than assuming `master`. If it does, look for work by others
 that addresses it, including open PRs and recently merged fixes. This includes
 broken tests, flaky tests, and CI infrastructure failures.
 
+When a failure is straightforward CI task flakiness and retriggering is the
+appropriate action, retrigger it.
+
 Report the remaining failure, the evidence linking it to the target branch or
 external cause, any existing fix with its link and status, and the recommended
 next step. If no existing fix is found, say so. Keep unrelated repairs outside
