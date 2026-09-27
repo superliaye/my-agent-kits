@@ -8,7 +8,7 @@ added_in: 0.48.0
 
 <!-- include: pr-context -->
 
-Choose the workflow from the PR's draft state when this invocation starts.
+Choose the workflow based on the PR's current remote draft status.
 
 ## Starts in draft
 
@@ -41,7 +41,7 @@ and name the capability to install. Invoke them as the resident agent, using
 their invocable names, with the same PR identity and current-chat context:
 
 1. `/pr-check-ci`
-2. `/pr-comments-eval`
+2. `/pr-comments-eval` — preserve its required output format in the final user-facing report.
 
 Collect CI blockers and decisions as outstanding results. Complete comment
 evaluation wherever it can proceed independently before asking the user to
