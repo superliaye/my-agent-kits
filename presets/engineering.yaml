@@ -12,9 +12,9 @@ capabilities:
     - my-commit-and-push
     - my-create-pr
     - my-summarize-changes
-    - pr-ready
+    - pr-get-ready
     - pr-check-ci
-    - pr-comments-eval
+    - pr-check-comments
     - my-fix-build
     - my-aggressive-clean-up
     - code-review

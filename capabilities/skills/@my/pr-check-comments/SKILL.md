@@ -1,10 +1,10 @@
 ---
-name: pr-comments-eval
+name: pr-check-comments
 description: Evaluates active PR review comments and recommends whether to fix them without applying changes or replying. Use when asked to assess review feedback or decide which PR comments need action.
 added_in: 0.48.0
 ---
 
-# Evaluate PR Comments
+# Check PR Comments
 
 <!-- include: pr-context -->
 

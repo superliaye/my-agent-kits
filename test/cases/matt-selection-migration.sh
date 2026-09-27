@@ -21,6 +21,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 const path = process.argv[2];
 const manifest = JSON.parse(readFileSync(path, "utf8"));
 const legacy = new Map([
+  ["pr-get-ready", "pr-ready"],
+  ["pr-check-comments", "pr-comments-eval"],
   ["diagnosing-bugs", "diagnose"],
   ["to-spec", "to-prd"],
   ["writing-for-agents", "write-a-skill"],
@@ -30,22 +32,22 @@ manifest.skills.push({ name: "to-issues" }, { name: "caveman" }, { name: "zoom-o
 writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
 NODE
 
-for legacy in diagnose to-prd write-a-skill to-issues caveman zoom-out; do
+for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out; do
   mkdir -p "$HOME/.agents/skills/$legacy"
   printf '%s\n' '---' > "$HOME/.agents/skills/$legacy/SKILL.md"
 done
-for successor in diagnosing-bugs to-spec writing-for-agents; do
+for successor in pr-get-ready pr-check-comments diagnosing-bugs to-spec writing-for-agents; do
   rm -rf "$HOME/.agents/skills/$successor"
 done
 
 "$KIT_ROOT/bin/agent-kit" update --current \
   || { fail "agent-kit update --current exited non-zero"; exit 1; }
 
-for successor in diagnosing-bugs to-spec writing-for-agents; do
+for successor in pr-get-ready pr-check-comments diagnosing-bugs to-spec writing-for-agents; do
   assert_file_exists "$HOME/.agents/skills/$successor/SKILL.md" "$successor restored by migrated replay"
   assert_content_contains "$MANIFEST" "\"name\": \"$successor\"" "$successor recorded in migrated manifest"
 done
-for legacy in diagnose to-prd write-a-skill to-issues caveman zoom-out; do
+for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out; do
   if [ -d "$HOME/.agents/skills/$legacy" ]; then
     fail "$legacy deployed directory remains after migration"
   else
@@ -61,9 +63,9 @@ done
 if node --input-type=module - "$KIT_ROOT" <<'NODE'
 const { migrateSelection } = await import(`${process.argv[2]}/lib/selection-migrations.js`);
 const seeded = migrateSelection({
-  skills: ["diagnose", "to-prd", "write-a-skill", "to-issues", "caveman", "zoom-out"],
+  skills: ["pr-ready", "pr-comments-eval", "diagnose", "to-prd", "write-a-skill", "to-issues", "caveman", "zoom-out"],
 });
-const expected = ["diagnosing-bugs", "to-spec", "writing-for-agents"];
+const expected = ["pr-get-ready", "pr-check-comments", "diagnosing-bugs", "to-spec", "writing-for-agents"];
 if (JSON.stringify(seeded.skills) !== JSON.stringify(expected)) process.exit(1);
 NODE
 then

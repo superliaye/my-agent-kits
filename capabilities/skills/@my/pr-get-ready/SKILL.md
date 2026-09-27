@@ -1,10 +1,10 @@
 ---
-name: pr-ready
+name: pr-get-ready
 description: Prepares draft PRs for review with focused local validation, or checks CI and evaluates comments on PRs already ready for review. Use when asked to make a PR ready or assess what needs attention on an open PR.
 added_in: 0.48.0
 ---
 
-# PR Ready
+# Get PR Ready
 
 <!-- include: pr-context -->
 
@@ -41,7 +41,7 @@ and name the capability to install. Invoke them as the resident agent, using
 their invocable names, with the same PR identity and current-chat context:
 
 1. `/pr-check-ci`
-2. `/pr-comments-eval` — preserve its required output format in the final user-facing report.
+2. `/pr-check-comments` — preserve its required output format in the final user-facing report.
 
 Collect CI blockers and decisions as outstanding results. Complete comment
 evaluation wherever it can proceed independently before asking the user to
