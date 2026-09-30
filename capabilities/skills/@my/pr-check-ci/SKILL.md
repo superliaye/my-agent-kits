@@ -12,6 +12,8 @@ Inspect CI results for the PR's current head. For each failure, read the job's
 logs and the relevant PR purpose, diff, code, and tests to determine whether
 the PR caused it.
 
+Also check for merge conflicts: resolve and update the PR when the resolution is straightforward, and ask the user when it is controversial.
+
 ## Caused by the PR
 
 If fixing the failure would expand scope, defeat the PR's purpose, or require
