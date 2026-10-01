@@ -1,6 +1,6 @@
 ---
 name: pr-get-ready
-description: Prepares draft PRs for review with focused local validation, or checks CI and evaluates comments on PRs already ready for review. Use when asked to make a PR ready or assess what needs attention on an open PR.
+description: Prepares draft PRs for review, advances the next stacked PR after a merge, or checks CI and evaluates comments on ready PRs. Use when asked to make a PR ready or assess what needs attention.
 added_in: 0.48.0
 ---
 
@@ -8,7 +8,17 @@ added_in: 0.48.0
 
 <!-- include: pr-context -->
 
-Choose the workflow based on the PR's current remote draft status.
+Choose the workflow based on the PR's current remote state and draft status.
+
+## Starts merged
+
+Use `git stack ls --all --json` to identify the merged PR's immediate unmerged
+child before cleanup. If none exists, report that and stop; if several exist,
+ask which to advance. Preserve unrelated work, then run `git stack jump <next-branch>`,
+`git stack cleanup`, and `git stack sync --fetch`. Stop on unresolved conflicts.
+Resolve the child's PR and apply “Starts in draft” below, using
+`git stack push --only` to publish updates and marking it ready only if still
+draft. Verify its updated head and base before reporting the next PR's link.
 
 ## Starts in draft
 
