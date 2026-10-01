@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.49.0] - 2026-09-30
+
+### Added
+
+- **`/my-present` guides creating, revising, and reviewing presentations and announcements** — a principles-only skill for any audience and format: know what the piece is for, let the story and the evidence shape each other, earn every bit of attention, say only what is true now, make meaning self-evident, own the craft, and work with the user. The productivity preset ships the skill, with deploy coverage.
+
 ## [0.48.0] - 2026-09-08
 
 ### Added
