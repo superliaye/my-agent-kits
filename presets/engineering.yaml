@@ -17,6 +17,7 @@ capabilities:
     - pr-check-comments
     - my-fix-build
     - my-aggressive-clean-up
+    - my-port-code
     - code-review
     - codebase-design
     - diagnosing-bugs
