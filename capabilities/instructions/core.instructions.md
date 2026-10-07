@@ -8,6 +8,9 @@ added_in: 0.1.0
 
 ## Rules
 
+- For all human-facing text (responses, documentation, comments, PRs, plans, and similar), write about 80% of the way toward ASD-STE100 (Simplified Technical English): clear, concise, direct, unambiguous, and consistent in terminology.
+  - Prefer natural technical English over strict ASD-STE100 compliance. Preserve precision, established terminology, code, identifiers, and required formats.
+
 - Add comments only when they convey information the code cannot express clearly: intent, rationale, contracts, invariants, constraints, or non-obvious risks.
   - Prefer clearer code over comments that narrate implementation.
   - Do not introduce commented-out code or personal notes. Make TODOs actionable and traceable using the project's convention.
