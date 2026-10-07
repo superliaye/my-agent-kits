@@ -8,6 +8,8 @@ added_in: 0.1.0
 
 ## Rules
 
+- Prefer existing harness tools (APIs, MCP, CLI); use browser or computer interaction only when those tools cannot complete the task effectively (e.g., fetch PR details and diffs through an API or MCP).
+
 - For all human-facing text (responses, documentation, comments, PRs, plans, and similar), write about 80% of the way toward ASD-STE100 (Simplified Technical English): clear, concise, direct, unambiguous, and consistent in terminology.
   - Prefer natural technical English over strict ASD-STE100 compliance. Preserve precision, established terminology, code, identifiers, and required formats.
 
