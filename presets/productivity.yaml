@@ -21,6 +21,7 @@ capabilities:
     - my-demo-video
     - my-slidev
     - my-present
+    - illustrate
     - newspaper
   agents:
     - my-mermaid-agent

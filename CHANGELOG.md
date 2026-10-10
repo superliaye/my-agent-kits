@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.50.0] - 2026-10-10
+
+### Added
+
+- **`/illustrate` creates visual explanations that a reader grasps fast** — finds the reader and the ranked key facts from the source, keeps every simplified claim true at its edges, and chooses or invents the form that lands the point fastest: low fidelity, such as a one-screen poster, by default, and deeper forms such as an explorable or an explainer video on request. It renders and reads back every artifact before delivering per-run output paths. The productivity preset ships the skill, with deploy coverage.
+
 ## [0.49.0] - 2026-09-30
 
 ### Added
