@@ -23,6 +23,8 @@ Write for human reviewers. They can read the diff, so do not repeat details that
 
    Possible contents include behavior matrices, edge cases, validation results, migration notes, or a file-level map for unusually broad changes.
 
+   Omit routine success reports such as passing test counts or green CI. Include validation when it establishes a specific claim or exposes a meaningful gap.
+
 ## Style
 
 - Be direct and brief. Assume the reader is an experienced engineer.
