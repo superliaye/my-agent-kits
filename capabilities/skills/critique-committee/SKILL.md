@@ -1,4 +1,5 @@
 ---
+name: critique-committee
 description: Critique a UI on both axes at once — a committee of the design-critic (how it looks) and the product-critic (how it's used) run in parallel, with findings presented grouped by lens. Use for "critique committee", "full critique", "review this design and its usability", when both critic agents are installed.
 argument-hint: "<target UI / flow / screenshot>"
 added_in: 0.37.0

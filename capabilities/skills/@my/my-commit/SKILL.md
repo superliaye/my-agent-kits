@@ -1,4 +1,5 @@
 ---
+name: my-commit
 description: Create a git commit following best practices
 allowed-tools: Bash(git:*)
 disable-model-invocation: true

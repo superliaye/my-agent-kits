@@ -1,4 +1,5 @@
 ---
+name: design-critique
 description: Get structured design feedback on how a UI looks — visual hierarchy, typography, spacing, color, consistency, polish. Trigger with "review this design", "critique this mockup", "what do you think of this screen?", or when sharing a Figma link or screenshot for feedback at any stage from exploration to final polish.
 argument-hint: "<Figma URL, screenshot, or description>"
 allowed-tools: Agent

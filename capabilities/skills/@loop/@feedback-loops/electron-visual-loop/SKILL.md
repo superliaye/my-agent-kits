@@ -1,4 +1,5 @@
 ---
+name: electron-visual-loop
 description: Automate and visually verify Electron desktop apps using agent-browser via Chrome DevTools Protocol. Use when the user needs to interact with an Electron app, set up a visual feedback loop for an in-development Electron renderer, automate a desktop app (VS Code, Slack, Discord, Figma, Notion, Spotify, etc.), connect to a running app, control a native app, or test an Electron application. Triggers include "automate Slack app", "control VS Code", "interact with Discord app", "test this Electron app", "connect to desktop app", "visual feedback loop", "screenshot the Electron window", or any task requiring automation of a native Electron application.
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*)
 license: Apache-2.0

@@ -1,4 +1,5 @@
 ---
+name: my-fix-build
 description: Analyze and fix build/lint errors
 argument-hint: [optional: specific package]
 allowed-tools: Bash(npm:*, rushx:*, rush:*), Read, Edit, Grep

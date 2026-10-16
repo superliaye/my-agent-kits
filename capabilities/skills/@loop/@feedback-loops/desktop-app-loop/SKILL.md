@@ -1,4 +1,5 @@
 ---
+name: desktop-app-loop
 description: Automate and visually verify an ARBITRARY foreign desktop app you did NOT build and did NOT launch in debug mode (e.g. the OpenAI Codex desktop app). A tiered, best-fidelity-first recipe — CDP relaunch, then OS-native accessibility read-back, then a vision computer-use fallback — for clicking through a packaged app's UI and reading back state with no cooperation from the app. Model-agnostic and OS-agnostic (Windows + macOS). Use when the user needs to drive or test a third-party/packaged desktop app, read a setting back from a foreign GUI, automate an app with no remote-debugging port, "control Codex app", "test this desktop app I didn't build", "read back a dropdown selection from a native app", or when electron-visual-loop fails because you don't control the launch.
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*), Bash(python:*), Bash(python3:*), Bash(py:*), Bash(pwsh:*), Bash(powershell:*)
 added_in: 0.14.0

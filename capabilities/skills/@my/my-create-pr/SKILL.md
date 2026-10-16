@@ -1,4 +1,5 @@
 ---
+name: my-create-pr
 description: Commit, push, and open a pull request on the repo's remote host
 allowed-tools: Bash(git:*) Bash(gh:*)
 disable-model-invocation: true

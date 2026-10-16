@@ -1,4 +1,5 @@
 ---
+name: my-summarize-changes
 description: Summarize a set of changes as a reviewer-focused markdown description (e.g. a PR body)
 allowed-tools: Bash(git:*)
 disable-model-invocation: true

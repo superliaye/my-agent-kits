@@ -1,4 +1,5 @@
 ---
+name: my-commit-and-push
 description: Create a git commit and push to remote
 allowed-tools: Bash(git:*) Bash(gh:*)
 disable-model-invocation: true

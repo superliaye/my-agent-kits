@@ -1,4 +1,5 @@
 ---
+name: product-critique
 description: Get structured feedback on how a product is used — task flows, friction, first-time comprehension, the job it does, value delivery, error recovery, information architecture. Trigger with "critique this flow", "is this usable?", "where will users get stuck?", or when sharing a feature/flow for a usability read.
 argument-hint: "<flow, feature, or reachable UI>"
 allowed-tools: Agent

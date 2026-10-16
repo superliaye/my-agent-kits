@@ -1,4 +1,5 @@
 ---
+name: web-visual-loop
 description: Automate and visually verify a browser-rendered web UI using agent-browser via Chrome DevTools Protocol. Built for the local edit→reload→re-verify dev loop, but the connect + verification spine work against any URL (local, staging, production). Use when iterating on a UI and wanting a visual feedback loop, or to verify that a route renders, a flow works, or a page didn't regress. Triggers include "visual feedback loop for the web app", "screenshot the dev server", "verify the UI renders", "test this route", "iterate on the design".
 allowed-tools: Bash(agent-browser:*), Bash(npx agent-browser:*), Bash(google-chrome:*), Bash(chromium:*), Bash(open:*)
 added_in: 0.11.0

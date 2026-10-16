@@ -1,4 +1,5 @@
 ---
+name: e2e-validate
 description: Stack-aware end-to-end validation. Discovers the repo's test/build harness, runs the closest smoke recipe, and verifies a change against declared success criteria — including UI feature visibility via screenshots. Use when verifying that code changes actually run and fulfill their requirements, or when the user asks to validate/smoke-test a change. Usable standalone or as a reviewer leaf inside an orchestrated loop.
 added_in: 0.14.0
 ---
