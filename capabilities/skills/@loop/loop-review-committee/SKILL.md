@@ -88,7 +88,7 @@ lens when it can answer a material question about this change:
 |---|---|---|
 | Architecture | `architecture-review` | Module boundaries, public interfaces, dependency direction, seams, or domain structure change. |
 | Documented rules | `rules-enforcer` | One or more captured repository or task rules apply to changed paths or decisions. |
-| Correctness | `general-review` | Executable behaviour, data, configuration, build/release behaviour, operations, or safety can change. |
+| Correctness | `general-review` | Executable behaviour, tests, data, configuration, build/release behaviour, operations, or safety can change. |
 | Spec conformance | `spec-review` | A captured originating spec states intent that can be compared with the change. |
 | Fowler smells | `smell-review` | Material handwritten code changed; generated/vendor content, lockfiles, prose, data-only, and purely mechanical edits do not qualify. |
 
