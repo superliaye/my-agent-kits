@@ -4,6 +4,16 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.51.0] - 2026-10-19
+
+### Added
+
+- **`/my-domain-vocab` builds a field vocabulary from the documents a user reads** — a spaced-review trainer for non-native English speakers. The agent feeds in design docs, Slack threads, PR comments, or transcripts. A local script groups word forms, surfaces a phrase only after it appears in 3 distinct documents with a strong association, and schedules recognize cards and then compose cards at 1, 3, 7, 21, and 60 days. Each card offers archive, "I recognize it", "don't know", or a free-text answer that the agent judges and sharpens. State stays in one SQLite file per field under `~/.my-domain-vocab/`, with a full history so the agent can undo or fix any change; `separate` splits a word form that was grouped under the wrong base (*news* under *new*) into its own term for good. The text of each ingested document stays beside it, so `rebuild` can recount the corpus with the current rules and keep every term's learning state. It needs Node.js with the built-in `node:sqlite` module. The productivity preset ships the skill, with deploy and runtime contract coverage.
+
+### Changed
+
+- **The Docker test image runs Node.js 24** so the suite can load `node:sqlite`. The kit's supported Node.js range is unchanged.
+
 ## [0.50.0] - 2026-10-10
 
 ### Added
