@@ -25,6 +25,10 @@ try {
   phraseEvidence();
   longSentences();
   noiseStripping();
+  markdownExports();
+  hyphenatedCompounds();
+  repeatedSentences();
+  sentenceLogMigration();
   oneLineFences();
   interiorOneLetterWords();
   nestedStandalone();
@@ -123,7 +127,7 @@ Whoever is on call should spin up a debugger. That dashboard is the source of tr
   let pendingTerms = vocab(['pending']).phrases.map((p) => p.term);
   assert(!pendingTerms.includes('dead letter queue'), 'a phrase from two documents reached pending');
   const third = ingest([docs[2]]);
-  const qualified = third.newly_qualified.map((p) => p.term);
+  const qualified = third.newly_qualified;
   for (const phrase of ['dead letter queue', 'load balancer', 'roll back', 'spin up', 'on call', 'source of truth']) {
     assert(qualified.includes(phrase), `"${phrase}" did not qualify at three documents: ${JSON.stringify(qualified)}`);
   }
@@ -184,6 +188,68 @@ Replace <api token> before the call. Our k8s and s3 setup runs 24 hours.`], 'str
     `noise stripping kept or dropped the wrong words: ${JSON.stringify(kept)}`);
 }
 
+// A Markdown export ingests as is: a link keeps its label, and markup, images, mailto names, and escapes go.
+function markdownExports() {
+  const field = 'markdown';
+  ingest([String.raw`# Rollout plan {#rollout-plan}
+
+<!--bg:#666666--> Ask [Wren Tanager](mailto:wren@example.com) about the **gradual** rollout \[soon\] and [[Optional] canary checks](#[optional]-canary-checks).
+
+![image1](/tmp/doc_image1.png) The *pelican* config stays one\-way.`], 'md', field);
+  const words = vocab(['query', 'SELECT word FROM corpus_words ORDER BY word'], { field }).rows.map((row) => row.word);
+  for (const word of ['rollout', 'gradual', 'canary', 'checks', 'optional', 'pelican', 'one', 'way']) {
+    assert(words.includes(word), `a Markdown export lost "${word}": ${JSON.stringify(words)}`);
+  }
+  for (const word of ['wren', 'tanager', 'mailto', 'image1', 'bg', 'tmp', 'doc']) {
+    assert(!words.includes(word), `a Markdown export kept "${word}": ${JSON.stringify(words)}`);
+  }
+  const phrases = vocab(['query', "SELECT key FROM terms WHERE kind = 'phrase'"], { field }).rows.map((row) => row.key);
+  assert(phrases.includes('gradual rollout') && phrases.includes('canary checks'), `emphasis or link syntax split a phrase: ${JSON.stringify(phrases)}`);
+}
+
+// A hyphenated compound is one unit: a filler part may stand at a phrase edge, and no phrase cuts through it.
+function hyphenatedCompounds() {
+  const field = 'hyphen';
+  ingest(['This choice is a one-way door for the team.', 'Treat the schema as a one-way door today.', 'Renaming it later is a one-way door too.'],
+    'hy', field);
+  const pendingTerms = vocab(['pending'], { field }).phrases.map((p) => p.term);
+  assert(pendingTerms.includes('one way door'), `a hyphenated compound with a filler part did not qualify: ${JSON.stringify(pendingTerms)}`);
+  const phrases = vocab(['query', "SELECT key FROM terms WHERE kind = 'phrase'"], { field }).rows.map((row) => row.key);
+  assert(!phrases.includes('way door'), `a phrase cut through a hyphenated compound: ${JSON.stringify(phrases)}`);
+  assert(vocab(['show', 'one-way door'], { field }).term.key === 'one way door', 'the hyphenated spelling did not resolve to its phrase');
+}
+
+// A sentence repeated word for word, in one document or across several, counts once.
+function repeatedSentences() {
+  const field = 'boilerplate';
+  const template = 'Fill in the rollout checklist below. Describe the threat model here.';
+  ingest([`${template} Pelicans nest on the cliff.`, `${template} Gannets dive for fish. Gannets dive for fish.`, `${template} Puffins carry fish.`],
+    'tpl', field);
+  const count = (name) => {
+    const { raw_doc_count: docs, raw_count: n } = vocab(['show', name], { field }).term;
+    return { docs, n };
+  };
+  assert(JSON.stringify(count('rollout checklist')) === '{"docs":1,"n":1}' && JSON.stringify(count('threat model')) === '{"docs":1,"n":1}',
+    `a template sentence counted more than once: ${JSON.stringify([count('rollout checklist'), count('threat model')])}`);
+  assert(count('gannets').n === 1, `a sentence repeated in one document counted twice: ${JSON.stringify(count('gannets'))}`);
+  assert(count('fish').docs === 2, `fresh sentences that share words lost a document: ${JSON.stringify(count('fish'))}`);
+  assert(vocab(['pending'], { field }).phrases.length === 0, 'template boilerplate reached pending');
+}
+
+// A version 1 store fills its sentence log from the saved documents on first use.
+function sentenceLogMigration() {
+  const field = 'migrate';
+  ingest(['Describe the threat model here. Pelicans nest.'], 'mig', field);
+  const sql = "DROP TABLE sentences; PRAGMA user_version = 1;";
+  const downgrade = spawnSync(process.execPath, ['--no-warnings', '-e',
+    `new (require('node:sqlite').DatabaseSync)(process.argv[1]).exec(${JSON.stringify(sql)})`, join(store, `${field}.db`)], { encoding: 'utf8' });
+  assert(downgrade.status === 0, `could not build a version 1 store: ${downgrade.stderr}`);
+  ingest(['Describe the threat model here. Gannets dive.'], 'mig', field);
+  const docs = vocab(['query', "SELECT raw_doc_count AS docs FROM terms WHERE key = 'threat model'"], { field }).rows[0].docs;
+  assert(docs === 1, `a migrated store counted an old sentence again: ${docs}`);
+  assert(vocab(['query', 'PRAGMA user_version'], { field }).rows[0].user_version === 2, 'the store did not migrate to version 2');
+}
+
 // A line holding only a one-line ```code``` span is inline code, not a fence that swallows the prose after it.
 function oneLineFences() {
   const field = 'fence';
@@ -205,9 +271,11 @@ function interiorOneLetterWords() {
 // A shorter phrase that also appears outside its qualified longer phrase keeps those documents.
 function nestedStandalone() {
   const field = 'nested';
-  const padding = 'Engineers wrote notes about caching and retries. Reviewers asked for clearer metrics and smaller diffs. '.repeat(8);
-  ingest(['stores', 'holds', 'keeps'].map((verb) =>
-    `The feature flag service ${verb} rollout rules. Flip the feature flag before lunch. ${padding}`), 'nested', field);
+  // A repeated sentence counts once, so each padding sentence is unique.
+  const padding = (doc) => Array.from({ length: 8 }, (_, k) => `Engineers wrote notes about caching and retries on day ${doc}${k}. `
+    + `Reviewers asked for clearer metrics and smaller diffs in round ${doc}${k}. `).join('');
+  ingest([['stores', 'lunch'], ['holds', 'dinner'], ['keeps', 'noon']].map(([verb, time], doc) =>
+    `The feature flag service ${verb} rollout rules. Flip the feature flag before ${time}. ${padding(doc)}`), 'nested', field);
   const pendingTerms = vocab(['pending'], { field }).phrases.map((p) => p.term);
   assert(pendingTerms.includes('feature flag service'), `the longer phrase did not qualify: ${JSON.stringify(pendingTerms)}`);
   assert(pendingTerms.includes('feature flag'), `standalone uses of a nested phrase were discarded: ${JSON.stringify(pendingTerms)}`);
@@ -677,8 +745,8 @@ function readOnlyQuery() {
 function rebuildRecounts() {
   const field = 'rebuild';
   now = at('2026-05-04T09:00:00');
-  const note = (verb, extra) => `The feature flag service ${verb} rollout rules. Flip the feature flag before lunch. `
-    + `Our findings matter and the canary checks pass. ${extra}`;
+  const note = (verb, extra) => `The feature flag service ${verb} rollout rules. Flip the feature flag before lunch, as it ${verb} them. `
+    + `Our findings matter and the canary checks pass when it ${verb} them. ${extra}`;
   const texts = [note('stores', 'We find bugs.'), note('holds', 'Lunch ran late.')];
   ingest(texts, 'rb', field);
   vocab(['review', 'canary', 'pass', '--rev', String(vocab(['show', 'canary'], { field }).term.rev)], { field });

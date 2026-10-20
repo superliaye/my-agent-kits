@@ -14,7 +14,7 @@ try {
   fail("needs the built-in node:sqlite module (Node.js 22.13 or later; Node.js 24 LTS recommended).");
 }
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const STORE = join(homedir(), ".my-domain-vocab");
 const INTERVALS = { 1: 1, 2: 3, 3: 7, 4: 21, 5: 60, 6: 60 };
 const BOXES = {
@@ -33,6 +33,7 @@ const MAX_EXAMPLES = 10;
 const MAX_EXAMPLE_CHARS = 300;
 const RANK = "doc_count DESC, count DESC, id";
 const statements = new WeakMap();
+const HYPHEN = "";
 const PARTICLES = new Set("up out off over down back in on through away".split(" "));
 const START_PREPOSITIONS = new Set("on in at out".split(" "));
 const FILLER = new Set(`
@@ -113,7 +114,7 @@ function ingest(args, flags) {
       restored_texts: restored,
       documents_total: metaNumber(db, "doc_seq"),
       new_words: newWords,
-      newly_qualified: after.filter((phrase) => !before.has(phrase.term)),
+      newly_qualified: newlyQualified(before, after),
       pending_total: after.length,
       pruned_candidates: pruned,
     };
@@ -148,7 +149,7 @@ function rebuild(args, flags) {
       return {
         documents_total: inputs.docs.length,
         ...moved,
-        newly_qualified: after.filter((phrase) => !before.has(phrase.term)),
+        newly_qualified: newlyQualified(before, after),
         pending_total: after.length,
       };
     });
@@ -210,7 +211,7 @@ function transplant(db, fresh) {
     else heirs.set(freshId, [term]);
   }
 
-  for (const table of ["word_forms", "form_docs", "examples", "phrase_contexts", "corpus_words"]) db.exec(`DELETE FROM ${table}`);
+  for (const table of ["word_forms", "form_docs", "examples", "phrase_contexts", "corpus_words", "sentences"]) db.exec(`DELETE FROM ${table}`);
   // Park every key, so terms can take their new keys in any order.
   db.exec("UPDATE terms SET key = char(1) || id");
   const idOf = new Map();
@@ -274,6 +275,7 @@ function transplant(db, fresh) {
   copy("examples", ["term_id", "sentence", "source", "doc_no"]);
   copy("phrase_contexts", ["term_id", "doc_no", "left_key", "right_key", "count"]);
   copy("corpus_words", ["word", "count"]);
+  copy("sentences", ["hash"]);
   // An occurrence keeps the visibility it had; a frozen group shows only occurrences it showed itself,
   // so its user-facing counts can fall with a rule change but never rise.
   const owners = new Map(prepare(fresh, "SELECT form, term_id FROM word_forms").all().map((row) => [row.form, idOf.get(row.term_id)]));
@@ -296,13 +298,24 @@ function transplant(db, fresh) {
 // candidates with history or reviews, are never pruned.
 function addDocument(db, text, source, docNo, candidateExamples, kept) {
   setMeta(db, "doc_seq", docNo);
-  const created = ingestDocument(db, analyze(text), source, docNo, candidateExamples);
+  const created = ingestDocument(db, analyze(text, sentenceLog(db)), source, docNo, candidateExamples);
   const pruned = prepare(db, `DELETE FROM terms WHERE kind = 'phrase' AND state = 'candidate'
     AND raw_doc_count = 1 AND last_doc <= ? AND key NOT IN (SELECT value FROM json_each(?))
     AND NOT EXISTS (SELECT 1 FROM history WHERE term_id = terms.id)
     AND NOT EXISTS (SELECT 1 FROM reviews WHERE term_id = terms.id)`)
     .run(docNo - PRUNE_AFTER_DOCS, JSON.stringify(kept)).changes;
   return { created, pruned: Number(pruned) };
+}
+
+function sentenceLog(db) {
+  const insert = prepare(db, "INSERT OR IGNORE INTO sentences (hash) VALUES (?)");
+  return (sentence) => insert.run(sentenceHash(sentence)).changes > 0;
+}
+
+// 48 bits of the case-folded sentence's SHA-256: an exact SQLite integer, and a collision only lets one
+// sentence go uncounted.
+function sentenceHash(sentence) {
+  return createHash("sha256").update(sentence.toLowerCase()).digest().readUIntBE(0, 6);
 }
 
 function contentHash(text) {
@@ -445,7 +458,7 @@ function separate(args, flags) {
     // An example moves when it uses only moving forms, and is copied when it uses both kinds.
     const remaining = groupForms.filter((name) => !forms.includes(name));
     for (const example of prepare(db, "SELECT * FROM examples WHERE term_id = ? ORDER BY id").all(group.id)) {
-      const words = new Set(wordRuns(example.sentence).flat());
+      const words = new Set(wordRuns(example.sentence).flatMap((run) => run.words));
       if (!forms.some((name) => words.has(name))) continue;
       if (remaining.some((name) => words.has(name))) {
         prepare(db, "INSERT INTO examples (term_id, sentence, source, doc_no) VALUES (?, ?, ?, ?)")
@@ -615,7 +628,8 @@ function normalizeTerm(name) {
   return name.toLowerCase().replace(/[’]/g, "'").replace(/'s\b/g, "").replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function analyze(text) {
+// firstSighting(sentence) records the sentence and tells whether the corpus held it before.
+function analyze(text, firstSighting) {
   const words = new Map();
   const phrases = new Map();
   let tokens = 0;
@@ -626,13 +640,17 @@ function analyze(text) {
     return entry;
   };
   for (const sentence of sentences(stripNoise(text))) {
-    for (const run of wordRuns(sentence)) {
+    // A sentence repeated word for word (template boilerplate, a pasted notice) counts only once.
+    if (!firstSighting(sentence)) continue;
+    for (const { words: run, joined } of wordRuns(sentence)) {
       tokens += run.length;
       for (const word of run) note(words, word, sentence);
       const gram = (i, n) => {
         if (i < 0 || i + n > run.length) return null;
+        // A phrase never cuts through a hyphenated compound (way door out of one-way door).
+        if (joined[i - 1] || joined[i + n - 1]) return null;
         const slice = run.slice(i, i + n);
-        return phraseShaped(slice) ? slice.join(" ") : null;
+        return phraseShaped(slice, joined.slice(i, i + n - 1)) ? slice.join(" ") : null;
       };
       for (let i = 0; i < run.length; i += 1) {
         const trigram = gram(i, 3);
@@ -668,6 +686,13 @@ function excerpt(sentence, key) {
 function stripNoise(text) {
   const gap = " … ";
   return text.replace(/\r\n?/g, "\n")
+    .replace(/<!--[\s\S]*?-->/g, gap)
+    .replace(/!\[[^\]\n]*\]\([^)\n]*\)/g, gap)
+    .replace(/\[((?:[^[\]\n]|\[[^[\]\n]*\])*)\]\(([^)\s]*)(?:\s+"[^"\n]*")?\)/g, (link, label, target) => (/^mailto:/i.test(target) ? gap : label))
+    .replace(/\{#[^}\n]*\}/g, gap)
+    .replace(/\\([\\`*_{}[\]()#+\-.!|<>~])/g, "$1")
+    .replace(/^([ \t]*)\*(?=[ \t])/gm, "$1-")
+    .replace(/\*+/g, "")
     .replace(/^ {0,3}(`{3,}(?=[^`\n]*$)|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[`~]*[ \t]*$/gm, "\n\n")
     .replace(/^ {0,3}(`{3,}(?=[^`\n]*$)|~{3,})[\s\S]*$/m, "\n\n")
     .replace(/`[^`\n]+`/g, gap)
@@ -694,34 +719,39 @@ function sentences(text) {
 }
 
 // Runs of consecutive words that no punctuation, bare number, or stripped span separates. A word may
-// mix letters and digits (k8s, s3, oauth2).
+// mix letters and digits (k8s, s3, oauth2). The parts of a hyphenated compound (one-way) are separate
+// words; joined[i] is true when word i is hyphenated to word i + 1.
 function wordRuns(sentence) {
   const runs = [];
-  const joined = sentence.replace(/(?<=\p{L})-(?=\p{L})/gu, " ");
-  for (const segment of joined.split(/[^\p{L}\p{N}\s'’]+/u)) {
-    let run = [];
+  const marked = sentence.replace(/(?<=\p{L})-(?=\p{L})/gu, HYPHEN);
+  for (const segment of marked.split(/[^\p{L}\p{N}\s'’]+/u)) {
+    let run = { words: [], joined: [] };
     for (const match of segment.matchAll(/[\p{L}\p{N}]+(?:['’]\p{L}+)*/gu)) {
       const token = match[0].toLowerCase().replace(/’/g, "'").replace(/'s$/, "");
       if (/\p{L}/u.test(token)) {
-        run.push(token);
+        run.words.push(token);
+        run.joined.push(segment[match.index + match[0].length] === HYPHEN);
       } else {
-        if (run.length) runs.push(run);
-        run = [];
+        if (run.words.length) runs.push(run);
+        run = { words: [], joined: [] };
       }
     }
-    if (run.length) runs.push(run);
+    if (run.words.length) runs.push(run);
   }
   return runs;
 }
 
-function phraseShaped(gram) {
+// joined holds, for each pair of neighbors in gram, whether a hyphen joins them.
+function phraseShaped(gram, joined) {
   // A one-letter word may sit inside a phrase (take a look) but not at its edge.
   if (gram[0].length < 2 || gram.at(-1).length < 2) return false;
+  // A hyphenated compound is one unit, so a filler part (one-way, built-in) may stand at its edge.
+  if (joined.every(Boolean)) return true;
   if (gram.every((word) => FILLER.has(word))) return false;
   const first = gram[0];
   const last = gram[gram.length - 1];
-  const startOk = !FILLER.has(first) || (gram.length === 2 && START_PREPOSITIONS.has(first));
-  const endOk = !FILLER.has(last) || PARTICLES.has(last);
+  const startOk = !FILLER.has(first) || joined[0] || (gram.length === 2 && START_PREPOSITIONS.has(first));
+  const endOk = !FILLER.has(last) || joined.at(-1) || PARTICLES.has(last);
   return startOk && endOk;
 }
 
@@ -1021,6 +1051,11 @@ function pendingPhrases(db) {
     }));
 }
 
+// The names only; `pending` shows each phrase with its evidence and an example.
+function newlyQualified(before, after) {
+  return after.filter((phrase) => !before.has(phrase.term)).map((phrase) => phrase.term);
+}
+
 function pendingKeys(db) {
   return new Set(pendingPhrases(db).map((phrase) => phrase.term));
 }
@@ -1065,6 +1100,11 @@ function openStore() {
       if (prepare(db, "PRAGMA user_version").get().user_version === 0) createSchema(db);
     });
   }
+  if (version === 1) {
+    transaction(db, () => {
+      if (prepare(db, "PRAGMA user_version").get().user_version === 1) addSentences(db);
+    });
+  }
   checkVersion(db);
   return db;
 }
@@ -1073,6 +1113,17 @@ function checkVersion(db) {
   const version = prepare(db, "PRAGMA user_version").get().user_version;
   if (version !== SCHEMA_VERSION) {
     throw new Error(`${dbPath} has schema version ${version}; this script reads version ${SCHEMA_VERSION}.`);
+  }
+}
+
+// Version 2 counts a repeated sentence once. The saved documents fill the sentence log, so new documents
+// skip their sentences; `rebuild` recounts the old documents.
+function addSentences(db) {
+  db.exec(`CREATE TABLE sentences (hash INTEGER PRIMARY KEY); PRAGMA user_version = 2;`);
+  const firstSighting = sentenceLog(db);
+  for (const { hash } of prepare(db, "SELECT hash FROM docs ORDER BY doc_no").all()) {
+    const text = savedText(hash);
+    if (text !== null) for (const sentence of sentences(stripNoise(text))) firstSighting(sentence);
   }
 }
 
@@ -1161,6 +1212,8 @@ function createSchema(db) {
     -- A form the user split out of the group keyed by base; grouping never joins the two again.
     CREATE TABLE separations (form TEXT NOT NULL, base TEXT NOT NULL, at TEXT NOT NULL, PRIMARY KEY (form, base));
     CREATE TABLE corpus_words (word TEXT PRIMARY KEY, count INTEGER NOT NULL);
+    -- Every sentence the corpus has counted, by sentenceHash.
+    CREATE TABLE sentences (hash INTEGER PRIMARY KEY);
     CREATE TABLE meta (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
     INSERT INTO meta (key, value) VALUES ('doc_seq', 0), ('total_tokens', 0), ('rev_seq', 0);
     PRAGMA user_version = ${SCHEMA_VERSION};

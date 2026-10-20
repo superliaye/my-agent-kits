@@ -27,7 +27,7 @@ user which Node version it names and stop.
 
 | Command | Does |
 |---|---|
-| `ingest <dir>` | Each file is one document; its filename is the source label. Prints the count of new words and the newly qualified phrases. A document already ingested (same content) is skipped. |
+| `ingest <dir>` | Each file is one document; its filename is the source label. Plain text and Markdown exports both work: the script drops code, URLs, paths, emails, images, mailto names, and markup, and keeps link labels. Prints the count of new words and the names of the newly qualified phrases. A document already ingested (same content) is skipped. |
 | `rebuild` | Recounts every saved document with the current rules: corpus counts, candidates, term counts, examples, and phrase evidence. Every term keeps its state, box, due date, `rev`, history, and reviews, and every separation holds. A term whose words no longer occur keeps its learning state with zero counts, unless it is an untouched candidate or `new` term, which is dropped. Run it after a kit update changes the script, or when the user asks for a recount. |
 | `pending` | Phrases that qualified and are still candidates. |
 | `next [--new N]` | Today's cards: due reviews first, then the top new terms up to the daily new cap (default 10; `--new` sets it). |
@@ -55,7 +55,9 @@ review rows written before a group merged or took another base form carry its ea
 form (*news* under *new*), with the forms built on it, into its own word, and grouping never joins
 it to that base again. The new word takes back the rows whose `merged_from` names it and resumes
 their last position, or starts as `new`.
-A phrase is a 2–3 word sequence from one sentence.
+A phrase is a 2–3 word sequence from one sentence. A hyphenated compound (*one-way*) is one unit: a
+phrase may start or end with it (*one-way door*) but never cuts through it. A sentence the corpus
+already holds word for word, such as template boilerplate, counts only the first time.
 
 **States and boxes.** The learning path is `new → learning → recognized → active`. Two side states,
 `archived` (the user knows it for life) and `ignored` (not a real term), take a term out of every
@@ -86,11 +88,15 @@ after 200 more documents arrive, unless they have history or reviews.
 
 ### Ingest
 
-Fetch each source with your own tools and write its plain text to one file per document in a fresh
-`mktemp -d` directory, named by a short source label. A blank line ends a sentence and a single
-newline is a soft wrap, so put a blank line between separate chat messages. Run `ingest` on the
-directory, then delete it. Check each phrase in `newly_qualified` and anything left in `pending`:
-one `set new` call for the real terms of the field and one `set ignored` call for the fragments.
+Save each source as one file in a fresh `mktemp -d` directory, named by a short source label. Have
+the fetch tool write the export straight to that file, so the document text stays out of your
+context; the script does the cleanup. When you assemble a file yourself, such as a chat thread, put
+a blank line between messages: a blank line ends a sentence, and a single newline is a soft wrap.
+Run `ingest` on the directory, then delete it.
+
+Then go through `pending` until it is empty, one round at a time: one `set new` call for the real
+terms of the field and one `set ignored` call for the fragments. Ignoring a longer phrase can let
+the shorter phrases inside it qualify, so read `pending` again after each round.
 
 ### Learn
 

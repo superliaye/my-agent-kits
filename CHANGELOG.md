@@ -4,6 +4,17 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.51.1] - 2026-10-20
+
+### Changed
+
+- **`/my-domain-vocab` ingests Markdown exports as they are, so the agent never handles document text** — the fetch tool writes each export straight to a file, and `ingest` drops images, mailto names, HTML comments, heading anchors, emphasis, and escapes, and keeps link labels. `ingest` and `rebuild` list the newly qualified phrases by name only; `pending` shows the evidence.
+- **A sentence repeated word for word counts once** — template boilerplate shared by many design docs no longer makes its headings and instructions qualify as phrases or inflate word counts. The store moves to schema version 2 on first use; run `rebuild` to recount documents ingested before.
+
+### Fixed
+
+- **A hyphenated compound is one unit in a phrase** — *one-way door* can qualify although *one* is a filler word, and no phrase cuts through a compound (*way door*).
+
 ## [0.51.0] - 2026-10-19
 
 ### Added
