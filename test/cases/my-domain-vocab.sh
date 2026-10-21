@@ -24,11 +24,13 @@ for root in "$HOME_DIR/.claude/skills/my-domain-vocab" "$HOME_DIR/.agents/skills
   label="$(basename "$(dirname "$(dirname "$root")")") my-domain-vocab"
   assert_file_exists "$root/SKILL.md" "$label entrypoint"
   assert_file_exists "$root/scripts/vocab.mjs" "$label script"
+  assert_file_exists "$root/scripts/serve.mjs" "$label drill server"
+  assert_file_exists "$root/scripts/drill.html" "$label drill page"
   assert_content_contains "$root/SKILL.md" "added_in: 0.51.0" "$label version"
   for mode in "### Ingest" "### Learn" "### Hygiene"; do
     assert_content_contains "$root/SKILL.md" "$mode" "$label names mode ${mode#\#\#\# }"
   done
-  for choice in "**Archive**" "**I recognize it**" "**Don't know**" "**Free text**" "Judge it" "sharpen"; do
+  for choice in "**Archive**" "**I recognize it**" "**Don't know**" "**Free text**" "judge each" "sharpen"; do
     assert_content_contains "$root/SKILL.md" "$choice" "$label card offers $choice"
   done
 done
@@ -38,6 +40,11 @@ if grep -E "node:(https?|net|dgram|tls)|fetch\(" "$DEPLOYED/scripts/vocab.mjs" >
   fail "my-domain-vocab script reaches the network"
 else
   ok "my-domain-vocab script stays local"
+fi
+if grep -F 'server.listen(port, "127.0.0.1"' "$DEPLOYED/scripts/serve.mjs" >/dev/null; then
+  ok "my-domain-vocab drill server listens on loopback only"
+else
+  fail "my-domain-vocab drill server does not bind 127.0.0.1"
 fi
 
 if HOME="$HOME_DIR" USERPROFILE="$HOME_DIR" MY_DOMAIN_VOCAB_SKILL="$DEPLOYED" node "$HERE/../lib/my-domain-vocab-runtime.mjs"; then

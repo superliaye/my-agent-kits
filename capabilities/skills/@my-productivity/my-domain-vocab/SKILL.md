@@ -14,7 +14,8 @@ documents the user feeds in.
 
 All state lives in one SQLite file per field at `~/.my-domain-vocab/<field>.db`. The text of each
 ingested document stays next to it in `~/.my-domain-vocab/<field>/docs/`, named by content hash, so
-the counts can be rebuilt; both stay on this machine. Run every command as:
+the counts can be rebuilt; both stay on this machine, and only the `--llm` command of `serve` sees a
+term's example sentences. Run every command as:
 
 ```sh
 node "<skill-directory>/scripts/vocab.mjs" <command> [--field <name>]
@@ -38,8 +39,9 @@ user which Node version it names and stop.
 | `top [--limit N]` | Visible terms ranked by how many documents use them. |
 | `stats` | Counts by kind and state, documents, and today's reviews. |
 | `query "<sql>"` | Read-only SQL against the DB, returned as JSON rows. Read the schema with `SELECT sql FROM sqlite_master`. |
+| `serve [--port N] [--batch N] [--new N] [--llm <command>]` | Serves the flash-card page on `127.0.0.1` (port 4870 by default) and prints its `url` with a one-time token and the `queue` path, then runs until stopped. `--batch` is the cards per batch (default 20); `--new` is the daily new cap it starts from. It needs the `ws` package; when it is missing, the error names the one-time install command. |
 
-Every write goes through `ingest`, `rebuild`, `set`, `separate`, or `review`, so the history stays complete. Use `query`
+Every write goes through `ingest`, `rebuild`, `set`, `separate`, `review`, or the `serve` page, so the history stays complete. Use `query`
 and `show` freely to answer questions.
 
 ## The model
@@ -103,19 +105,30 @@ the shorter phrases inside it qualify, so read `pending` again after each round.
 On the first session, propose batches of words from `top` that a five-year-old can use, and
 archive each approved batch with one `set archived` call.
 
-Then work through `next`, one card at a time. Show the term and its example sentences with their
-sources. A recognize card asks what the term means; a compose card asks the user to use it in a
-sentence of their own. Every card offers four replies:
+Then run `serve` in the background and give the user its `url`. The page shows one card at a time
+with its example sentences and sources, and records each reply itself, with no agent turn per card.
+A recognize card asks what the term means; a compose card asks the user to use it in a sentence of
+their own. Every card offers four replies:
 
-- **Archive** ("I know this for life"): `set archived <term>`.
+- **Archive** ("I know this for life"): `set archived`.
 - **I recognize it**: `pass` on a recognize card, `hold` on a compose card.
-- **Don't know**: `fail`.
-- **Free text**: the user's own understanding or sentence. Judge it and record `pass` or `fail`.
+- **Don't know**: `fail`, then more example sentences from the corpus.
+- **Free text**: the user's own understanding or sentence, judged by the `--llm` command, which
+  records `pass` or `fail`.
 
-Ask with the harness's structured question tool (options plus free text), such as `AskUserQuestion`
-in Claude Code; otherwise use a numbered option list and accept free text. After a free-text reply
-or a "don't know", sharpen the user's understanding: the plain meaning, its connotation, the root or
-origin, a memory hook, and one more example. Generate this live each time.
+Each judged answer, and the page's **Explain** button, sharpen the user's understanding: the plain
+meaning, its connotation, the root or origin, a memory hook, and one more example. When a batch
+ends, the page loads the next one; at the daily new cap it offers more new words.
+
+`--llm` is a shell command that reads a prompt on stdin and prints one JSON object. Give it a
+headless call to the cheapest model tier that can follow a JSON format, and try it once on a short
+prompt before you launch. Without `--llm`, or when the command fails or prints no valid JSON, the
+request waits in the `queue` file. When the user comes back, work through that file: judge each
+`judge` entry against the term's examples and record it with `review` and the entry's `rev`;
+sharpen each `explain` entry in chat; then delete the file.
+
+The server listens on `127.0.0.1` only. When the user's browser runs on another machine, have them
+open the forwarded port.
 
 ### Hygiene
 

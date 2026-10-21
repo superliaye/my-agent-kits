@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
-import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { createHash, randomBytes } from "node:crypto";
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 // node:sqlite prints an ExperimentalWarning on load; drop the printer before the dynamic import.
 process.removeAllListeners("warning");
@@ -29,10 +31,16 @@ const SCORE_CUTOFF = 10.83;
 const MIN_DOCS = 3;
 const PRUNE_AFTER_DOCS = 200;
 const DAILY_NEW_CAP = 10;
+const SERVE_PORT = 4870;
+const SERVE_BATCH = 20;
+const LLM_TIMEOUT_MS = 180_000;
+const LLM_FIELDS = ["meaning", "connotation", "origin", "hook", "example"];
 const MAX_EXAMPLES = 10;
 const MAX_EXAMPLE_CHARS = 300;
 const RANK = "doc_count DESC, count DESC, id";
 const statements = new WeakMap();
+// One connection per process, so a long-running serve does not open one per answer.
+let store;
 const HYPHEN = "";
 const PARTICLES = new Set("up out off over down back in on through away".split(" "));
 const START_PREPOSITIONS = new Set("on in at out".split(" "));
@@ -57,15 +65,16 @@ const dbPath = join(STORE, `${field}.db`);
 // The text of every ingested document, named by its content hash, so `rebuild` can recount it.
 const docsDir = join(STORE, field, "docs");
 
-const COMMANDS = { ingest, rebuild, pending, next, review, set, separate, show, top, stats, query };
+const COMMANDS = { ingest, rebuild, pending, next, review, set, separate, show, top, stats, query, serve };
 const run = COMMANDS[argv.command];
 if (!run) {
   fail("usage: vocab.mjs <ingest <dir>|rebuild|pending|next [--new N]|review <term> pass|fail|hold --rev N|"
-    + "set <state> <term>... [--box N] [--due YYYY-MM-DD|today]|separate <form>|show <term>|top [--limit N]|stats|query <sql>> "
+    + "set <state> <term>... [--box N] [--due YYYY-MM-DD|today]|separate <form>|show <term>|top [--limit N]|stats|query <sql>|"
+    + "serve [--port N] [--batch N] [--new N] [--llm <command>]> "
     + "[--field <name>]");
 }
 try {
-  const result = run(argv.args, argv.flags);
+  const result = await run(argv.args, argv.flags);
   process.stdout.write(`${JSON.stringify({ db: dbPath, docs_dir: docsDir, ...result }, null, 2)}\n`);
 } catch (error) {
   fail(error.message);
@@ -545,6 +554,200 @@ function query(args, flags) {
   db.exec("PRAGMA busy_timeout = 30000");
   checkVersion(db);
   return { rows: prepare(db, args[0]).all() };
+}
+
+// Serves the flash-card page. Each page message routes to the code paths of review and set; only a typed
+// answer or an explain request runs the --llm command, and its JSON reply is checked before a verdict is
+// recorded. Requests it cannot answer go to the queue file for the agent.
+async function serve(args, flags) {
+  allowFlags(flags, ["port", "batch", "new", "llm"]);
+  noArgs(args, "serve");
+  const port = flags.port === undefined ? SERVE_PORT : intFlag(flags.port, "--port", 0);
+  const size = flags.batch === undefined ? SERVE_BATCH : intFlag(flags.batch, "--batch", 1);
+  let cap = flags.new === undefined ? DAILY_NEW_CAP : intFlag(flags.new, "--new", 0);
+  const llm = flags.llm;
+  const db = openStore();
+  const queue = join(STORE, field, "queue.jsonl");
+  // Terms waiting on the LLM or the queue stay out of later batches; the value tells whether it was new.
+  const held = new Map();
+  const undoStack = [];
+
+  const current = (name, rev) => {
+    const term = resolveTerm(db, name);
+    if (term.rev !== rev) throw new Error(`"${term.display}" changed in another session; reloading.`);
+    return term;
+  };
+  const remember = (term, rev) => undoStack.push({ id: term.id, before: position(term), rev });
+  const answer = (term, verdict) => {
+    const result = review([term.display, verdict], { rev: String(term.rev) });
+    remember(term, result.rev);
+    return result;
+  };
+  const heldNew = () => [...held.values()].filter(Boolean).length;
+  const enqueue = (task, term, text, reason) => {
+    mkdirSync(join(STORE, field), { recursive: true, mode: 0o700 });
+    appendFileSync(queue, `${JSON.stringify({ at: new Date().toISOString(), task, term: term.display, rev: term.rev,
+      mode: cardMode(term.state), text, reason })}\n`, { mode: 0o600 });
+    return { queued: true, reason };
+  };
+  const batch = () => {
+    const day = today();
+    const introduced = introducedOn(db, day);
+    const due = dueReviews(db, day).filter((term) => !held.has(term.id));
+    const room = Math.max(0, cap - introduced - heldNew());
+    const fresh = prepare(db, `SELECT * FROM terms WHERE state = 'new' ORDER BY ${RANK} LIMIT ?`)
+      .all(room + held.size).filter((term) => !held.has(term.id)).slice(0, room);
+    return {
+      cards: [...due, ...fresh].slice(0, size).map((term) => card(db, term)),
+      due_reviews: due.length, new_today: introduced, new_cap: cap, batch: size, llm: Boolean(llm),
+    };
+  };
+  // Runs one LLM task off the request path and pushes the outcome to the page.
+  const ask = (task, term, text, push) => {
+    if (task === "judge") held.set(term.id, term.state === "new");
+    const examples = examplesOf(db, term.id, 3);
+    runLlm(llm, llmPrompt(task, term, examples, text)).then((reply) => {
+      if (task === "explain") {
+        push({ type: "explanation", term: term.display, ...reply });
+        return;
+      }
+      if (!["pass", "fail"].includes(reply.verdict)) throw new Error(`--llm verdict must be pass or fail (got "${reply.verdict}").`);
+      let recorded;
+      try {
+        recorded = answer(term, reply.verdict);
+      } catch (error) {
+        push({ type: "feedback", term: term.display, ...reply, error: `not recorded: ${error.message}` });
+        return;
+      }
+      held.delete(term.id);
+      push({ type: "feedback", term: term.display, ...reply, to: recorded.to });
+    }).catch((error) => {
+      push({ type: task === "explain" ? "explanation" : "feedback", term: term.display, ...enqueue(task, term, text, error.message) });
+    });
+    return { checking: true };
+  };
+
+  const routes = {
+    batch,
+    more: () => {
+      cap = introducedOn(db, today()) + heldNew() + size;
+      return batch();
+    },
+    archive: ({ term: name, rev }) => {
+      const term = current(name, rev);
+      const [changed] = set(["archived", term.display], {}).changed;
+      remember(term, changed.rev);
+      return changed;
+    },
+    recognize: ({ term: name, rev }) => {
+      const term = current(name, rev);
+      return answer(term, cardMode(term.state) === "compose" ? "hold" : "pass");
+    },
+    dont_know: ({ term: name, rev }) => {
+      const term = current(name, rev);
+      return { ...answer(term, "fail"), examples: examplesOf(db, term.id, MAX_EXAMPLES) };
+    },
+    undo: () => {
+      const last = undoStack.pop();
+      if (!last) throw new Error("nothing to undo.");
+      const term = prepare(db, "SELECT * FROM terms WHERE id = ?").get(last.id);
+      if (!term || term.rev !== last.rev) throw new Error("that term changed since; ask your agent to undo it.");
+      const restored = transaction(db, () => change(db, term, last.before, "serve undo"));
+      return card(db, restored);
+    },
+    answer: ({ term: name, rev, text }, push) => {
+      const term = current(name, rev);
+      if (typeof text !== "string" || !text.trim()) throw new Error("type an answer first.");
+      if (llm) return ask("judge", term, text, push);
+      held.set(term.id, term.state === "new");
+      return enqueue("judge", term, text, "no --llm command");
+    },
+    explain: ({ term: name }, push) => {
+      const term = resolveTerm(db, name);
+      return llm ? ask("explain", term, null, push) : enqueue("explain", term, null, "no --llm command");
+    },
+  };
+
+  const { startServer } = await import("./serve.mjs");
+  const token = randomBytes(16).toString("hex");
+  const page = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "drill.html"), "utf8");
+  const bound = await startServer({
+    port, token, page, runtimeDir: join(STORE, "runtime"),
+    handle: (message, push) => {
+      if (!Object.hasOwn(routes, message.type)) throw new Error(`unknown message type "${message.type}".`);
+      return routes[message.type](message, push);
+    },
+  });
+  return { url: `http://127.0.0.1:${bound}/?token=${token}`, port: bound, llm: llm ?? null, queue };
+}
+
+function llmPrompt(task, term, examples, text) {
+  const lines = [
+    "You help a non-native English speaker learn the vocabulary of the software design documents they read.",
+    `Term: "${term.display}" (${term.kind}).`,
+    "Example sentences from their documents:",
+    ...examples.map((example) => `- ${example.sentence} (${example.source})`),
+  ];
+  const fields = `"meaning": the plain meaning in this field, "connotation": its tone or when people use it, `
+    + `"origin": its root or origin, "hook": a short memory hook, "example": one new example sentence`;
+  if (task === "judge") {
+    lines.push(
+      cardMode(term.state) === "compose"
+        ? "They were asked to use the term in a sentence of their own. Pass it when the term is used correctly and naturally."
+        : "They were asked what the term means. Pass it when the answer shows the meaning these sentences use.",
+      "Their answer:",
+      text,
+      "Reply with only one JSON object and no other text, with these string fields: "
+        + `"verdict": "pass" or "fail", "feedback": one or two sentences on their answer, ${fields}.`,
+    );
+  } else {
+    lines.push(`Reply with only one JSON object and no other text, with these string fields: ${fields}.`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+// Runs the --llm shell command with the prompt on stdin and reads one JSON object from its stdout.
+function runLlm(command, prompt) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(command, { shell: true, stdio: ["pipe", "pipe", "pipe"] });
+    let out = "";
+    let err = "";
+    const timer = setTimeout(() => {
+      child.kill();
+      reject(new Error(`--llm took longer than ${LLM_TIMEOUT_MS / 1000}s.`));
+    }, LLM_TIMEOUT_MS);
+    child.stdout.on("data", (chunk) => { out += chunk; });
+    child.stderr.on("data", (chunk) => { err += chunk; });
+    child.on("error", (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (code !== 0) {
+        reject(new Error(`--llm exited with ${code}: ${err.trim().slice(-300)}`));
+        return;
+      }
+      try {
+        resolvePromise(llmReply(out));
+      } catch (error) {
+        reject(error);
+      }
+    });
+    child.stdin.on("error", () => {});
+    child.stdin.end(prompt);
+  });
+}
+
+// Takes the outermost JSON object, so a command that wraps its reply in prose or a code fence still works.
+function llmReply(out) {
+  const start = out.indexOf("{");
+  const end = out.lastIndexOf("}");
+  if (start < 0 || end < start) throw new Error("--llm printed no JSON object.");
+  const reply = JSON.parse(out.slice(start, end + 1));
+  if (typeof reply.meaning !== "string" || !reply.meaning.trim()) throw new Error("--llm reply has no meaning.");
+  const fields = Object.fromEntries(LLM_FIELDS.map((name) => [name, typeof reply[name] === "string" ? reply[name] : ""]));
+  return "verdict" in reply ? { ...fields, verdict: reply.verdict, feedback: String(reply.feedback ?? "") } : fields;
 }
 
 function ladder(term, answer) {
@@ -1080,6 +1283,7 @@ function g2(joint, left, right, total) {
 }
 
 function openStore() {
+  if (store) return store;
   mkdirSync(STORE, { recursive: true, mode: 0o700 });
   const db = new DatabaseSync(dbPath);
   db.exec("PRAGMA busy_timeout = 30000");
@@ -1106,6 +1310,7 @@ function openStore() {
     });
   }
   checkVersion(db);
+  store = db;
   return db;
 }
 

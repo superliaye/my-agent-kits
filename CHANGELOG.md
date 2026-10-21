@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.52.0] - 2026-10-21
+
+### Added
+
+- **`/my-domain-vocab` drills cards in a local web page, with no agent turn per card** — `serve` starts a loopback page (a WebSocket on `127.0.0.1` with a one-time token) that shows one card at a time and records archive, "I recognize it", "don't know", and undo through the same code paths as `set` and `review`. It loads the next batch on its own and offers more new words at the daily cap. Only a typed answer or an explain request runs the `--llm` command the agent chooses, such as a cheap model tier called headless; the script checks its JSON reply before it records a verdict. A failed or missing model call goes to a queue file that the agent works through on its next turn. It needs the `ws` package once under `~/.my-domain-vocab/runtime`, and the error names the install command.
+
 ## [0.51.1] - 2026-10-20
 
 ### Changed

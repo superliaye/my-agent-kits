@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulary drill</title>
+<style>
+  :root { color-scheme: light dark;
+    --bg: #f4f3ef; --panel: #ffffff; --sunken: #f7f6f2; --ink: #1c1c1a; --muted: #6c6b65; --faint: #a3a29b;
+    --line: #e4e2da; --accent: #3056c9; --accent-ink: #ffffff; --accent-soft: #e8edfb;
+    --good: #1d7a47; --good-soft: #e3f3e9; --bad: #b4312a; --bad-soft: #fbe9e7; --mark: #fbe7a1;
+    --shadow: 0 1px 2px rgb(0 0 0 / .04), 0 4px 16px rgb(0 0 0 / .05); }
+  @media (prefers-color-scheme: dark) { :root {
+    --bg: #141413; --panel: #1d1d1b; --sunken: #232321; --ink: #ecebe6; --muted: #a09f98; --faint: #6d6c66;
+    --line: #313130; --accent: #8eaaff; --accent-ink: #10172e; --accent-soft: #232c45;
+    --good: #72d39b; --good-soft: #1b2d22; --bad: #ff8f84; --bad-soft: #3a1f1c; --mark: #5c4c14;
+    --shadow: none; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  header { max-width: 1180px; margin: 0 auto; padding: 18px 24px 0; display: flex; align-items: baseline; gap: 16px; }
+  header strong { font-size: 15px; letter-spacing: .01em; }
+  header .stats { margin-left: auto; color: var(--muted); font-size: 14px; display: flex; gap: 18px; }
+  header .stats b { color: var(--ink); font-weight: 600; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; max-width: 1180px; margin: 0 auto; padding: 14px 24px 32px; }
+  @media (max-width: 920px) { main { grid-template-columns: 1fr; } aside { position: static !important; max-height: none !important; } }
+  @media (max-width: 600px) { header { flex-direction: column; gap: 4px; } header .stats { margin-left: 0; gap: 12px; flex-wrap: wrap; } section { padding: 22px 20px; } h1 { font-size: 38px; } }
+  section, aside { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  section { padding: 28px 32px 24px; min-height: 480px; }
+  aside { padding: 20px; position: sticky; top: 14px; max-height: calc(100vh - 28px); overflow: auto; }
+  .progress { height: 4px; background: var(--sunken); border-radius: 99px; overflow: hidden; margin-bottom: 22px; }
+  .progress div { height: 100%; background: var(--accent); border-radius: 99px; transition: width .25s ease; }
+  .top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 13px; }
+  .mode { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 99px; }
+  h1 { font-size: 46px; line-height: 1.1; margin: 18px 0 10px; letter-spacing: -.015em; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { border: 1px solid var(--line); border-radius: 99px; padding: 1px 10px; font-size: 13px; color: var(--muted); }
+  .ask { font-size: 19px; font-weight: 500; margin: 22px 0 10px; }
+  .examples { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 10px; }
+  .examples li { background: var(--sunken); border-left: 3px solid var(--line); border-radius: 0 10px 10px 0; padding: 10px 14px; }
+  .examples .source { display: block; color: var(--faint); font-size: 12.5px; margin-top: 4px; }
+  mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 2px; }
+  .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 600px) { .choices { grid-template-columns: 1fr; } }
+  button { font: inherit; font-size: 15px; padding: 11px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: border-color .15s, background .15s, transform .05s; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.quiet { border-color: transparent; background: none; color: var(--muted); padding: 6px 8px; font-size: 14px; }
+  button.quiet:hover:not(:disabled) { color: var(--ink); border-color: transparent; }
+  kbd { font: 11.5px ui-monospace, SFMono-Regular, Menlo, monospace; border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; opacity: .55; }
+  .compose { margin-top: 16px; display: flex; gap: 10px; align-items: stretch; }
+  textarea { flex: 1; min-height: 64px; resize: vertical; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--sunken); color: var(--ink); }
+  textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; color: var(--muted); font-size: 13px; gap: 12px; flex-wrap: wrap; }
+  .notice { color: var(--bad); background: var(--bad-soft); border-radius: 10px; padding: 10px 14px; margin: 18px 0 8px; font-size: 15px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .notice + .row { margin-bottom: 18px; }
+  .center { text-align: center; padding-top: 60px; }
+  .center .row { justify-content: center; margin-top: 18px; }
+  .summary { display: flex; justify-content: center; gap: 28px; margin: 24px 0 6px; }
+  .summary div { display: grid; }
+  .summary b { font-size: 28px; }
+  .summary span { color: var(--muted); font-size: 13px; }
+  .fade { animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+  .empty { color: var(--faint); font-size: 14px; }
+  .entry { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .entry header { padding: 0; margin: 0; display: flex; justify-content: space-between; align-items: center; }
+  .entry b { font-size: 17px; }
+  .pill { font-size: 12px; font-weight: 600; border-radius: 99px; padding: 2px 10px; white-space: nowrap; }
+  .pill.pass { color: var(--good); background: var(--good-soft); }
+  .pill.fail { color: var(--bad); background: var(--bad-soft); }
+  .pill.wait, .pill.info { color: var(--muted); background: var(--sunken); }
+  .pill.wait::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .8s linear infinite; vertical-align: -1px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .you { color: var(--muted); font-size: 14px; margin: 8px 0 0; font-style: italic; }
+  .feedback { margin: 8px 0 0; }
+  .entry dl { margin: 10px 0 0; display: grid; grid-template-columns: 92px 1fr; gap: 4px 10px; font-size: 14px; }
+  .entry dt { color: var(--muted); }
+  .entry dd { margin: 0; }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 8px); background: var(--ink); color: var(--panel); padding: 9px 16px; border-radius: 10px; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; font-size: 14px; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<header><strong>Vocabulary drill</strong><div class="stats" id="stats"></div></header>
+<main>
+  <section id="card"><p class="empty">Connecting…</p></section>
+  <aside><h2>Feedback</h2><div id="feed"><p class="empty">Typed answers and explanations show here.</p></div></aside>
+</main>
+<div id="toast" role="status"></div>
+<script>
+"use strict";
+const token = new URLSearchParams(location.search).get("token");
+const socketUrl = new URL("ws", location.href);
+socketUrl.protocol = location.protocol === "https:" ? "wss:" : "ws:";
+socketUrl.search = `?token=${encodeURIComponent(token ?? "")}`;
+
+const view = document.getElementById("card");
+const feed = document.getElementById("feed");
+const waiting = new Map();
+const session = { archived: 0, recognized: 0, unknown: 0, typed: 0 };
+let socket, nextId = 1, cards = [], index = 0, meta = {}, phase = "card", extra = [], busy = false, closed = false;
+
+function connect() {
+  socket = new WebSocket(socketUrl);
+  socket.onopen = () => loadBatch();
+  socket.onclose = () => {
+    closed = true;
+    view.replaceChildren(el("div", "center fade", "",
+      el("h1", "", "Disconnected"), el("p", "", "The drill server stopped. Ask your agent to start it again, then open the new link.")));
+  };
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.id && waiting.has(message.id)) {
+      const { resolve, reject } = waiting.get(message.id);
+      waiting.delete(message.id);
+      message.ok ? resolve(message.data) : reject(new Error(message.error));
+    } else if (message.type === "feedback" || message.type === "explanation") {
+      showResult(message);
+    } else if (message.error) {
+      toast(message.error);
+    }
+  };
+}
+
+function send(type, payload = {}) {
+  const id = nextId++;
+  return new Promise((resolve, reject) => {
+    waiting.set(id, { resolve, reject });
+    socket.send(JSON.stringify({ id, type, ...payload }));
+  });
+}
+
+// One request at a time, so a double press never answers the same card twice.
+async function call(type, payload) {
+  if (busy || closed) return null;
+  busy = true;
+  document.querySelectorAll("button").forEach((node) => { node.disabled = true; });
+  try {
+    return await send(type, payload);
+  } catch (error) {
+    toast(error.message);
+    if (/another session/.test(error.message)) { busy = false; await loadBatch(); }
+    return null;
+  } finally {
+    busy = false;
+    document.querySelectorAll("button").forEach((node) => { node.disabled = false; });
+  }
+}
+
+async function loadBatch(type = "batch") {
+  const result = await call(type);
+  if (!result) return;
+  meta = result;
+  cards = result.cards;
+  index = 0;
+  phase = "card";
+  render();
+}
+
+function el(tag, className, text, ...children) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text) node.textContent = text;
+  node.append(...children);
+  return node;
+}
+
+function button(key, label, onClick, className = "") {
+  const node = el("button", className, "", label);
+  if (key) node.append(el("kbd", "", key));
+  node.onclick = onClick;
+  return node;
+}
+
+// Template exports keep table pipes and heading marks; the card shows the sentence alone.
+function cleaned(sentence) {
+  return sentence.replace(/^\s*#+\s*/, "").replace(/^\s*\|\s*|\s*\|\s*$/g, "").replace(/\s*\|\s*/g, " · ")
+    .replace(/\s*…\s*$/, "").trim();
+}
+
+// Marks the term, letting the last word take an ending (api -> APIs) and spaces match hyphens.
+function highlighted(sentence, term) {
+  const words = term.split(" ").map((word) => word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const pattern = new RegExp(`(\\b${words.join("[\\s-]+")}[\\w']*)`, "gi");
+  const node = el("span");
+  cleaned(sentence).split(pattern).forEach((part, i) => node.append(i % 2 ? el("mark", "", part) : part));
+  return node;
+}
+
+function examplesList(examples, term) {
+  return el("ul", "examples", "", ...examples.map((example) =>
+    el("li", "", "", highlighted(example.sentence, term), el("span", "source", example.source))));
+}
+
+function renderStats() {
+  const stat = (value, label) => el("span", "", "", el("b", "", String(value)), ` ${label}`);
+  document.getElementById("stats").replaceChildren(
+    stat(meta.due_reviews ?? 0, "due"), stat(`${meta.new_today ?? 0}/${meta.new_cap ?? 0}`, "new today"),
+    stat(session.archived + session.recognized + session.unknown + session.typed, "answered this session"));
+}
+
+function render() {
+  renderStats();
+  const card = cards[index];
+  if (!card) return renderDone();
+  const compose = card.mode === "compose";
+  const progress = el("div", "progress", "", el("div"));
+  progress.firstChild.style.width = `${(index / cards.length) * 100}%`;
+  const top = el("div", "top", "", el("span", "mode", compose ? "Use it" : "Recognize"),
+    el("span", "", `Card ${index + 1} of ${cards.length}`));
+  const chips = el("div", "chips", "", ...[card.kind, card.state === "new" ? "new" : `${card.state} · box ${card.box}`,
+    `in ${card.doc_count} doc${card.doc_count === 1 ? "" : "s"}`].map((text) => el("span", "", text)));
+  const nodes = [progress, top, el("h1", "", card.term), chips];
+  if (phase === "dontknow") {
+    nodes.push(el("p", "notice", "Marked as don't know. It comes back tomorrow. Read it in more sentences:"),
+      el("div", "row", "", button("Enter", "Next card", advance, "primary"), button("E", "Explain it", explain)),
+      examplesList(extra, card.term));
+  } else {
+    const box = el("textarea");
+    box.id = "answer";
+    box.placeholder = compose ? "Write a sentence that uses it…" : "Or explain it in your own words…";
+    box.onkeydown = (event) => {
+      if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); submit(box.value); }
+      if (event.key === "Escape") box.blur();
+    };
+    nodes.push(
+      el("p", "ask", compose ? "Can you use it in a sentence of your own?" : "Do you know what it means?"),
+      examplesList(card.examples, card.term),
+      el("div", "choices", "",
+        button("Space", "I recognize it", () => act("recognize"), "primary"),
+        button("D", "Don't know", dontKnow),
+        button("K", "Know it for life", () => act("archive"))),
+      el("div", "compose", "", box, button("", "Check", () => submit(box.value))),
+      el("div", "foot", "",
+        el("span", "", meta.llm ? "Typed answers are checked by the model; you can keep going meanwhile."
+          : "No model is set up: typed answers wait for your agent."),
+        el("span", "", "", button("U", "Undo last", undo, "quiet"), button("T", "Type", () => box.focus(), "quiet"))));
+  }
+  view.replaceChildren(el("div", "fade", "", ...nodes));
+}
+
+function renderDone() {
+  const summary = el("div", "summary", "", ...[["recognized", "recognized"], ["unknown", "don't know"], ["typed", "typed"], ["archived", "archived"]]
+    .map(([key, label]) => el("div", "", "", el("b", "", String(session[key])), el("span", "", label))));
+  view.replaceChildren(el("div", "center fade", "",
+    el("h1", "", "Done for today"),
+    el("p", "", `No reviews are due, and today's ${meta.new_cap} new words are done.`),
+    summary,
+    el("div", "row", "", button("M", `Learn ${meta.batch} more new words`, () => loadBatch("more"), "primary"),
+      button("U", "Undo last", undo))));
+}
+
+async function act(type) {
+  const card = cards[index];
+  if (!(await call(type, { term: card.term, rev: card.rev }))) return;
+  session[type === "archive" ? "archived" : "recognized"] += 1;
+  advance();
+}
+
+async function dontKnow() {
+  const card = cards[index];
+  const result = await call("dont_know", { term: card.term, rev: card.rev });
+  if (!result) return;
+  session.unknown += 1;
+  extra = result.examples;
+  phase = "dontknow";
+  render();
+}
+
+async function explain() {
+  const card = cards[index];
+  const result = await call("explain", { term: card.term });
+  if (result) pendingEntry(card.term, result.queued ? "info" : "wait", result.queued ? "queued for your agent" : "explaining");
+}
+
+async function submit(text) {
+  const card = cards[index];
+  if (!text.trim()) { toast("Type an answer first."); return; }
+  const result = await call("answer", { term: card.term, rev: card.rev, text });
+  if (!result) return;
+  session.typed += 1;
+  pendingEntry(card.term, result.queued ? "info" : "wait", result.queued ? "queued for your agent" : "checking", text);
+  advance();
+}
+
+async function undo() {
+  const restored = await call("undo");
+  if (!restored) return;
+  cards.splice(index, 0, restored);
+  phase = "card";
+  render();
+  toast(`Undid "${restored.term}"`);
+}
+
+function advance() {
+  phase = "card";
+  index += 1;
+  if (index < cards.length) render(); else loadBatch();
+}
+
+function entryFor(term) {
+  feed.querySelector(".empty")?.remove();
+  let entry = [...feed.children].find((node) => node.dataset.term === term);
+  if (!entry) {
+    entry = el("div", "entry fade");
+    entry.dataset.term = term;
+  }
+  feed.prepend(entry);
+  return entry;
+}
+
+function pendingEntry(term, kind, status, text) {
+  const entry = entryFor(term);
+  entry.replaceChildren(el("header", "", "", el("b", "", term), el("span", `pill ${kind}`, status)));
+  if (text) entry.append(el("p", "you", `“${text}”`));
+}
+
+function showResult(message) {
+  const entry = entryFor(message.term);
+  const you = entry.querySelector(".you");
+  const [kind, status] = message.queued ? ["info", "queued for your agent"]
+    : message.error ? ["fail", "not recorded"]
+    : message.verdict ? [message.verdict, message.verdict === "pass" ? "pass" : "not yet"]
+    : ["info", "explained"];
+  entry.replaceChildren(el("header", "", "", el("b", "", message.term), el("span", `pill ${kind}`, status)));
+  if (you) entry.append(you);
+  if (message.feedback) entry.append(el("p", "feedback", message.feedback));
+  if (message.error || message.queued) entry.append(el("p", "you", message.error ?? message.reason));
+  const list = el("dl");
+  for (const [name, label] of [["meaning", "Meaning"], ["connotation", "Tone"], ["origin", "Origin"], ["hook", "Memory hook"], ["example", "Example"]]) {
+    if (message[name]) list.append(el("dt", "", label), el("dd", "", message[name]));
+  }
+  if (list.children.length) entry.append(list);
+}
+
+function toast(text) {
+  const node = document.getElementById("toast");
+  node.textContent = text;
+  node.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => node.classList.remove("show"), 2600);
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.target.tagName === "TEXTAREA" || event.metaKey || event.ctrlKey || event.altKey || event.repeat) return;
+  const key = event.key.toLowerCase();
+  const actions = !cards[index] ? { m: () => loadBatch("more"), u: undo }
+    : phase === "dontknow" ? { enter: advance, n: advance, e: explain }
+    : { " ": () => act("recognize"), d: dontKnow, k: () => act("archive"), u: undo,
+      t: () => document.getElementById("answer").focus() };
+  if (actions[key] && !busy) { event.preventDefault(); actions[key](); }
+});
+
+connect();
+</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 // Runtime contract for the deployed my-domain-vocab script. Every assertion goes through CLI output;
 // the clock moves through the fake-clock preload and TZ.
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -50,6 +50,7 @@ try {
   pruning();
   readOnlyQuery();
   rebuildRecounts();
+  await serveDrill();
   console.log('my-domain-vocab runtime contract passed');
 } catch (error) {
   console.error(`my-domain-vocab runtime: ${error.message}`);
@@ -812,6 +813,156 @@ function rebuildRecounts() {
   assert(restored.duplicates.length === 1 && restored.restored_texts.length === 1, `re-ingest did not restore the saved text: ${JSON.stringify(restored)}`);
   vocab(['rebuild'], { field });
   assert(snapshot() === before, 'rebuild after restoring a saved text changed counts or learning state');
+}
+
+// The drill page's routes over a real socket, with a fake --llm command that answers in a code fence.
+async function serveDrill() {
+  const field = 'drill';
+  now = at('2026-05-04T09:00:00');
+  const runtime = join(store, 'runtime');
+  const missing = cli(withField(['serve', '--port', '0'], field));
+  assert(missing.status !== 0 && missing.stderr.includes(`npm install --prefix "${runtime}" ws@8`),
+    `serve without ws did not name the install command: ${missing.stderr}`);
+  const kitWs = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'node_modules', 'ws');
+  cpSync(kitWs, join(runtime, 'node_modules', 'ws'), { recursive: true });
+  ingest(['Kestrel heron osprey falcon plover wren finch. Kestrel heron osprey falcon plover wren finch.'], 'drill', field);
+
+  const fakeLlm = join(scratch, 'fake-llm.mjs');
+  writeFileSync(fakeLlm, `let s = ''; process.stdin.on('data', (d) => { s += d; }).on('end', () => {
+  if (s.includes('BROKEN')) { process.stdout.write('no json here'); return; }
+  const reply = { meaning: 'm', connotation: 'c', origin: 'o', hook: 'h', example: 'e' };
+  if (s.includes('"verdict"')) Object.assign(reply, { verdict: s.includes('right answer') ? 'pass' : 'fail', feedback: 'f' });
+  process.stdout.write('\u0060\u0060\u0060json\\n' + JSON.stringify(reply) + '\\n\u0060\u0060\u0060\\n');
+});\n`);
+  const [command, argv, options] = invocation(withField(
+    ['serve', '--port', '0', '--batch', '3', '--new', '4', '--llm', `"${process.execPath}" "${fakeLlm}"`], field));
+  const server = spawn(command, argv, options);
+  try {
+    const started = await serverInfo(server);
+    assert(started.queue === join(store, field, 'queue.jsonl'), 'serve did not print the queue path');
+    const page = await fetch(started.url);
+    assert(page.status === 200 && (await page.text()).includes('<title>Vocabulary drill</title>'), 'serve did not return the page');
+    const socketUrl = (token) => `ws://127.0.0.1:${started.port}/ws?token=${token}`;
+    assert(!(await opens(socketUrl('wrong'))), 'socket opened with a wrong token');
+    const drill = await drillSocket(socketUrl(new URL(started.url).searchParams.get('token')));
+
+    let batch = await drill.send('batch');
+    assert(batch.cards.length === 3 && batch.cards.every((c) => c.state === 'new') && batch.new_cap === 4 && batch.llm,
+      `first batch is not three new cards: ${JSON.stringify(batch)}`);
+    const [first, second, third] = batch.cards;
+    await drill.send('archive', { term: first.term, rev: first.rev });
+    assert(vocab(['show', first.term], { field }).term.state === 'archived', 'archive route did not archive');
+    const restored = await drill.send('undo');
+    const back = vocab(['show', first.term], { field }).term;
+    assert(back.state === 'new' && back.box === 0 && back.due === null && restored.rev === back.rev, 'undo did not restore the new term');
+    await drill.rejects('archive', { term: second.term, rev: second.rev - 1 }, /another session/);
+
+    const recognized = await drill.send('recognize', { term: restored.term, rev: restored.rev });
+    assert(recognized.to.state === 'learning' && recognized.to.box === 2, 'recognize did not pass the card');
+    const unknown = await drill.send('dont_know', { term: second.term, rev: second.rev });
+    assert(unknown.to.box === 1 && unknown.examples.length >= 1, 'dont_know did not fail the card and return examples');
+    assert((await drill.send('answer', { term: third.term, rev: third.rev, text: 'the right answer' })).checking, 'answer did not start a check');
+    const verdict = await drill.pushed('feedback');
+    assert(verdict.term === third.term && verdict.verdict === 'pass' && verdict.to.box === 2 && verdict.hook === 'h',
+      `judge verdict was not recorded: ${JSON.stringify(verdict)}`);
+    assert(vocab(['show', third.term], { field }).term.box === 2, 'judge verdict is not in the database');
+
+    batch = await drill.send('batch');
+    assert(batch.cards.length === 1 && batch.new_today === 3, `cap of 4 did not leave one card: ${JSON.stringify(batch)}`);
+    const fourth = batch.cards[0];
+    await drill.send('answer', { term: fourth.term, rev: fourth.rev, text: 'BROKEN' });
+    const queued = await drill.pushed('feedback');
+    assert(queued.queued && /no JSON/.test(queued.reason), `a bad LLM reply was not queued: ${JSON.stringify(queued)}`);
+    const entry = JSON.parse(readFileSync(started.queue, 'utf8').trim().split('\n').at(-1));
+    assert(entry.task === 'judge' && entry.term === fourth.term && entry.rev === fourth.rev && entry.text === 'BROKEN',
+      `queue entry is incomplete: ${JSON.stringify(entry)}`);
+    assert(vocab(['show', fourth.term], { field }).term.state === 'new', 'a queued answer changed the term');
+    batch = await drill.send('batch');
+    assert(batch.cards.length === 0, 'a held card or a card over the cap came back');
+    batch = await drill.send('more');
+    assert(batch.cards.length === 3 && !batch.cards.some((c) => c.term === fourth.term), `more did not open three new cards: ${JSON.stringify(batch)}`);
+
+    await drill.send('explain', { term: second.term });
+    const explained = await drill.pushed('explanation');
+    assert(explained.term === second.term && explained.meaning === 'm' && !('verdict' in explained), 'explain did not push the explanation');
+    await drill.rejects('drop_table', {}, /unknown message type/);
+    drill.close();
+  } finally {
+    server.kill();
+  }
+}
+
+function serverInfo(server) {
+  return new Promise((resolvePromise, reject) => {
+    let out = '';
+    let err = '';
+    server.stderr.on('data', (chunk) => { err += chunk; });
+    server.on('exit', (code) => reject(new Error(`serve exited with ${code}: ${err}`)));
+    server.stdout.on('data', (chunk) => {
+      out += chunk;
+      try {
+        resolvePromise(JSON.parse(out));
+      } catch {
+        // The JSON is still arriving.
+      }
+    });
+  });
+}
+
+function opens(url) {
+  return new Promise((resolvePromise) => {
+    const socket = new WebSocket(url);
+    socket.onopen = () => { socket.close(); resolvePromise(true); };
+    socket.onerror = () => resolvePromise(false);
+  });
+}
+
+async function drillSocket(url) {
+  const socket = new WebSocket(url);
+  await new Promise((resolvePromise, reject) => { socket.onopen = resolvePromise; socket.onerror = () => reject(new Error('socket did not open')); });
+  const replies = new Map();
+  const pushes = [];
+  const listeners = [];
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+    if (message.id) {
+      replies.get(message.id)(message);
+      replies.delete(message.id);
+      return;
+    }
+    pushes.push(message);
+    listeners.splice(0).forEach((listen) => listen());
+  };
+  let nextId = 1;
+  const raw = (type, payload) => new Promise((resolvePromise) => {
+    const id = nextId++;
+    replies.set(id, resolvePromise);
+    socket.send(JSON.stringify({ id, type, ...payload }));
+  });
+  return {
+    async send(type, payload = {}) {
+      const reply = await raw(type, payload);
+      assert(reply.ok, `${type} failed: ${reply.error}`);
+      return reply.data;
+    },
+    async rejects(type, payload, pattern) {
+      const reply = await raw(type, payload);
+      assert(!reply.ok && pattern.test(reply.error), `${type} was not rejected as expected: ${JSON.stringify(reply)}`);
+    },
+    async pushed(type) {
+      const deadline = performance.now() + 20_000;
+      for (;;) {
+        const found = pushes.findIndex((message) => message.type === type);
+        if (found >= 0) return pushes.splice(found, 1)[0];
+        assert(performance.now() < deadline, `no ${type} message arrived`);
+        await new Promise((resolvePromise) => {
+          listeners.push(resolvePromise);
+          setTimeout(resolvePromise, 200);
+        });
+      }
+    },
+    close: () => socket.close(),
+  };
 }
 
 function ingest(texts, prefix = 'doc', field) {
