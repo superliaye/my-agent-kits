@@ -10,6 +10,8 @@ added_in: 0.1.0
 
 - Prefer existing harness tools (APIs, MCP, CLI); use browser or computer interaction only when those tools cannot complete the task effectively (e.g., fetch PR details and diffs through an API or MCP).
 
+- Skills that set `disable-model-invocation: true` are left out of the agent's skill list but can still run. When the user's message names a skill as `/<name>` or `/<plugin>:<name>` anywhere in the text, treat that as a request to run it. Load it with the skill tool, using the closest skill name (`/ye:how it works` means `ye:how`). If the tool refuses, find that skill's `SKILL.md` in the user or plugin skills folders, then read and apply it.
+
 - Keep production APIs driven by production needs. Do not add exports, public methods, or widen visibility solely for tests unless the user explicitly requests it. If test-only exposure is unavoidable, explain why and obtain explicit user consent before implementing it.
 
 - For all human-facing text (responses, documentation, comments, PRs, plans, and similar), write about 80% of the way toward ASD-STE100 (Simplified Technical English): clear, concise, direct, unambiguous, and consistent in terminology.
