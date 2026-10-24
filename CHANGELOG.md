@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.53.2] - 2026-10-24
+
+### Removed
+
+- **Matt Pocock's `pr` skill no longer deploys** — the shared change-summary rules now carry its before/after evidence, and the skill loaded its own PR template next to them. Updates remove the manifest-owned deployment.
+
 ## [0.53.1] - 2026-10-24
 
 ### Changed

@@ -19,7 +19,6 @@ const engineering = [
   "implement",
   "implement-spec",
   "improve-codebase-architecture",
-  "pr",
   "prototype",
   "research",
   "retro",
@@ -61,6 +60,7 @@ const excluded = [
   "caveman",
   "zoom-out",
   "resolving-merge-conflicts",
+  "pr",
 ];
 
 const descriptions = {
@@ -75,7 +75,6 @@ const descriptions = {
   "implement": "Implement a piece of work based on a spec or set of tickets.",
   "implement-spec": "Implement the result of /to-spec and its tickets in code.",
   "improve-codebase-architecture": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
-  "pr": "Use when writing a PR body.",
   "prototype": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
   "research": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
   "retro": "Conduct a retrospective on a coding session.",
@@ -117,7 +116,6 @@ const addedIn = {
   handoff: "0.12.0",
   "implement-spec": "0.53.0",
   "improve-codebase-architecture": "0.4.0",
-  pr: "0.53.0",
   prototype: "0.12.0",
   retro: "0.53.0",
   tdd: "0.16.0",
@@ -136,7 +134,6 @@ const runtimeFiles = {
   implement: ["SKILL.md"],
   "implement-spec": ["SKILL.md"],
   "improve-codebase-architecture": ["HTML-REPORT.md", "SKILL.md"],
-  pr: ["CREDITS.md", "SKILL.md"],
   prototype: ["LOGIC.md", "SKILL.md", "UI.md"],
   research: ["SKILL.md"],
   retro: ["SKILL.md"],
@@ -199,7 +196,7 @@ function readSkill(name) {
 
 function hasInvocation(content, name) {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`(?:^|[\\s\\x60'\"(])\\/${escaped}\\b|Skill tool[^\\n]{0,100}[\"'\\x60]${escaped}[\"'\\x60]`, "im").test(content);
+  return new RegExp(`(?:^|[\\s\\x60'\"(])\\/${escaped}(?![\\w-])|Skill tool[^\\n]{0,100}[\"'\\x60]${escaped}[\"'\\x60]`, "im").test(content);
 }
 
 function validatePresets() {
@@ -237,7 +234,6 @@ function validateSourceCatalog() {
     const expectedKeys = ["added_in", "description", "name", "upstream", "upstream_version"];
     if (manualOnly.has(name)) expectedKeys.push("disable-model-invocation");
     if (argumentHints[name]) expectedKeys.push("argument-hint");
-    if (name === "pr") expectedKeys.push("metadata");
 
     equalSet(Object.keys(frontmatter), expectedKeys, `${name} frontmatter keys`);
     check(frontmatter.name === name, `${name}: frontmatter name is ${String(frontmatter.name)}`);
