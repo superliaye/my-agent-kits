@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.53.1] - 2026-10-24
+
+### Changed
+
+- **Change summaries show the change as a before/after pair** — `/my-summarize-changes`, `/my-create-pr`, and the first-push description of `/my-commit-and-push` add a before/after step when a change alters observable behavior. They prefer screenshots captured through the matching visual loop and fall back to the failing-then-passing output or test. Screenshots stay in a per-run temporary directory and attach to the PR through the PR tool when it uploads images, such as `gh pr create --attach`; otherwise the summary lists their absolute paths.
+
 ## [0.53.0] - 2026-10-24
 
 ### Added

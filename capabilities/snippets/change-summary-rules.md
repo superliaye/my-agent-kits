@@ -19,7 +19,15 @@ Write for human reviewers. They can read the diff, so do not repeat details that
 
    Reference specific implementation details only when they add context that a reviewer cannot efficiently infer from the diff.
 
-3. **Appendix**: Add a collapsed <details> appendix only when it provides useful deeper context for reviewers, future agents, or code archaeology.
+3. **Before and after**: When the change alters behavior that a person can observe, show it as a before/after pair.
+
+   - Prefer screenshots when the change is visible in a UI. Capture them with `web-visual-loop`, `electron-visual-loop`, or `desktop-app-loop`, whichever matches how the app ships. If the before state is gone, describe it in one line; do not check out other revisions to recreate it.
+   - Otherwise show execution evidence: the command output, error, or test that failed before and passes after. Outline a test as short pseudocode, not its full source.
+   - Skip this section when the change has no observable behavior, such as a refactor, docs, or build plumbing.
+
+   Save screenshots in a per-run directory under the OS temporary directory, never in the repository. When the PR tool uploads images (for example `gh pr create --attach <path>` or `gh pr edit --attach <path>`), reference each one in the body as `![Before: <what it shows>](<path>)` with the same path you attach. Otherwise list the absolute paths after the summary so the user can attach them.
+
+4. **Appendix**: Add a collapsed <details> appendix only when it provides useful deeper context for reviewers, future agents, or code archaeology.
 
    Possible contents include behavior matrices, edge cases, validation results, migration notes, or a file-level map for unusually broad changes.
 
