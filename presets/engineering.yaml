@@ -27,10 +27,12 @@ capabilities:
     - grilling
     - handoff
     - implement
+    - implement-spec
     - improve-codebase-architecture
+    - pr
     - prototype
     - research
-    - resolving-merge-conflicts
+    - retro
     - tdd
     - teach
     - to-questionnaire

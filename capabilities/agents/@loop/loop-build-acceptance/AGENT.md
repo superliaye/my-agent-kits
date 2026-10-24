@@ -32,7 +32,7 @@ to the expected value may produce a `completed` result.
 ## Check both blocks
 
 Before you run anything, read what the repo and your memory already say about how to
-run its harness — `CLAUDE.md`/`AGENTS.md`/`CONTEXT.md`, `docs/`, project memory:
+run its harness — `CLAUDE.md`/`AGENTS.md`/`GLOSSARY.md`, `docs/`, project memory:
 required flags, timeouts, isolation, env setup, known-environmental or flaky
 failures. Follow it instead of rediscovering it. Don't trust a red signal that
 contradicts a documented caveat — if the docs say the box needs high timeouts or

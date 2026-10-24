@@ -28,11 +28,11 @@ const legacy = new Map([
   ["writing-for-agents", "write-a-skill"],
 ]);
 manifest.skills = manifest.skills.map(({ name }) => ({ name: legacy.get(name) ?? name }));
-manifest.skills.push({ name: "to-issues" }, { name: "caveman" }, { name: "zoom-out" });
+manifest.skills.push({ name: "to-issues" }, { name: "caveman" }, { name: "zoom-out" }, { name: "resolving-merge-conflicts" });
 writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
 NODE
 
-for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out; do
+for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out resolving-merge-conflicts; do
   mkdir -p "$HOME/.agents/skills/$legacy"
   printf '%s\n' '---' > "$HOME/.agents/skills/$legacy/SKILL.md"
 done
@@ -47,7 +47,7 @@ for successor in pr-get-ready pr-check-comments diagnosing-bugs to-spec writing-
   assert_file_exists "$HOME/.agents/skills/$successor/SKILL.md" "$successor restored by migrated replay"
   assert_content_contains "$MANIFEST" "\"name\": \"$successor\"" "$successor recorded in migrated manifest"
 done
-for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out; do
+for legacy in pr-ready pr-comments-eval diagnose to-prd write-a-skill to-issues caveman zoom-out resolving-merge-conflicts; do
   if [ -d "$HOME/.agents/skills/$legacy" ]; then
     fail "$legacy deployed directory remains after migration"
   else
@@ -63,7 +63,7 @@ done
 if node --input-type=module - "$KIT_ROOT" <<'NODE'
 const { migrateSelection } = await import(`${process.argv[2]}/lib/selection-migrations.js`);
 const seeded = migrateSelection({
-  skills: ["pr-ready", "pr-comments-eval", "diagnose", "to-prd", "write-a-skill", "to-issues", "caveman", "zoom-out"],
+  skills: ["pr-ready", "pr-comments-eval", "diagnose", "to-prd", "write-a-skill", "to-issues", "caveman", "zoom-out", "resolving-merge-conflicts"],
 });
 const expected = ["pr-get-ready", "pr-check-comments", "diagnosing-bugs", "to-spec", "writing-for-agents"];
 if (JSON.stringify(seeded.skills) !== JSON.stringify(expected)) process.exit(1);

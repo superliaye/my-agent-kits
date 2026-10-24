@@ -1,9 +1,9 @@
 # Upstream provenance
 
 - Repository: `https://github.com/mattpocock/skills`
-- Commit: `6654f6b60cd9d5be8b54c6fafe44346dabeb3b76`
+- Commit: `5beb35b040e3de97e54fa9e386d7e42d15c295c2`
 - Source: `skills/engineering/domain-modeling/`
-- Vendored files: `SKILL.md`, `ADR-FORMAT.md`, `CONTEXT-FORMAT.md`
+- Vendored files: `SKILL.md`, `ADR-FORMAT.md`, `GLOSSARY-FORMAT.md`
 
 ## Resync
 
@@ -16,5 +16,5 @@
 ## Local deviations
 
 - Preserved upstream `name`, `description`, invocation flags, and argument hints; added `added_in`, `upstream`, and `upstream_version` kit metadata.
-- Requires explicit user authorization before creating or editing `CONTEXT.md` or ADRs when
+- Requires explicit user authorization before creating or editing `GLOSSARY.md` or ADRs when
   invocation began as discussion.

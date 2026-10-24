@@ -148,7 +148,7 @@ and your recommendation. The resident agent will get a human decision and re-spa
 you with the resolutions.
 
 Before escalating an "ambiguous requirement", check the plan, `CLAUDE.md`,
-`CONTEXT.md`, and `docs/` — only genuinely unanswered questions are worth a human.
+`GLOSSARY.md`, and `docs/` — only genuinely unanswered questions are worth a human.
 
 Immediately before a normal return, recompute the acceptance contract ID from its source and the
 source-state attestation. A moved contract returns `stale-contract`; a moved tree invalidates the

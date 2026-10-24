@@ -36,7 +36,7 @@ You're handed **one target doc**. If none was named, ask which.
 3. **Relocate each durable piece to its nearest permanent home** — as close to what it
    constrains as possible, so it can't silently rot. A gotcha about one function belongs in a
    comment on that function; a decision and its rationale in the repo's `docs/adr/` if it
-   keeps one, else `CONTEXT.md`; a domain term in `CONTEXT.md`; a user-facing capability in
+   keeps one, else `GLOSSARY.md`; a domain term in `GLOSSARY.md`; a user-facing capability in
    the README. Use the durable homes the repo already has — invent a new file only when the
    knowledge clearly warrants one, and ask first. Rewrite each piece as present-tense current
    state and merge it into the existing section: drop the dates and the "we will / we now

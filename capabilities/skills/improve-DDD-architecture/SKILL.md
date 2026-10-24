@@ -20,9 +20,9 @@ from memory.
 
 ## Ubiquitous language first
 
-Names are the load-bearing artifact. If the repo has a `CONTEXT.md`,
+Names are the load-bearing artifact. If the repo has a `GLOSSARY.md`,
 the domain's terms live there. Every finding should be phrased in those
-terms. A name in the code that disagrees with `CONTEXT.md` (or with the
+terms. A name in the code that disagrees with `GLOSSARY.md` (or with the
 team's own consistent usage) is itself a finding: **language drift**.
 
 ## The layers (the review skeleton)
@@ -107,7 +107,7 @@ applies — enforced by import direction within the module.
    not folders*). If the repo isn't layered, that's context — note it;
    don't impose ceremony a simple CRUD app doesn't need (see
    *Proportionality*).
-2. **Read `CONTEXT.md`** (and ADRs) for the ubiquitous language and
+2. **Read `GLOSSARY.md`** (and ADRs) for the ubiquitous language and
    prior decisions. Don't re-litigate settled decisions.
 3. **Walk the diff against the checklist** below. For each hit, record
    a finding: severity + `file:line` + the principle + a one-line
@@ -128,7 +128,7 @@ applies — enforced by import direction within the module.
       references or internal mutation instead of by-id + events.
 - [ ] **Misplaced logic** — business rules in application services,
       controllers, or repositories.
-- [ ] **Language drift** — code names disagree with `CONTEXT.md` / the
+- [ ] **Language drift** — code names disagree with `GLOSSARY.md` / the
       team's consistent usage.
 - [ ] **Missing ACL** — external/legacy models used raw across a
       boundary.

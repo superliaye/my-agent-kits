@@ -4,7 +4,7 @@ description: Turn a decision you can't fully answer into a questionnaire for som
 disable-model-invocation: true
 added_in: 0.47.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 Turn something the user can't answer alone into a **questionnaire**: a Markdown document they hand to one person to fill in async, or fill out together over a meeting. The recipient holds knowledge the user lacks; the questionnaire pulls it out of them.

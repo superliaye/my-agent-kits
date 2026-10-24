@@ -7,8 +7,8 @@ import { loadPreset } from "../../lib/presets.js";
 
 const KIT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const MATT_ROOT = join(KIT_ROOT, "capabilities", "skills", "@matt-pocock");
-const PINNED_COMMIT = "6654f6b60cd9d5be8b54c6fafe44346dabeb3b76";
-const UPSTREAM_VERSION = "2026-08-24 (6654f6b)";
+const PINNED_COMMIT = "5beb35b040e3de97e54fa9e386d7e42d15c295c2";
+const UPSTREAM_VERSION = "2026-10-19 (5beb35b)";
 
 const engineering = [
   "code-review",
@@ -17,10 +17,12 @@ const engineering = [
   "domain-modeling",
   "grill-with-docs",
   "implement",
+  "implement-spec",
   "improve-codebase-architecture",
+  "pr",
   "prototype",
   "research",
-  "resolving-merge-conflicts",
+  "retro",
   "tdd",
   "to-spec",
   "triage",
@@ -58,22 +60,25 @@ const excluded = [
   "write-a-skill",
   "caveman",
   "zoom-out",
+  "resolving-merge-conflicts",
 ];
 
 const descriptions = {
   "code-review": "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\".",
   "codebase-design": "Shared vocabulary for designing deep modules. Use when the user wants to design or improve a module's interface, find deepening opportunities, decide where a seam goes, make code more testable or AI-navigable, or when another skill needs the deep-module vocabulary.",
   "diagnosing-bugs": "Diagnosis loop for hard bugs and performance regressions. Use when the user says \"diagnose\"/\"debug this\", or reports something broken/throwing/failing/slow.",
-  "domain-modeling": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a CONTEXT.md, or recording or editing an ADR.",
+  "domain-modeling": "Build and sharpen a project's domain model. Use when discussing codebase terminology, writing or editing a GLOSSARY.md, or recording or editing an ADR.",
   "grill-me": "A relentless interview to sharpen a plan or design.",
   "grill-with-docs": "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go.",
   "grilling": "Grill the user relentlessly about a plan, decision, or idea. Use when the user wants to stress-test their thinking, or uses any 'grill' trigger phrases.",
   "handoff": "Compact the current conversation into a handoff document for another agent to pick up.",
   "implement": "Implement a piece of work based on a spec or set of tickets.",
+  "implement-spec": "Implement the result of /to-spec and its tickets in code.",
   "improve-codebase-architecture": "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.",
+  "pr": "Use when writing a PR body.",
   "prototype": "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like.",
   "research": "Investigate a question against high-trust primary sources and capture the findings as a Markdown file. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent.",
-  "resolving-merge-conflicts": "Use when you need to resolve an in-progress git merge/rebase conflict.",
+  "retro": "Conduct a retrospective on a coding session.",
   "tdd": "Test-driven development. Use when the user wants to build features or fix bugs test-first, mentions \"red-green-refactor\", or wants integration tests.",
   "teach": "Teach the user a new skill or concept, within this workspace.",
   "to-questionnaire": "Turn a decision you can't fully answer into a questionnaire for someone else to fill in.",
@@ -90,7 +95,9 @@ const manualOnly = new Set([
   "grill-with-docs",
   "handoff",
   "implement",
+  "implement-spec",
   "improve-codebase-architecture",
+  "retro",
   "teach",
   "to-questionnaire",
   "to-spec",
@@ -104,12 +111,15 @@ const argumentHints = {
   teach: "What would you like to learn about?",
 };
 
-const retainedAddedIn = {
+const addedIn = {
   "grill-me": "0.7.0",
   "grill-with-docs": "0.4.0",
   handoff: "0.12.0",
+  "implement-spec": "0.53.0",
   "improve-codebase-architecture": "0.4.0",
+  pr: "0.53.0",
   prototype: "0.12.0",
+  retro: "0.53.0",
   tdd: "0.16.0",
   teach: "0.20.0",
 };
@@ -118,16 +128,18 @@ const runtimeFiles = {
   "code-review": ["SKILL.md"],
   "codebase-design": ["DEEPENING.md", "DESIGN-IT-TWICE.md", "SKILL.md"],
   "diagnosing-bugs": ["SKILL.md", "scripts/hitl-loop.template.sh"],
-  "domain-modeling": ["ADR-FORMAT.md", "CONTEXT-FORMAT.md", "SKILL.md"],
+  "domain-modeling": ["ADR-FORMAT.md", "GLOSSARY-FORMAT.md", "SKILL.md"],
   "grill-me": ["SKILL.md"],
   "grill-with-docs": ["SKILL.md"],
   grilling: ["SKILL.md"],
   handoff: ["SKILL.md"],
   implement: ["SKILL.md"],
+  "implement-spec": ["SKILL.md"],
   "improve-codebase-architecture": ["HTML-REPORT.md", "SKILL.md"],
+  pr: ["CREDITS.md", "SKILL.md"],
   prototype: ["LOGIC.md", "SKILL.md", "UI.md"],
   research: ["SKILL.md"],
-  "resolving-merge-conflicts": ["SKILL.md"],
+  retro: ["SKILL.md"],
   tdd: ["SKILL.md", "mocking.md", "tests.md"],
   teach: ["GLOSSARY-FORMAT.md", "LEARNING-RECORD-FORMAT.md", "MISSION-FORMAT.md", "RESOURCES-FORMAT.md", "SKILL.md"],
   "to-questionnaire": ["SKILL.md"],
@@ -143,7 +155,9 @@ const dependencies = {
   "grill-me": ["grilling"],
   "grill-with-docs": ["grilling", "domain-modeling"],
   implement: ["tdd", "code-review"],
+  "implement-spec": ["tdd", "code-review"],
   "improve-codebase-architecture": ["codebase-design", "grilling", "domain-modeling"],
+  retro: ["writing-for-agents"],
   tdd: ["codebase-design"],
   triage: ["grilling", "domain-modeling"],
   wayfinder: ["research", "prototype", "grilling", "domain-modeling"],
@@ -223,13 +237,14 @@ function validateSourceCatalog() {
     const expectedKeys = ["added_in", "description", "name", "upstream", "upstream_version"];
     if (manualOnly.has(name)) expectedKeys.push("disable-model-invocation");
     if (argumentHints[name]) expectedKeys.push("argument-hint");
+    if (name === "pr") expectedKeys.push("metadata");
 
     equalSet(Object.keys(frontmatter), expectedKeys, `${name} frontmatter keys`);
     check(frontmatter.name === name, `${name}: frontmatter name is ${String(frontmatter.name)}`);
     check(frontmatter.description === descriptions[name], `${name}: upstream description drifted`);
     check(frontmatter["disable-model-invocation"] === (manualOnly.has(name) ? true : undefined), `${name}: invocation flag drifted`);
     check(frontmatter["argument-hint"] === argumentHints[name], `${name}: argument hint drifted`);
-    check(frontmatter.added_in === (retainedAddedIn[name] ?? "0.47.0"), `${name}: added_in is ${String(frontmatter.added_in)}`);
+    check(frontmatter.added_in === (addedIn[name] ?? "0.47.0"), `${name}: added_in is ${String(frontmatter.added_in)}`);
     check(frontmatter.upstream === "https://github.com/mattpocock/skills", `${name}: upstream URL drifted`);
     check(frontmatter.upstream_version === UPSTREAM_VERSION, `${name}: upstream_version is ${String(frontmatter.upstream_version)}`);
 
@@ -256,14 +271,14 @@ function validateSourceCatalog() {
 }
 
 function validateOverlays() {
-  for (const name of ["code-review", "to-spec", "triage", "wayfinder"]) {
+  for (const name of ["code-review", "implement-spec", "to-spec", "triage", "wayfinder"]) {
     const body = readSkill(name);
     check(/discover/i.test(body) && /(?:tracker|configuration)/i.test(body), `${name}: does not discover tracker configuration first`);
     check(/ask\s+(?:the user|them)/i.test(body), `${name}: does not ask the user directly when discovery is ambiguous`);
   }
   check(/local[- ]markdown/i.test(readSkill("wayfinder")), "wayfinder: local-markdown fallback is missing");
 
-  for (const name of ["implement", "prototype", "resolving-merge-conflicts", "wizard"]) {
+  for (const name of ["implement", "implement-spec", "prototype", "wizard"]) {
     const body = readSkill(name);
     check(/git/i.test(body) && /explicit/i.test(body) && /authori[sz]|permission|confirm/i.test(body), `${name}: explicit git-mutation authorization gate is missing`);
   }
@@ -272,7 +287,7 @@ function validateOverlays() {
   check(/worktree/i.test(codeReview) && /git ls-files --others --exclude-standard/.test(codeReview), "code-review: worktree review does not include untracked files");
   check(/`worktree` mode/i.test(readSkill("implement")) && /review fixed point/i.test(readSkill("implement")), "implement: does not review its complete pre-commit worktree");
 
-  for (const name of ["handoff", "research", "to-questionnaire", "wizard"]) {
+  for (const name of ["handoff", "implement-spec", "research", "to-questionnaire", "wizard"]) {
     const body = readSkill(name);
     check(/per-run|run-scoped|unique/i.test(body), `${name}: output location is not isolated per run`);
     check(/absolute path/i.test(body), `${name}: does not require reporting the exact absolute path`);

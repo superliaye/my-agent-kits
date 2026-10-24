@@ -4,7 +4,7 @@ description: A relentless interview to sharpen a plan or design, which also crea
 disable-model-invocation: true
 added_in: 0.4.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 Call the Skill tool twice, for "grilling" and "domain-modeling".

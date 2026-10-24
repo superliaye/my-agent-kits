@@ -4,7 +4,7 @@ description: "Turn the current conversation into a spec and publish it to the pr
 disable-model-invocation: true
 added_in: 0.47.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec. Do NOT interview the user; just synthesize what you already know.

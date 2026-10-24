@@ -32,17 +32,17 @@ sections: requirements (functional + non-functional); architecture, key design d
 their rationale; data models; interfaces; workflow sequences; integration points;
 alternatives considered; risks and open questions.
 
-It runs in your own context, so let it keep sharpening terminology into `CONTEXT.md` — but
+It runs in your own context, so let it keep sharpening terminology into `GLOSSARY.md` — but
 **decline its ADR offers here**. The design doc's "Key Design Decisions" and "Alternatives
 Considered" sections are this feature's decision record; route those decisions into the doc,
-keeping `CONTEXT.md` a glossary only.
+keeping `GLOSSARY.md` a glossary only.
 
 If `/grill-with-docs` is not installed, stop and tell the user to install it.
 
 ## 3. Write the design doc
 
 Using [DESIGN-DOC-FORMAT.md](./DESIGN-DOC-FORMAT.md) as the structure, fill it from the
-resolved grill outcomes — terminology is settled in the grill (and `CONTEXT.md`) first, then
+resolved grill outcomes — terminology is settled in the grill (and `GLOSSARY.md`) first, then
 the doc is filled from those outcomes.
 
 - **Fresh write** — set Status and seed the Version History table.

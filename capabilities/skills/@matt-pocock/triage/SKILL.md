@@ -4,7 +4,7 @@ description: Move issues and external PRs through a state machine of triage role
 disable-model-invocation: true
 added_in: 0.47.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 # Triage
@@ -85,7 +85,7 @@ Show counts and a one-line summary per item. Let the maintainer pick.
    Report what happened: confirmed (with code path), failed, or insufficient detail (a strong
    `needs-info` signal). A confirmed verification makes a much stronger agent brief.
 
-4. **Grill (if needed).** If the request needs fleshing out, call the Skill tool twice, for "grilling" and "domain-modeling", and grill it into shape a round of questions at a time, sharpening domain terms and updating `CONTEXT.md`/ADRs inline as decisions land.
+4. **Grill (if needed).** If the request needs fleshing out, call the Skill tool twice, for "grilling" and "domain-modeling", and grill it into shape a round of questions at a time, sharpening domain terms and updating `GLOSSARY.md`/ADRs inline as decisions land.
 
 5. **Apply the outcome:**
    - `ready-for-agent`: post an agent brief comment ([AGENT-BRIEF.md](AGENT-BRIEF.md)).

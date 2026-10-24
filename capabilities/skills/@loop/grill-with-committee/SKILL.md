@@ -54,7 +54,7 @@ its **provenance** (`committee` = unanimous, `human` = escalated). Embedded in
 `/loop-plan-semiauto`, skip the file — the decisions feed the host's draft phase under the
 host's run folder.
 
-`CONTEXT.md` / ADR updates from `domain-modeling` are **not** per-run — they're the repo's
+`GLOSSARY.md` / ADR updates from `domain-modeling` are **not** per-run — they're the repo's
 durable docs in the working tree, intentionally shared.
 
 ## Vote contract

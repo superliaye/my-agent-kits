@@ -4,19 +4,21 @@ description: "Implement a piece of work based on a spec or set of tickets."
 disable-model-invocation: true
 added_in: 0.47.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 Implement the work described by the user in the spec or tickets.
 
 Before editing, record `git rev-parse HEAD` as the review fixed point.
 
-Use /tdd where possible, at pre-agreed seams.
+If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting. If the reference is ambiguous, ask.
+
+Call the Skill tool with "tdd" where possible, at pre-agreed seams.
 
 Run typechecking regularly, single test files regularly, and the full test suite once at the end.
 
-Once done, use /code-review in `worktree` mode against the recorded fixed point so staged,
-unstaged, and untracked work is reviewed before any optional commit.
+Once done, call the Skill tool with "code-review" in `worktree` mode against the recorded
+fixed point so staged, unstaged, and untracked work is reviewed before any optional commit.
 
 If the user has explicitly authorized staging and committing, commit the work to the current
 branch. Otherwise leave it unstaged and report the changed paths; ask before any `git add` or

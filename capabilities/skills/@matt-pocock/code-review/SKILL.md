@@ -3,7 +3,7 @@ name: code-review
 description: "Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes: Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/spec asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to \"review since X\"."
 added_in: 0.47.0
 upstream: https://github.com/mattpocock/skills
-upstream_version: "2026-08-24 (6654f6b)"
+upstream_version: "2026-10-19 (5beb35b)"
 ---
 
 Two-axis review of either a branch diff or the current worktree since a fixed point the user
@@ -40,20 +40,22 @@ Before going further, confirm the fixed point resolves (`git rev-parse <fixed-po
 
 Look for the originating spec, in this order:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.), fetched via the workflow in `docs/agents/issue-tracker.md`.
+1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.), fetched via the tracker workflow you discovered above.
 2. A path the user passed as an argument.
 3. A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
 4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
 
 ### 3. Identify the standards sources
 
-Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+Search the repo for every file that documents how code should be written. When `CODING_STANDARDS.md` or `CONTRIBUTING.md` exists, it must be on the list.
 
 On top of whatever the repo documents, the Standards axis always carries this smell baseline:
 
 <!-- include: fowler-smell-baseline -->
 
 ### 4. Spawn both sub-agents in parallel
+
+Issue both sub-agent calls together, in the foreground, and aggregate the reports they return.
 
 **Standards sub-agent prompt** should include:
 

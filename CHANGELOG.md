@@ -4,6 +4,21 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.53.0] - 2026-10-24
+
+### Added
+
+- **`/retro`, `pr`, and `/implement-spec` from Matt Pocock's catalog** — `/retro` suggests environment improvements after a coding session; `pr` writes a PR body with a summary visual, before/after evidence, and merge danger; `/implement-spec` builds a spec's ticket graph on one integration branch through parallel implementer subagents. `/implement-spec` discovers the issue tracker itself, keeps exploration notes in a per-run temporary directory, and gets explicit authorization of its branch, worktree, merge, and PR plan before any Git or tracker mutation. The engineering preset ships all three.
+
+### Changed
+
+- **The Matt Pocock catalog is pinned to upstream commit `5beb35b040e3de97e54fa9e386d7e42d15c295c2`** — `code-review` searches for every standards file and runs both reviewers in the foreground; `implement` fetches a passed ticket reference and calls `tdd` and `code-review` through the Skill tool; `diagnosing-bugs` proves a forced mutation landed before it trusts the red; `grilling` words each question so "yes" accepts the recommendation; `tdd` notes what each proposed seam catches and misses; `teach` anchors workspace paths and varies the quiz answer position; `handoff` names the temporary-directory resolution order; `wayfinder` keeps triage labels off maps and uses real ids in cross-references; `wizard`'s `template.sh` fixes readline, `.env` quoting, symlinks, and EOF handling.
+- **The domain glossary is `GLOSSARY.md`** — `domain-modeling` writes `GLOSSARY.md` (and `GLOSSARY-MAP.md` for multi-context repos) in the format of `GLOSSARY-FORMAT.md`. Every Matt skill and the kit-owned `grill-with-committee`, `grill-to-design-doc`, `my-dissolve-doc`, `improve-DDD-architecture`, `loop-build-agent`, and `loop-build-acceptance` read that name. A repo's existing `CONTEXT.md` is not read.
+
+### Removed
+
+- **`resolving-merge-conflicts` no longer deploys** — upstream removed the skill. Updates remove the manifest-owned deployment.
+
 ## [0.52.0] - 2026-10-21
 
 ### Added

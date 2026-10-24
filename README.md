@@ -83,7 +83,7 @@ The current Matt Pocock catalog is pinned to one upstream commit and excludes `a
 
 | Preset | Matt skills | Other contents |
 |---|---|---|
-| `engineering` | `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `improve-codebase-architecture`, `prototype`, `research`, `resolving-merge-conflicts`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | Core engineering instructions and kit-owned delivery/review helpers |
+| `engineering` | `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `implement-spec`, `improve-codebase-architecture`, `pr`, `prototype`, `research`, `retro`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | Core engineering instructions and kit-owned delivery/review helpers |
 | `productivity` | `grill-me`, `grilling`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, `writing-for-agents` | Visual loops, document/media helpers, worker agents, and the Archify, HyperFrames, and Slidev bundles |
 | `loop` | `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-with-docs`, `grilling`, `improve-codebase-architecture` | Planning, acceptance-gated build, review, critique, retrospective, and visual feedback capabilities |
 | `experimenting-engineering` | Inherits the complete `engineering` set | Adds `calibrate-system-prompt`, `grill-to-design-doc`, and the Superpowers plugin |
