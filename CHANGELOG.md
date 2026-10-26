@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.56.0] - 2026-10-26
+
+### Removed
+
+- **`/my-fix-build` no longer deploys** — the engineering preset stops installing it. Updates remove the manifest-owned deployment.
+
 ## [0.55.0] - 2026-10-26
 
 ### Removed
