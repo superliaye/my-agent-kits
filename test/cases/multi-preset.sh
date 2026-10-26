@@ -14,7 +14,7 @@ git init -q .
 # union of all named presets, deduped per type.
 export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
-"$KIT_ROOT/bin/agent-kit" init --preset engineering,productivity --agents claude --bundles hyperframes \
+"$KIT_ROOT/bin/agent-kit" init --preset engineering,productivity --agents claude \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Both presets pull in `core` instruction; verify it lands exactly once (no

@@ -40,9 +40,7 @@ capabilities:
     - smell-review
     - design-critic
     - product-critic
-  plugins:
-    - ui-ux-pro-max
-    - frontend-design
+  plugins: []
   mcp: []
   hooks: []
   bundles: []

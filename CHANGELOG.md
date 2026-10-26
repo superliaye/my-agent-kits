@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.55.0] - 2026-10-26
+
+### Removed
+
+- **The `archify`, `gstack`, `hyperframes`, and `slidev` bundles and the `frontend-design`, `superpowers`, and `ui-ux-pro-max` plugin pointers no longer ship** — the kit keeps only its own and experimental capabilities, and these wrappers of upstream repositories move to curated Tiles in Hive, which install each upstream repository directly. The productivity preset stops installing the three bundles it carried, the loop preset its two plugins, and experimenting-engineering `superpowers`. An update drops them from the manifest and prints a hint for each, but leaves the installed files in place, because agent-kit never uninstalls external installers; remove them by hand if no longer wanted. `/my-slidev` keeps working: it runs the Slidev CLI and never used the bundle. Deploy, update, and verify still support the bundle and plugin kinds.
+
 ## [0.54.0] - 2026-10-26
 
 ### Removed

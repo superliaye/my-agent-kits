@@ -3,25 +3,26 @@ set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 . "$HERE/../lib/assertions.sh"
+. "$HERE/../lib/fixture-kit.sh"
 
 # Isolate BOTH HOME and USERPROFILE so the global writes land in a throwaway dir.
 TMPHOME="$(mktemp -d)"; export HOME="$TMPHOME" USERPROFILE="$TMPHOME"
 WORK="$(mktemp -d)"
-trap "rm -rf '$TMPHOME' '$WORK'" EXIT
+KIT="$(mktemp -d)"
+trap "rm -rf '$TMPHOME' '$WORK' '$KIT'" EXIT
+make_fixture_kit "$KIT"
 cd "$WORK"
 git init -q .
 
-# Same skip-install pattern as hyperframes-bundle.sh / slidev-bundle.sh:
-# AGENT_KIT_SKIP_BUNDLE_INSTALL=1 skips the real `npx skills add` (which would
-# fetch the archify skill bundle from npm). This validates the kit-side
-# scaffolding only: the archify bundle metadata loads as an npx-skills bundle,
-# the bundle list is honored, and the kit-side dispatch writes nothing into the
-# consumer repo.
+# AGENT_KIT_SKIP_BUNDLE_INSTALL=1 skips the real `npx skills add`. This
+# validates the kit-side scaffolding only: the fixture bundle metadata loads as
+# an npx-skills bundle, the bundle list is honored, and the kit-side dispatch
+# writes nothing into the consumer repo.
 export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
-# Bundle dispatch + no-leak: init with --bundles archify exits zero (the
+# Bundle dispatch + no-leak: init with --bundles fixture-npx exits zero (the
 # npx-skills kind is dispatched; skip-install means no real npx runs).
-"$KIT_ROOT/bin/agent-kit" init --preset productivity --agents claude --bundles archify \
+"$KIT/bin/agent-kit" init --preset productivity --agents claude --bundles fixture-npx \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Positive: productivity preset's content lands globally.
@@ -29,18 +30,18 @@ assert_file_exists "$HOME/.claude/CLAUDE.md" "global CLAUDE.md"
 assert_content_contains "$HOME/.claude/CLAUDE.md" "Core Instructions" "core instruction in global CLAUDE.md"
 assert_dir_nonempty "$HOME/.claude/skills" "skills deployed to global ~/.claude/skills"
 
-# Bundles always install globally (~/.claude/skills/archify/); under skip-install
-# the kit-side dispatch must write nothing into the consumer repo.
-if [ -d "$WORK/.claude/skills/archify" ]; then
-  fail "archify should install globally, not into the consumer repo at .claude/skills/archify/"
+# Bundles always install globally (~/.claude/skills/fixture-npx/); under
+# skip-install the kit-side dispatch must write nothing into the consumer repo.
+if [ -d "$WORK/.claude/skills/fixture-npx" ]; then
+  fail "fixture-npx should install globally, not into the consumer repo at .claude/skills/fixture-npx/"
 else
-  ok "no archify/ directory leaked into consumer repo"
+  ok "no fixture-npx/ directory leaked into consumer repo"
 fi
 
 # Bundle verification accepts list-valued verify_paths, the explicit form Hive
 # uses for managed npx-skills bundles.
-mkdir -p "$HOME/.claude/skills/archify" "$HOME/.agents/skills/archify"
-touch "$HOME/.claude/skills/archify/SKILL.md" "$HOME/.agents/skills/archify/SKILL.md"
+mkdir -p "$HOME/.claude/skills/fixture-npx" "$HOME/.agents/skills/fixture-npx"
+touch "$HOME/.claude/skills/fixture-npx/SKILL.md" "$HOME/.agents/skills/fixture-npx/SKILL.md"
 unset AGENT_KIT_SKIP_BUNDLE_INSTALL
 node --input-type=module -e '
   const {
@@ -51,30 +52,22 @@ node --input-type=module -e '
     buildNpxSkillsArgs,
     isSafeNpxSkillsPackage,
   } = await import(process.argv[2]);
-  const { listAllCapabilities } = await import(process.argv[3]);
-  const invalidCodexPaths = listAllCapabilities().bundles
-    .filter((bundle) => bundle.installerKind === "npx-skills")
-    .flatMap((bundle) => normalizeBundleVerifyPaths(bundle.verifyPaths?.codex))
-    .filter((path) => !path.startsWith("~/.agents/skills/"));
-  if (invalidCodexPaths.length > 0) {
-    throw new Error(`npx-skills Codex paths target the wrong home: ${invalidCodexPaths.join(", ")}`);
-  }
-  const actual = normalizeBundleVerifyPaths(["~/.claude/skills/archify"]);
-  if (JSON.stringify(actual) !== JSON.stringify(["~/.claude/skills/archify"])) {
+  const actual = normalizeBundleVerifyPaths(["~/.claude/skills/fixture-npx"]);
+  if (JSON.stringify(actual) !== JSON.stringify(["~/.claude/skills/fixture-npx"])) {
     throw new Error(`unexpected normalized paths: ${JSON.stringify(actual)}`);
   }
   const safe = "https://github.com/example/skill/tree/0123456789abcdef0123456789abcdef01234567";
   if (!isSafeNpxSkillsPackage(safe)) throw new Error("immutable GitHub package rejected");
   if (isSafeNpxSkillsPackage(`${safe};touch /tmp/pwned`)) throw new Error("unsafe package accepted");
-  const args = buildNpxSkillsArgs({ packageSpec: safe, cliAgent: "codex", skills: ["archify"] });
-  const expected = ["-y", "skills", "add", safe, "--global", "--agent", "codex", "--skill", "archify", "--yes"];
+  const args = buildNpxSkillsArgs({ packageSpec: safe, cliAgent: "codex", skills: ["fixture-npx"] });
+  const expected = ["-y", "skills", "add", safe, "--global", "--agent", "codex", "--skill", "fixture-npx", "--yes"];
   if (JSON.stringify(args) !== JSON.stringify(expected)) {
     throw new Error(`unexpected installer args: ${JSON.stringify(args)}`);
   }
-  if (verify({ agents: ["claude", "codex"], capabilities: { bundles: ["archify"] } }) !== 0) {
+  if (verify({ agents: ["claude", "codex"], capabilities: { bundles: ["fixture-npx"] } }) !== 0) {
     throw new Error("bundle verification failed");
   }
-' "$KIT_ROOT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" "$KIT_ROOT/lib/capabilities.js" \
+' "$KIT/lib/verify.js" "$KIT_ROOT/lib/deploy.js" \
   || { fail "managed npx-skills metadata support failed"; exit 1; }
 
 # Immutable GitHub tree URLs name commits, not branches. The upstream skills

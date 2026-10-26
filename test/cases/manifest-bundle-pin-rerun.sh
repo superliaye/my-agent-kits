@@ -6,30 +6,33 @@
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$HERE/../lib/assertions.sh"
+. "$HERE/../lib/fixture-kit.sh"
 
 TMPHOME="$(mktemp -d)"; export HOME="$TMPHOME" USERPROFILE="$TMPHOME"
 WORK="$(mktemp -d)"
-trap "rm -rf '$TMPHOME' '$WORK'" EXIT
+KIT="$(mktemp -d)"
+trap "rm -rf '$TMPHOME' '$WORK' '$KIT'" EXIT
+make_fixture_kit "$KIT"
 cd "$WORK"
 git init -q .
 
 export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
-"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --bundles gstack \
+"$KIT/bin/agent-kit" init --preset engineering --agents claude --bundles fixture-setup \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
-# Simulate a maintainer pin bump: rewrite the manifest's recorded gstack pin to a
+# Simulate a maintainer pin bump: rewrite the manifest's recorded bundle pin to a
 # stale value that no longer matches the kit's pinned_commit.
 MANIFEST="$HOME/.agent-kit/manifest.json"
 node -e '
   const fs=require("fs");
   const m=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));
-  for (const b of m.bundles) if (b.name==="gstack") b.pin="0000000000000000000000000000000000000000";
+  for (const b of m.bundles) if (b.name==="fixture-setup") b.pin="0000000000000000000000000000000000000000";
   fs.writeFileSync(process.argv[1], JSON.stringify(m,null,2));
 ' "$MANIFEST"
 
 UPD_OUT="$(mktemp)"
-"$KIT_ROOT/bin/agent-kit" update --current > "$UPD_OUT" 2>&1 \
+"$KIT/bin/agent-kit" update --current > "$UPD_OUT" 2>&1 \
   || { fail "agent-kit update exited non-zero"; cat "$UPD_OUT"; exit 1; }
 
 # Stale pin != kit pin → the pin-skip branch must NOT fire.

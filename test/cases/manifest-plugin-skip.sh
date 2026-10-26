@@ -4,36 +4,38 @@
 # observable in the container WITHOUT a real `claude` CLI — the skip happens
 # before any claude call, so we assert on stdout that update never re-enters the
 # marketplace-add / install path. (Regression: update used to reinstall every
-# selected plugin, e.g. ui-ux-pro-max + superpowers, on every run.)
+# selected plugin on every run.)
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$HERE/../lib/assertions.sh"
+. "$HERE/../lib/fixture-kit.sh"
 
 TMPHOME="$(mktemp -d)"; export HOME="$TMPHOME" USERPROFILE="$TMPHOME"
 WORK="$(mktemp -d)"
-trap "rm -rf '$TMPHOME' '$WORK'" EXIT
+KIT="$(mktemp -d)"
+trap "rm -rf '$TMPHOME' '$WORK' '$KIT'" EXIT
+make_fixture_kit "$KIT"
 cd "$WORK"
 git init -q .
 
 export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
-# Seed a manifest selecting plugins (the loop preset ships ui-ux-pro-max +
-# frontend-design). The plugin-skip env lets init record them without a real
-# install on a box that has no claude CLI.
-AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --preset loop --agents claude \
+# Seed a manifest selecting a plugin. The plugin-skip env lets init record it
+# without a real install on a box that has no claude CLI.
+AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT/bin/agent-kit" init --preset loop --agents claude --capabilities '+fixture-plugin' \
   || { fail "agent-kit init exited non-zero"; exit 1; }
-assert_content_contains "$HOME/.agent-kit/manifest.json" "ui-ux-pro-max" "manifest records selected plugin"
+assert_content_contains "$HOME/.agent-kit/manifest.json" "fixture-plugin" "manifest records selected plugin"
 
-# Mark both plugins as already installed in Claude's registry.
+# Mark the plugin as already installed in Claude's registry.
 mkdir -p "$HOME/.claude/plugins"
 cat > "$HOME/.claude/plugins/installed_plugins.json" <<'JSON'
-{ "ui-ux-pro-max": { "scope": "user" }, "frontend-design": { "scope": "user" } }
+{ "fixture-plugin": { "scope": "user" } }
 JSON
 
 # Update WITHOUT the plugin-skip env: install-if-absent must short-circuit on the
-# already-present plugins (no claude call, no marketplace re-add).
+# already-present plugin (no claude call, no marketplace re-add).
 OUT="$(mktemp)"
-"$KIT_ROOT/bin/agent-kit" update --current > "$OUT" 2>&1 \
+"$KIT/bin/agent-kit" update --current > "$OUT" 2>&1 \
   || { fail "agent-kit update exited non-zero"; cat "$OUT"; exit 1; }
 
 assert_content_contains "$OUT" "already installed; skipping" "update skips an already-installed plugin"

@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Opt-in capability: grill-to-design-doc ships only via experimenting-engineering.
-# That preset extends engineering AND pulls the superpowers plugin (a network
-# install), so we deploy onto the plugin-free engineering preset and opt the skill
-# in by flag. Asserts the skill folder, its companion template, and the full
-# /grill-with-docs dependency closure all co-deploy.
+# Asserts the skill folder, its companion template, and the full /grill-with-docs
+# dependency closure all co-deploy from that preset.
 
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -18,7 +16,7 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-"$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude --capabilities '+grill-to-design-doc' \
+"$KIT_ROOT/bin/agent-kit" init --preset experimenting-engineering --agents claude \
   || { fail "agent-kit init exited non-zero"; exit 1; }
 
 # Skill folder + the companion template its SKILL.md links to must deploy together.

@@ -1,5 +1,5 @@
 name: experimenting-engineering
-description: Experimental add-on to engineering — adds the Anthropic superpowers plugin (TDD, debugging, brainstorming, plans, code review) and the calibrate-system-prompt skill. Opt-in, not default-selected; pick it when you want the superpowers plugin. The gstack bundle (30+ /gstack-* planning/design/QA/ship slash commands) stays available as an opt-in bundle (pick it in the bundles step or pass --bundles gstack). Stable engineering preset stays bundle/plugin-free.
+description: Experimental add-on to engineering — adds the calibrate-system-prompt and grill-to-design-doc skills. Opt-in, not default-selected.
 default_agents: [claude]
 extends: engineering
 
@@ -9,8 +9,7 @@ capabilities:
     - calibrate-system-prompt
     - grill-to-design-doc
   agents: []
-  plugins:
-    - superpowers
+  plugins: []
   mcp: []
   hooks: []
   bundles: []

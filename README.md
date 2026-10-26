@@ -66,7 +66,7 @@ Flag reference:
 - `--no-preset` — start from an empty base and pick capabilities via `--capabilities` (or the interactive customize step). Cannot be combined with `--preset`. Interactively, selecting zero presets does the same
 - `--agents claude[,codex]` — which agents to deploy to
 - `--capabilities '+name,-name'` — tweak the preset's capability set on the fly
-- `--bundles name1,name2` — external installers (e.g. `gstack`) to run after capabilities deploy. Always install globally. Pass `--bundles ''` to skip all.
+- `--bundles name1,name2` — external installers to run after capabilities deploy. Always install globally. Pass `--bundles ''` to skip all.
 
 Updating:
 
@@ -84,9 +84,9 @@ The current Matt Pocock catalog is pinned to one upstream commit and excludes `a
 | Preset | Matt skills | Other contents |
 |---|---|---|
 | `engineering` | `code-review`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-me`, `grill-with-docs`, `grilling`, `handoff`, `implement`, `implement-spec`, `improve-codebase-architecture`, `prototype`, `research`, `retro`, `tdd`, `teach`, `to-questionnaire`, `to-spec`, `triage`, `wait-what`, `wayfinder`, `wizard`, `writing-for-agents` | Core engineering instructions and kit-owned delivery/review helpers |
-| `productivity` | `grill-me`, `grilling`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, `writing-for-agents` | Visual loops, document/media helpers, worker agents, and the Archify, HyperFrames, and Slidev bundles |
+| `productivity` | `grill-me`, `grilling`, `handoff`, `teach`, `to-questionnaire`, `wait-what`, `writing-for-agents` | Visual loops, document/media helpers, and worker agents |
 | `loop` | `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `grill-with-docs`, `grilling`, `improve-codebase-architecture` | Planning, acceptance-gated build, review, critique, retrospective, and visual feedback capabilities |
-| `experimenting-engineering` | Inherits the complete `engineering` set | Adds `calibrate-system-prompt`, `grill-to-design-doc`, and the Superpowers plugin |
+| `experimenting-engineering` | Inherits the complete `engineering` set | Adds `calibrate-system-prompt` and `grill-to-design-doc` |
 
 ## What's in here
 
@@ -97,8 +97,8 @@ The current Matt Pocock catalog is pinned to one upstream commit and excludes `a
 | `capabilities/skills/<name>/SKILL.md` | Reusable workflows — slash commands and multi-step skills. Authored in Claude format with `disable-model-invocation: true` for manual-only. Skills may optionally sit under one or more nested `@`-prefixed grouping folders (e.g. `skills/@my/<name>/`, `skills/@loop/@feedback-loops/<name>/`) for source organization; deploy flattens them back to `<skillsRoot>/<name>/`, so consumption is unchanged. |
 | `capabilities/agents/<name>/AGENT.md` | Spawnable sub-agents. Authored in Claude format; deployed as `~/.claude/agents/<name>.md` (source) and `~/.codex/agents/<name>.toml` (translated). Same optional `@`-grouping-folder layout as skills, flattened to `<name>` at deploy. |
 | `capabilities/snippets/*.md` | Reusable skill snippets. Authored once and inlined into each deployed `SKILL.md` at `<!-- include: <name> -->` markers, so the source stays DRY while deployed skills are self-contained (Claude Code has no runtime skill-to-skill composition). Not a capability type; never deployed standalone. |
-| `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers (e.g., superpowers) |
-| `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities (e.g., gstack — 50+ `/gstack-*` skills; hyperframes — HTML video rendering). Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <source>`). Always installed globally; common runtime deps auto-installed by the wizard. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
+| `capabilities/plugins/*.plugin.md` | Claude Code plugin pointers. The kit ships none; deploy still supports the kind |
+| `capabilities/bundles/*.bundle.md` | External installers wrapped as deployable capabilities. Two `installer.kind` flavors: `setup-script` (clone + run) and `npx-skills` (`npx skills add <source>`). Always installed globally; common runtime deps auto-installed by the wizard. The kit ships none; deploy still supports the kind. See [docs/maintaining-bundles.md](docs/maintaining-bundles.md). |
 | `bin/agent-kit` | Bash convenience launcher (`./bin/agent-kit …`) that just execs `node lib/wizard.js`; the Node command works the same in any shell |
 | `lib/wizard.js` + `lib/*.js` | Wizard implementation (Node 20+) |
 | `test/` | Docker-based test matrix |

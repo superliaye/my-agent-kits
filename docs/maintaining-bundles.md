@@ -1,6 +1,8 @@
 # Maintaining bundles
 
-A **bundle** wraps an external installer (e.g. [gstack](https://github.com/garrytan/gstack)) as a single capability that the wizard can deploy alongside instructions, skills, and plugins. Unlike skills (which the kit deploys by copying Markdown), bundles delegate to a third-party setup script — the kit's job is to clone the source at a pinned commit, ensure runtime deps, and run the installer with consistent flags.
+A **bundle** wraps an external installer as a single capability that the wizard can deploy alongside instructions, skills, and plugins. Unlike skills (which the kit deploys by copying Markdown), bundles delegate to a third-party setup script — the kit's job is to clone the source at a pinned commit, ensure runtime deps, and run the installer with consistent flags.
+
+The kit ships no bundles now; the kind and its deploy support remain.
 
 ## File layout
 
@@ -8,7 +10,7 @@ Each bundle is one file: `capabilities/bundles/<name>.bundle.md`. There are two 
 
 ### `installer.kind: setup-script` (default — clone + run)
 
-For upstream projects that ship a setup script in their repo (e.g. [gstack](https://github.com/garrytan/gstack)). The kit clones at a pinned SHA, runs the script once per selected agent.
+For upstream projects that ship a setup script in their repo. The kit clones at a pinned SHA, runs the script once per selected agent.
 
 ```yaml
 ---
@@ -36,7 +38,7 @@ license: MIT
 
 ### `installer.kind: npx-skills`
 
-For bundles packaged for the [`skills`](https://www.npmjs.com/package/skills) CLI (e.g. [hyperframes](https://github.com/heygen-com/hyperframes)). Pin an immutable GitHub commit URL and declare the exact skills and installed paths. The kit runs one non-interactive command per selected agent, so `host_flag_map` is not used.
+For bundles packaged for the [`skills`](https://www.npmjs.com/package/skills) CLI. Pin an immutable GitHub commit URL and declare the exact skills and installed paths. The kit runs one non-interactive command per selected agent, so `host_flag_map` is not used.
 
 ```yaml
 ---
@@ -76,14 +78,14 @@ list the slash commands the bundle adds, link to upstream docs, etc.
 
 The kit reads only the frontmatter. Field reference is in [lib/capabilities.js](../lib/capabilities.js) (search for `type === "bundles"`).
 
-## Updating gstack (or any bundle) to a newer upstream
+## Updating a bundle to a newer upstream
 
 1. **Pick the new commit.** Use a commit SHA from the upstream repo, not a tag or branch — the wizard's source-URL safety check requires a 40-char hex pin.
-2. **Edit the bundle file.** Bump `pinned_commit:` in [capabilities/bundles/gstack.bundle.md](../capabilities/bundles/gstack.bundle.md). If upstream changed its installer flags or runtime deps, update those too.
+2. **Edit the bundle file.** Bump `pinned_commit:` in `capabilities/bundles/<name>.bundle.md`. If upstream changed its installer flags or runtime deps, update those too.
 3. **Bump the kit version.** Update [package.json](../package.json) and add a [CHANGELOG.md](../CHANGELOG.md) entry under the new version. Bump the bundle's `added_in:` to match so the frontmatter records which kit version the change shipped in. (`added_in:` is metadata only — `agent-kit update` is a stateless global re-deploy with no per-repo delta detection, so it does not read this field to surface "new in preset.")
 4. **Test locally.** Run `npm test` (Docker, isolated) to catch regressions in the preset/state plumbing. `npm run test:host` is the opt-in inner-loop alternative — it writes to your real `~/.claude/`. The bundle install itself is skipped under `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`.
 5. **Commit, tag, push.**
-6. **Consumer-side pickup.** Users run `agent-kit update`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent — gstack's is, per its README.
+6. **Consumer-side pickup.** Users run `agent-kit update`. The wizard reads the new `pinned_commit:`, fetches it into the bundle cache (`~/.cache/agent-kit/bundles/<name>/`), and re-runs the installer. Upstream installers are expected to be idempotent.
 
 ## Adding a new bundle
 
@@ -92,7 +94,7 @@ The kit reads only the frontmatter. Field reference is in [lib/capabilities.js](
 3. Decide which agents the bundle supports via `host_flag_map`. Omit agents that aren't supported — the wizard will warn and skip those.
 4. List runtime deps in `requires:`. Currently the kit only special-cases `bun` (auto-installs via `bun.sh/install`). Other deps must be on PATH already; the kit's pre-flight will fail with an actionable message if missing.
 5. Add the bundle to a preset's `bundles:` array if it should be selected by default. Otherwise users can opt in via `--bundles <name>` or the interactive prompt.
-6. Add a test case under `test/cases/`. Mirror `test/cases/gstack-bundle.sh` — set `AGENT_KIT_SKIP_BUNDLE_INSTALL=1` and assert on the state file + scaffolding.
+6. Add a test case under `test/cases/`. Set `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`, run `init --bundles <name>`, and assert the manifest records the bundle and its pin, as `test/cases/manifest-bundle-pin-skip.sh` does for a fixture bundle.
 
 ## Why bundles exist (and what NOT to use them for)
 
