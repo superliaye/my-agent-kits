@@ -1,5 +1,5 @@
 name: productivity
-description: Productivity kit — Matt Pocock's seven stable productivity skills plus kit-owned visual-loop, diagramming, video, deck, presentation, document, vocabulary, and project tracking helpers, with HyperFrames, Slidev, and Archify bundles.
+description: Productivity kit — Matt Pocock's seven stable productivity skills plus kit-owned visual-loop, diagramming, deck, presentation, document, vocabulary, and project tracking helpers, with HyperFrames, Slidev, and Archify bundles.
 default_agents: [claude]
 
 capabilities:
@@ -18,7 +18,6 @@ capabilities:
     - desktop-app-loop
     - my-mermaid
     - my-dissolve-doc
-    - my-demo-video
     - my-slidev
     - my-present
     - illustrate
@@ -29,7 +28,6 @@ capabilities:
     - project-review
   agents:
     - my-mermaid-agent
-    - my-demo-video-agent
     - my-slidev-agent
   plugins: []
   mcp: []

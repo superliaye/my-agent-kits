@@ -4,6 +4,12 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.54.0] - 2026-10-26
+
+### Removed
+
+- **`/my-demo-video` and `my-demo-video-agent` no longer deploy** — video making moves to the `make-a-video` skill in the `ye` plugin (superliaye/yestack), where one session drives research, direction, and production instead of handing a fixed record-and-narrate recipe to a worker. Updates remove the manifest-owned deployments.
+
 ## [0.53.2] - 2026-10-24
 
 ### Removed
