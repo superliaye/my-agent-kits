@@ -13,7 +13,7 @@ WORK="$TMPROOT/work"
 mkdir -p "$HOME_DIR" "$WORK"
 git -C "$WORK" init -q .
 
-if (cd "$WORK" && HOME="$HOME_DIR" USERPROFILE="$HOME_DIR" AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 \
+if (cd "$WORK" && HOME="$HOME_DIR" USERPROFILE="$HOME_DIR" \
   "$KIT_ROOT/bin/agent-kit" init --preset productivity --agents claude,codex >/dev/null); then
   ok "productivity deploys my-domain-vocab for Claude and Codex"
 else

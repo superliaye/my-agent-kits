@@ -1,6 +1,6 @@
 ---
 name: onboard-capability
-description: Walk through adding a new capability (instruction / skill / plugin / bundle / hook / mcp) to my-agent-kits — picks the right type, creates the file with correct frontmatter, optionally wires it into a preset, drops in a test case, and bumps version + CHANGELOG. Use when adding new content to this kit; do NOT use for capabilities that are already deployed by `agent-kit init` in consumer repos.
+description: Walk through adding a new capability (instruction / skill / hook / mcp) to my-agent-kits — picks the right type, creates the file with correct frontmatter, optionally wires it into a preset, drops in a test case, and bumps version + CHANGELOG. Use when adding new content to this kit; do NOT use for capabilities that are already deployed by `agent-kit init` in consumer repos.
 ---
 
 # Onboard a new capability
@@ -11,12 +11,12 @@ description: Walk through adding a new capability (instruction / skill / plugin 
 | --- | --- | --- | --- |
 | A repo-agnostic rule concatenated into `CLAUDE.md` / `AGENTS.md` | `instruction` | `capabilities/instructions/<name>.instructions.md` | Block in `CLAUDE.md` / `AGENTS.md` |
 | A multi-step workflow + optional slash command | `skill` | `capabilities/skills/<name>/SKILL.md` (folder) | `~/.claude/skills/<name>/` (and `~/.agents/skills/<name>/` for Codex, with a manual-only `agents/openai.yaml` sidecar) |
-| A Claude Code marketplace plugin pointer | `plugin` | `capabilities/plugins/<name>.plugin.md` | `claude plugin install` (user scope) |
-| A wrapper around an external installer | `bundle` | `capabilities/bundles/<name>.bundle.md` | Installed by upstream installer; symlinked or copied into `~/.claude/skills/` |
 | A hook script | `hook` | `capabilities/hooks/<name>.sh` | (Wiring is TODO — verify before relying) |
 | An MCP server config | `mcp` | `capabilities/mcp/<name>.yaml` | (Wiring is TODO — verify before relying) |
 
 If you're not sure, default to **skill** — that's the type with the most coverage.
+
+An upstream repository — a plugin marketplace, published skills, or a repo with its own installer — does not belong here. Hive installs it directly as a Tile.
 
 ## 2. Create the file
 
@@ -24,9 +24,6 @@ Copy the nearest neighbor of the same type. Don't write frontmatter from scratch
 
 - **Instruction:** copy `capabilities/instructions/core.instructions.md` — note `description`, `applyTo`, `added_in`.
 - **Skill:** copy any `capabilities/skills/<existing>/SKILL.md`. Required frontmatter: `name`, `description`. Set `disable-model-invocation: true` if it should be slash-only (no model auto-invocation).
-- **Plugin:** the kit ships none to copy. Frontmatter needs `description`, `added_in`, `marketplace_source`, `marketplace_name`, `plugin_name`.
-- **Bundle (setup-script kind):** the kit ships none to copy; start from the setup-script template in `docs/maintaining-bundles.md`. Fields: `source`, `pinned_commit` (40-char SHA), `installer.command`, `installer.flags`, `host_flag_map`, `requires`, `verify_paths`.
-- **Bundle (npx-skills kind):** start from the npx-skills template in `docs/maintaining-bundles.md`. Fields: `installer.kind: npx-skills`, `installer.package`, `requires`, `verify_paths`. The upstream `skills` CLI does the host-aware install; we just pass `--agent` and `--skill '*'`.
 
 **Always set** `added_in: <next-kit-version>` in the new capability's frontmatter — it records which kit version the capability shipped in. (Metadata only: `agent-kit update` is a stateless global re-deploy with no per-repo delta detection, so it does not read `added_in` to surface "new in preset.")
 
@@ -50,10 +47,7 @@ Omit the preset edit if the capability is opt-in only (via `--capabilities '+nam
 Mirror the closest existing test in `test/cases/`. Naming matches the capability:
 
 - **Skill:** mirror `test/cases/claude-repo.sh` — assert the skill folder lands in `.claude/skills/<name>/` and a representative file (e.g. `SKILL.md`) exists.
-- **Bundle (setup-script):** set `AGENT_KIT_SKIP_BUNDLE_INSTALL=1`, run `init --bundles <name>`, and assert the manifest records the bundle + pinned commit, as `test/cases/manifest-bundle-pin-skip.sh` does for a fixture bundle.
-- **Bundle (npx-skills):** same skip-install pattern; assert the manifest records the package spec as the bundle pin. `test/cases/npx-skills-bundle.sh` covers the kind with a fixture bundle.
 - **Instruction:** mirror `test/cases/claude-md-concat.sh` — assert the rule body shows up in `CLAUDE.md`.
-- **Plugin:** mirror an existing plugin test if one exists; otherwise an assert on the state file's `plugins:` list is the minimum.
 
 The test runner is `npm test` (builds + runs Docker — isolated, doesn't touch your host's `~/.claude/`). For faster inner-loop iteration use `npm run test:host` — that mode writes to your real `$HOME/.claude/` and `$HOME/.codex/`, so only use it when you know what you're doing.
 
@@ -80,7 +74,6 @@ One commit. Suggested subject:
 
 - New capability in a preset: `feat(vX.Y.Z): add <name> <type> to <preset> preset`
 - New capability opt-in only: `feat(vX.Y.Z): add <name> <type> (opt-in via --capabilities)`
-- Bundle: `feat(vX.Y.Z): add <name> bundle (<setup-script|npx-skills>)`
 
 ## Notes
 

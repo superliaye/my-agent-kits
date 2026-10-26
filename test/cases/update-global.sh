@@ -17,7 +17,6 @@ git init -q .
 # Defensive: engineering preset has plugins:[] and bundles:[] so neither install
 # path fires; update's plugin refresh is additionally guarded on claudeSelected,
 # and the manifest records codex-only, so it skips the refresh entirely.
-export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
 # Seed a global install. Both flags present => init runs non-interactively and
 # returns verify()'s code; a clean deploy yields 0. This also writes the manifest

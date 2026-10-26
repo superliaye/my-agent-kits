@@ -4,8 +4,6 @@
 # the review committee (so the committee sees critique-driven changes), composed by
 # invocable name; and the loop-build FLOW.md has a critique node. Structural greps,
 # suite-enforced (AGENTS.md "Verify by deploying").
-#
-# AGENT_KIT_SKIP_PLUGIN_INSTALL=1 prevents touching the live Claude Code plugin set.
 
 set -u
 HERE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -18,7 +16,7 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-AGENT_KIT_SKIP_PLUGIN_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init \
+"$KIT_ROOT/bin/agent-kit" init \
   --preset loop --agents claude \
   || { fail "agent-kit init --preset loop exited non-zero"; exit 1; }
 

@@ -7,7 +7,5 @@ capabilities:
     - core
   skills:
     - serenity-chokepoint-market-research
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

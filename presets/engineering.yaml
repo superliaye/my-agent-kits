@@ -43,7 +43,5 @@ capabilities:
     - writing-for-agents
     - thermo-nuclear-code-quality-review
     - newspaper
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

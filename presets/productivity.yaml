@@ -29,7 +29,5 @@ capabilities:
   agents:
     - my-mermaid-agent
     - my-slidev-agent
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

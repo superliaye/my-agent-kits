@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Usage: node test/lib/add-preset-capability.mjs <preset-name> <type> <capability-name>
 //   <preset-name>    e.g. "engineering", "productivity"
-//   <type>           "instructions" | "skills" | "plugins" | "mcp" | "hooks" | "bundles"
+//   <type>           "instructions" | "skills" | "agents" | "mcp" | "hooks"
 //   <capability-name> e.g. "react"
 //
 // Pushes <capability-name> onto the preset's capabilities.<type> array if not

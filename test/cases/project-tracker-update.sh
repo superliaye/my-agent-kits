@@ -9,7 +9,6 @@ KIT_ROOT="${KIT_ROOT:-$( cd "$HERE/../.." && pwd )}"
 TMPROOT="$(mktemp -d)"
 trap 'rm -rf "$TMPROOT"' EXIT
 export HOME="$TMPROOT/home" USERPROFILE="$TMPROOT/home"
-export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 mkdir -p "$HOME" "$TMPROOT/work"
 cd "$TMPROOT/work"
 git init -q .

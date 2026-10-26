@@ -23,7 +23,7 @@ deploy_and_validate() {
   mkdir -p "$home" "$work"
   git -C "$work" init -q .
 
-  if HOME="$home" USERPROFILE="$home" AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 \
+  if HOME="$home" USERPROFILE="$home" \
     "$KIT_ROOT/bin/agent-kit" init --preset "$preset" --agents "$hosts"; then
     ok "$preset deploy for $hosts"
   else

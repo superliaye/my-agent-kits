@@ -40,7 +40,5 @@ capabilities:
     - smell-review
     - design-critic
     - product-critic
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

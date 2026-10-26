@@ -12,8 +12,6 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
-
 # First init: loop preset deploys the loop-build skill.
 "$KIT_ROOT/bin/agent-kit" init --preset loop --agents codex \
   || { fail "first init exited non-zero"; exit 1; }

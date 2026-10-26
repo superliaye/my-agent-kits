@@ -15,7 +15,7 @@ deploy_case() {
   local work="$TMPROOT/$preset-work"
   mkdir -p "$home" "$work"
   git -C "$work" init -q .
-  if HOME="$home" USERPROFILE="$home" AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 \
+  if HOME="$home" USERPROFILE="$home" \
     "$KIT_ROOT/bin/agent-kit" init --preset "$preset" --agents claude,codex >/dev/null; then
     ok "$preset deploys newspaper for Claude and Codex"
   else
@@ -43,7 +43,7 @@ RUNTIME_HOME="$TMPROOT/runtime-home"
 RUNTIME_WORK="$TMPROOT/runtime-work"
 mkdir -p "$RUNTIME_HOME" "$RUNTIME_WORK"
 git -C "$RUNTIME_WORK" init -q .
-if HOME="$RUNTIME_HOME" USERPROFILE="$RUNTIME_HOME" AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 \
+if HOME="$RUNTIME_HOME" USERPROFILE="$RUNTIME_HOME" \
   "$KIT_ROOT/bin/agent-kit" init --preset engineering --agents claude,codex >/dev/null; then
   ok "newspaper isolated runtime deployment"
 else

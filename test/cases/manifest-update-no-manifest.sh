@@ -12,8 +12,6 @@ trap "rm -rf '$TMPHOME' '$WORK'" EXIT
 cd "$WORK"
 git init -q .
 
-export AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1
-
 OUT="$(mktemp)"
 if "$KIT_ROOT/bin/agent-kit" update > "$OUT" 2>&1; then
   fail "update with no manifest must exit non-zero"

@@ -19,7 +19,7 @@ git init -q .
 
 # No --preset/--agents: --default alone must fully resolve the run.
 # `< /dev/null` asserts it never blocks waiting on a prompt.
-AGENT_KIT_SKIP_PLUGIN_INSTALL=1 AGENT_KIT_SKIP_BUNDLE_INSTALL=1 "$KIT_ROOT/bin/agent-kit" init --default < /dev/null \
+"$KIT_ROOT/bin/agent-kit" init --default < /dev/null \
   || { fail "agent-kit init --default exited non-zero"; exit 1; }
 
 # Global-only: artifacts land where Claude Code reads them.

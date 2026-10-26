@@ -9,7 +9,5 @@ capabilities:
     - calibrate-system-prompt
     - grill-to-design-doc
   agents: []
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

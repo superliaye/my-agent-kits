@@ -8,7 +8,5 @@ capabilities:
   skills:
     - prepare-peer-feedback
   agents: []
-  plugins: []
   mcp: []
   hooks: []
-  bundles: []

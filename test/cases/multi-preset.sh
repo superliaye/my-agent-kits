@@ -12,7 +12,6 @@ git init -q .
 
 # --preset accepts a comma-separated list. The resulting capability set is the
 # union of all named presets, deduped per type.
-export AGENT_KIT_SKIP_BUNDLE_INSTALL=1
 
 "$KIT_ROOT/bin/agent-kit" init --preset engineering,productivity --agents claude \
   || { fail "agent-kit init exited non-zero"; exit 1; }
