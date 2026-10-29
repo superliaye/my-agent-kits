@@ -1,6 +1,8 @@
 ## Audience
 
-Write for human reviewers. They can read the diff, so do not repeat details that are obvious from the code.
+Write for human reviewers who will read the code anyway. The summary carries what the code cannot: why the change exists, what a user or caller now sees differently, and decisions the code does not record. Write at outcome level and leave mechanism (how the code does it, its internal states, its edge cases) to the diff.
+
+The user's request sets the sections. When it names what to cover, write only those sections; otherwise use the structure below. Keep each prose section to one to three sentences unless the user asks for more.
 
 ## Structure
 
@@ -10,14 +12,12 @@ Write for human reviewers. They can read the diff, so do not repeat details that
 
    For issue fixes, cover the relevant parts of:
    - Problem: What symptom does the user see, or what incorrect behavior does the system exhibit?
-   - Root cause: Under what conditions does it happen, and why?
+   - Root cause: Why does it happen?
    - Fix: What approach does this change take?
 
    For non-fix changes, summarize:
    - Why: Why is the change needed?
    - Approach: What high-level strategy does the change use?
-
-   Reference specific implementation details only when they add context that a reviewer cannot efficiently infer from the diff.
 
 3. **Before and after**: When the change alters behavior that a person can observe, show it as a before/after pair.
 
@@ -35,7 +35,7 @@ Write for human reviewers. They can read the diff, so do not repeat details that
 
 ## Style
 
-- Be direct and brief. Assume the reader is an experienced engineer.
+- Assume the reader is an experienced engineer.
 - Prefer a useful executive summary over a chronological account of the work.
 - Do not pad the summary with filler, caveats, or generic statements.
 - Do not enumerate every file changed, function modified, or line edited.

@@ -4,6 +4,13 @@ All notable changes to this package.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.57.0] - 2026-10-29
+
+### Changed
+
+- **Change summaries get a reader review before delivery** — `/my-summarize-changes`, `/my-create-pr`, and `/my-commit-and-push` send the draft to one fresh reader, a senior engineer who wants to get back to work, one section at a time and verbatim. After each section the reader says what it took away, what to drop, what was missing, and a shorter wording; after the last section it checks the change for contradicted statements and missing outcomes. A revised draft gets one more review. The reply lists the cut details under **Left out**. Each skill now needs the `Agent` and `SendMessage` tools.
+- **Summary rules favor outcome over mechanism** — the user's request sets the sections, each prose section is one to three sentences, and the exception for implementation details "a reviewer cannot efficiently infer" is gone.
+
 ## [0.56.0] - 2026-10-26
 
 ### Removed

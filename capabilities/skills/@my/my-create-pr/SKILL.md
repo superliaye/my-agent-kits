@@ -1,7 +1,7 @@
 ---
 name: my-create-pr
 description: Commit, push, and open a pull request on the repo's remote host
-allowed-tools: Bash(git:*) Bash(gh:*)
+allowed-tools: Bash(git:*) Bash(gh:*) Agent SendMessage
 disable-model-invocation: true
 added_in: 0.3.0
 ---
@@ -22,5 +22,7 @@ Then create the pull request on the repo's remote host. Work out the host and th
 For the PR content, summarize the whole branch — every commit and the cumulative diff against the base branch — following the rules below. Derive a concise PR title from the Outcome and use the full summary as the PR body. Pass it as raw Markdown directly to the PR tool (e.g. GitHub renders it as the PR description); do NOT wrap it in a code fence — the fence in the rules is only for copy-paste delivery, which does not apply when the tool sets the body directly.
 
 <!-- include: change-summary-rules -->
+
+<!-- include: change-summary-review -->
 
 Return the PR URL when done.
